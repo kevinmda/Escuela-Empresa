@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"> <!--xmlns:th es lo que habilita que se pueda usar th. Hacer esto es una convencion estandar para que los IDEs reconozcan los atributos como validos-->
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar sesión</title>
+</head>
+<body>
+    <h2>Iniciar sesión</h2>
+
+    <p th:if="${param.error}" style="color: red;"> <!--th:if hace que <p> solo se muestre si la condicion se cumple-->
+        Email o contraseña incorrectos.              <!--${param.error} lee si la URL es /login?error, ?error es algo que se agrega automaticamente y por defecto a la URL si ocurre un error-->
+    </p>                                             <!--${...} Accede a Variables/Objetos del modelo o contexto. En este caso seria param, este es un Objeto especial que Thymeleaf siempre tiene disponible y representa los parametros de la query string de la URL actual (lo que va despues del ?)-->
+    <p th:if="${param.logout}" style="color: green;">
+        Sesión cerrada correctamente.
+    </p>
+
+    <form th:action="@{/login}" method="post"> <!--th:action="@{/login} es la manera de Thymeleaf de armar URLs de manera segura-->
+        <div>                                  <!--@{...} es sintaxis de URL expression, con esto Thymeleaf lo que hace es ajustar automaticamente la ruta completa-->
+            <label>Email:</label>
+            <input type="text" name="username" required> <!--Ojo con un detalle importante: aunque tu campo se llama email en la base de datos, Spring Security por defecto espera que el input del formulario se llame username-->
+        </div>
+        <div>
+            <label>Contraseña:</label>
+            <input type="password" name="password" required>
+        </div>
+        <button type="submit">Ingresar</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambiar Contraseña</title>
+</head>
+<body>
+    <h2>Cambiar Contraseña</h2>
+
+    <p th:if="${param.error}" style="color: red">
+        La Contraseña Actual es Incorrecta
+    </p>
+    <p th:if="${param.exito}" style="color: green">
+        Contraseña Actualizada correctamente
+    </p>
+
+    <form th:action="@{cambiar-contrasena}" method="post"> <!--th:action="@{/cambiarCon} es la manera de Thymeleaf de armar URLs de manera segura-->
+        <div>                                       <!--@{...} es sintaxis de URL expression, con esto Thymeleaf lo que hace es ajustar automaticamente la ruta completa-->
+            <label>Contraseña actual:</label>
+            <input type="password" name="actual" required>
+        </div>
+        <div>
+            <label>Contraseña nueva:</label>
+            <input type="password" name="nueva" required>
+        </div>
+        <button type="submit">Cambiar</button>
+    </form>
+</body>
+</html>
