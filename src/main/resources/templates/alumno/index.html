@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTN Pasantias al</title>
 
-    <!--<link rel="stylesheet" href="css/styles.css">-->
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 
 </head>
 <body>
     <header>
         <!--<img src="imagenes/CtnLogo.png" alt="CTN Logo" width="80" height="90"> -->
-        <h1 class="h-h1">Colegio Técnico Nacional de Asunción</h1>
+        <div class="h-Titulo"><h1>Colegio Técnico Nacional de Asunción</h1></div>
+        <div class="h-CambiarCon"><a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a></div>
     </header>
-    <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
-    <h1 class="h-h1">Test</h1>
+    <h1>Test</h1>
 </body>
 </html>
