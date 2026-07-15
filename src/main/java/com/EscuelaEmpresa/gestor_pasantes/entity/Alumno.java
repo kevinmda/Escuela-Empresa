@@ -8,6 +8,7 @@ import java.time.LocalDate;
 public class Alumno {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_Al")
     private Integer idAl;
     //atributos

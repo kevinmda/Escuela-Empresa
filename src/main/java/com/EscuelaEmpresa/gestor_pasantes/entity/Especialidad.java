@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 public class Especialidad {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_Esp")
     private Integer idEsp;
     //atributos

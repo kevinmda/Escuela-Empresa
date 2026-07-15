@@ -44,5 +44,3 @@ public class CambiarContrasenaController {
         return "redirect:/cambiar-contrasena?exito";
     }
 }
-//email: admin@ctn.com
-//Contrasena actual: 1234

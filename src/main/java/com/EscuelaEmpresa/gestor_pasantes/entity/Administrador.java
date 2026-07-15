@@ -1,5 +1,7 @@
 package com.EscuelaEmpresa.gestor_pasantes.entity;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -7,6 +9,7 @@ import jakarta.persistence.*;
 public class Administrador {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_Ad")
     private Integer idAd;
     //atributos
@@ -20,6 +23,9 @@ public class Administrador {
     @OneToOne                           //porque el administrador solo tiene un Usuario asociado (indica tipo de relacion)
     @JoinColumn(name = "id_Usr")        //la columna id_Usr de esta tabla apunta a una fila de usuario
     private Usuario usuario;            //esto dice quiero poder acceder a ese Usuario completo como un objeto, no solo como un número
+
+    @OneToMany(mappedBy = "administrador")
+    private List<Especialidad> especialidades;
 
     public Administrador() {} //constructor vacio, necesario porque internamente se crea un objeto vacio que luego recien se va llenando
     //getter y los setter. Estos son usados activamente por Hibernate para leer y escribir los valores de cada campo al convertir entre el objeto Java y la fila SQL
@@ -46,4 +52,7 @@ public class Administrador {
 
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
+
+    public List<Especialidad> getEspecialidades() { return especialidades; }
+    public void setEspecialidades(List<Especialidad> especialidades) { this.especialidades = especialidades; }
 }
