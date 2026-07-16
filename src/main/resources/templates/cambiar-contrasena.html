@@ -9,6 +9,14 @@
 
 </head>
 <body>
+    <header>
+        <img class="h-logo" th:src="@{/img/CtnLogo.png}" alt="CTN Logo">
+        <div class="h-titulo"><h1>Colegio Técnico Nacional de Asunción</h1></div>
+        <div class="h-links">
+            <a th:href="@{/home}">Inicio</a>
+            <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
+        </div>
+    </header>
     <h2>Cambiar Contraseña</h2>
 
     <p th:if="${param.error}" style="color: red">

@@ -10,9 +10,12 @@
 </head>
 <body>
     <header>
-        <!--<img src="imagenes/CtnLogo.png" alt="CTN Logo" width="80" height="90"> -->
-        <div class="h-Titulo"><h1>Colegio Técnico Nacional de Asunción</h1></div>
-        <div class="h-CambiarCon"><a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a></div>
+        <img class="h-logo" th:src="@{/img/CtnLogo.png}" alt="CTN Logo">
+        <div class="h-titulo"><h1>Colegio Técnico Nacional de Asunción</h1></div>
+        <div class="h-links">
+            <a th:href="@{/home}">Inicio</a>
+            <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
+        </div>
     </header>
     <h1>Test</h1>
 </body>

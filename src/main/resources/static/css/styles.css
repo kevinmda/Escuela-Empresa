@@ -19,3 +19,17 @@ header {
     align-items: center;
     padding: 1rem 2rem;
 }
+
+img {
+    display: block;
+}
+
+.h-logo {
+    width: 80px;
+    height: 90px;
+}
+
+.h-links {
+    display: flex;
+    gap: 1.5rem;
+}
