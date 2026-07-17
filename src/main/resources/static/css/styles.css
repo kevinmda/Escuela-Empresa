@@ -13,18 +13,20 @@ body {
 }
 
 header {
-    border-bottom: 4px black solid;
+    border-bottom: 3.5px black solid;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
 }
 
-img {
-    display: block;
+.h-titulo {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
 }
 
-.h-logo {
+.h-titulo-logo {
     width: 80px;
     height: 90px;
 }
@@ -32,4 +34,55 @@ img {
 .h-links {
     display: flex;
     gap: 1.5rem;
+}
+
+nav {
+    border-bottom: 3.5px black solid;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem;
+    gap: 1rem;
+}
+
+.nav-links {
+    text-decoration: none;
+    color: inherit;
+}
+
+main {
+    padding: 2rem 0.5rem;
+}
+
+img {
+    display: block;
+}
+
+/*---------------Inicio.html----------------*/
+#inicio-section-saludo {
+    padding: 0 0 0 1.5rem;
+}
+
+#inicio-section-info {
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+#inicio-info {
+    border: 3px rgb(28, 28, 28) solid;
+    border-radius: 45px;
+    background-color: #f5f5f5;
+    width: 400px;
+    padding: 1.5rem 2rem;
+}
+
+.info {
+    display: flex;
+    justify-content: space-between;
+}
+
+#info-titulo {
+    text-align: center;
+    margin-bottom: 0.5rem;
 }

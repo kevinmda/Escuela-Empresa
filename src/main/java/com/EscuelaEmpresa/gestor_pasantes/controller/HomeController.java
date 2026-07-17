@@ -49,7 +49,6 @@ public class HomeController {
         if (alumnoOpt.isPresent()) {
             Alumno alumno = alumnoOpt.get();
             model.addAttribute("alumno", alumno);
-            model.addAttribute("nombreUsuario", alumno.getNombres());
 
             return "alumno/index";
         }

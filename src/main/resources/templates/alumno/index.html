@@ -10,13 +10,35 @@
 </head>
 <body>
     <header>
-        <img class="h-logo" th:src="@{/img/CtnLogo.png}" alt="CTN Logo">
-        <div class="h-titulo"><h1>Colegio Técnico Nacional de Asunción</h1></div>
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/CtnLogo.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
+        </div>
         <div class="h-links">
             <a th:href="@{/home}">Inicio</a>
             <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
         </div>
     </header>
-    <h1>Test</h1>
+    <nav>
+        <a th:href="@{/imprimir}" class="nav-links">Imprimir</a>
+        <a class="nav-links">opcion2</a>
+        <a class="nav-links">opcion3</a>
+    </nav>
+    <main>
+        <section id="inicio-section-saludo">
+            <h1 th:text="|Bienvenido, ${alumno.nombres}|">Bienvenido, Alumno</h1>
+        </section>
+        <section id="inicio-section-info">
+            <div id="inicio-info">
+                <div id="info-titulo"><h2>Información</h2></div>
+                <div class="info"><span th:text="|Nombres: ${alumno.nombres}|"></span><span th:text="|Apellidos: ${alumno.apellidos}|"></span></div>
+                <p th:text="|CI: ${alumno.ci}|"></p>
+                <p th:text="|Sexo: ${alumno.sexo}|"></p>
+                <p th:text="|Telefono: ${alumno.telefono}|"></p>
+                <p th:text="|Email: ${alumno.email}|"></p>
+                <div class="info"><span th:text="|Curso: ${alumno.curso}|"></span><span th:text="|Sección: ${alumno.seccion}|"></span></div>
+            </div>
+        </section>
+    </main>
 </body>
 </html>

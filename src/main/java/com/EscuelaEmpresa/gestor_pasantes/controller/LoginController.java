@@ -3,7 +3,6 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
 @Controller //le dice a Spring que esta clase maneja peticiones HTTP y devuelve vistas (HTML) para renderizar
 public class LoginController {
 
