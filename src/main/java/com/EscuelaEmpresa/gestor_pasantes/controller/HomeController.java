@@ -21,9 +21,6 @@ public class HomeController {
     private final AdministradorRepository administradorRepository;
     private final AlumnoRepository alumnoRepository;
 
-
-    
-    
     public HomeController(UsuarioRepository usuarioRepository, AdministradorRepository administradorRepository,
             AlumnoRepository alumnoRepository) {
         this.usuarioRepository = usuarioRepository;
