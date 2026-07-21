@@ -20,12 +20,24 @@
         </div>
     </header>
     <nav>
-        <a th:href="@{/imprimir}" class="nav-links">Imprimir</a>
+        <a th:href="@{/alumno/imprimir}" class="nav-links">Imprimir</a>
         <a class="nav-links">opcion2</a>
         <a class="nav-links">opcion3</a>
     </nav>
     <main>
-        
+        <h1>Contrato del Alumno</h1>
+        <p>Hacé click en el botón para generar y ver tu contrato en PDF.</p>
+
+        <a th:href="@{/alumno/imprimir/Contrato.pdf}" target="_blank">
+            <button>Generar PDF</button>
+        </a>
+        <br>
+        <h1>Autorizacion del Alumno</h1>
+        <p>Hacé click en el botón para generar y ver tu autorizacion en PDF.</p>
+
+        <a th:href="@{/alumno/imprimir/Autorizacion.pdf}" target="_blank">
+            <button>Generar PDF</button>
+        </a>
     </main>
 </body>
 </html>
