@@ -33,8 +33,16 @@ public class Alumno {
     @JoinColumn(name = "id_Esp")       //la columna id_Esp de esta tabla apunta a una fila de especialidad
     private Especialidad especialidad; //lo mismo que con Usuario solo que ahora queremos poder acceder a esa Especialidad tambien como objeto
 
-    // Nota: id_Sup, id_Emp, id_PT quedan pendientes de mapear
-    // cuando trabajemos Supervisor, Empresa y Padre_Tutor.
+    @ManyToOne
+    @JoinColumn(name = "id_Emp")
+    private Empresa empresa;
+
+    @ManyToOne
+    @JoinColumn(name = "id_PT")
+    private PadreTutor padreTutor;
+
+    // Nota: id_Sup queda pendiente de mapear
+    // cuando trabajemos Supervisor
 
     public Alumno() {} //constructor vacio, necesario porque internamente se crea un objeto vacio que luego recien se va llenando
     //getter y los setter. Estos son usados activamente por Hibernate para leer y escribir los valores de cada campo al convertir entre el objeto Java y la fila SQL
@@ -73,4 +81,10 @@ public class Alumno {
 
     public Especialidad getEspecialidad() { return especialidad; }
     public void setEspecialidad(Especialidad especialidad) { this.especialidad = especialidad; }
+
+    public Empresa getEmpresa() { return empresa; }
+    public void setEmpresa(Empresa empresa) { this.empresa = empresa; }
+
+    public PadreTutor getPadreTutor() { return padreTutor; }
+    public void setPadreTutor(PadreTutor padreTutor) { this.padreTutor = padreTutor; }
 }
