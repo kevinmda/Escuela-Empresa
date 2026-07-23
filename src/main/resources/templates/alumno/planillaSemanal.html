@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTN Pasantias al Imprimir</title>
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+</head>
+<body>
+    <header>
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/CtnLogo.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
+        </div>
+        <div class="h-links">
+            <a th:href="@{/home}">Inicio</a>
+            <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
+        </div>
+    </header>
+    <nav>
+        <a th:href="@{/alumno/imprimir}" class="nav-links">Imprimir</a>
+        <a th:href="@{/alumno/planilla}" class="nav-links">Planilla Semanal</a>
+        <a class="nav-links">opcion3</a>
+    </nav>
+    <main>
+        <h1>Cargar Planilla Semanal</h1>
+
+        <div th:if="${error}" style="color: red; font-weight: bold;">
+            <p th:text="${error}"></p>
+        </div>
+        <div th:if="${exito}" style="color: green; font-weight: bold;">
+            <p th:text="${exito}"></p>
+        </div>
+
+        <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post">
+
+            <div th:each="dia, iterStat : *{dias}" class="dia-bloque">
+                <h3 th:text="${dia.nombreDia}"></h3>
+
+                <label>Fecha:</label>
+                <input type="date" th:field="*{dias[__${iterStat.index}__].fecha}">
+
+                <label>Descripción:</label>
+                <textarea th:field="*{dias[__${iterStat.index}__].descripcion}" maxlength="65"></textarea>
+
+                <label>Horas trabajadas:</label>
+                <input type="number" step="0.01" min="0.01" th:field="*{dias[__${iterStat.index}__].horas}">
+            </div>
+
+            <hr>
+
+            <label>Supervisor:</label>
+            <input type="text" th:field="*{supervisor}" maxlength="100">
+
+            <label>Conocimientos adquiridos:</label>
+            <textarea th:field="*{conocimientos}" maxlength="265"></textarea>
+
+            <label>Experiencia:</label>
+            <textarea th:field="*{experiencia}" maxlength="200"></textarea>
+
+            <label>Aprendizaje:</label>
+            <textarea th:field="*{aprendizaje}" maxlength="200"></textarea>
+
+            <button type="submit">Enviar</button>
+        </form>
+        <!-- <a th:href="@{/alumno/planilla/PlanillaSemanal.pdf}" target="_blank">
+            <button>Generar PDF</button>
+        </a> -->
+    </main>
+</body>
+</html>

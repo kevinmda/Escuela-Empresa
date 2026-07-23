@@ -13,11 +13,22 @@ public class Administrador {
     @Column(name = "id_Ad")
     private Integer idAd;
     //atributos
+    @Column(length = 100)
     private String nombres;
+
+    @Column(length = 100)
     private String apellidos;
+
+    @Column(length = 25)
     private String ci;
+
+    @Column(length = 35)
     private String telefono;
+
+    @Column(length = 100)
     private String email;
+
+    @Column(length = 45)
     private String cargo; //puede ser "administrativo" o "coordinador"
 
     @OneToOne                           //porque el administrador solo tiene un Usuario asociado (indica tipo de relacion)

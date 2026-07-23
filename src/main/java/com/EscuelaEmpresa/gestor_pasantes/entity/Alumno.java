@@ -12,17 +12,31 @@ public class Alumno {
     @Column(name = "id_Al")
     private Integer idAl;
     //atributos
+    @Column(length = 100)
     private String nombres;
+
+    @Column(length = 100)
     private String apellidos;
+
+    @Column(length = 25)
     private String ci;
+
+    @Column(length = 15)
     private String sexo;
 
     @Column(name = "fechaNac")
     private LocalDate fechaNac;
 
+    @Column(length = 35)
     private String telefono;
+
+    @Column(length = 100)
     private String email;
+
+    @Column(length = 45)
     private String curso;
+
+    @Column(length = 45)
     private String seccion;
 
     @OneToOne                          //porque el alumno solo tiene un Usuario asociado (indica tipo de relacion)

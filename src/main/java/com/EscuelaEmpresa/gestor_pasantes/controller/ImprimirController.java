@@ -125,7 +125,7 @@ public class ImprimirController {
     
             String nombrePadreTutor = primerNombre + " " + primerApellido;
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, nombrePadreTutor, 307, 640);
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, pt.getCi(), 135, 617.3f);
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, pt.getCi(), 137, 617.3f);
         }
         //Segunda Autorizacion (la de repuesto)
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 388, 366.8f);
@@ -142,7 +142,7 @@ public class ImprimirController {
     
             String nombrePadreTutor = primerNombre + " " + primerApellido;
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, nombrePadreTutor, 307, 239.8f);
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, pt.getCi(), 135, 217.2f);
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, pt.getCi(), 137, 217.2f);
         }
 
         // 5. Cerrar el lienzo (ya no se puede seguir escribiendo después de esto)

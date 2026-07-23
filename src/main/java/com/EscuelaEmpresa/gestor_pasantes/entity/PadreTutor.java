@@ -11,9 +11,16 @@ public class PadreTutor {
     @Column(name = "id_PT")
     private Integer idPt;
 
+    @Column(length = 100)
     private String nombres;
+
+    @Column(length = 100)
     private String apellidos;
+
+    @Column(length = 25)
     private String ci;
+
+    @Column(length = 100)
     private String email;
 
     public PadreTutor() {}

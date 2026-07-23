@@ -11,6 +11,7 @@ public class Especialidad {
     @Column(name = "id_Esp")
     private Integer idEsp;
     //atributos
+    @Column(length = 100)
     private String nombre;
 
     @OneToOne                               //cada especialidad solo tiene un coordinador (un administrador con cargo coordinador)

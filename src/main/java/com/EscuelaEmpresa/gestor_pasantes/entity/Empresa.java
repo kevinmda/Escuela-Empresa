@@ -11,10 +11,19 @@ public class Empresa {
     @Column(name = "id_Emp")
     private Integer idEmp;
     //atributos
+    @Column(length = 100)
     private String nombre;
+
+    @Column(length = 25)
     private String ruc;
+
+    @Column(length = 35)
     private String telefono;
+
+    @Column(length = 100)
     private String email;
+
+    @Column(length = 100)
     private String direccion;
 
     public Empresa() {}
