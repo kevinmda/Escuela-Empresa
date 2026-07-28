@@ -65,16 +65,16 @@ public class PlanillaSemanalService {
             throw new RuntimeException("El nombre del supervisor supera el máximo de 100 caracteres");
         }
 
-        if (form.getConocimientos() != null && form.getConocimientos().length() > 500) {
-            throw new RuntimeException("El campo Conocimientos supera el máximo de 500 caracteres");
+        if (form.getConocimientos() != null && form.getConocimientos().length() > 265) {
+            throw new RuntimeException("El campo Conocimientos supera el máximo de 265 caracteres");
         }
 
-        if (form.getExperiencia() != null && form.getExperiencia().length() > 500) {
-            throw new RuntimeException("El campo Experiencia supera el máximo de 500 caracteres");
+        if (form.getExperiencia() != null && form.getExperiencia().length() > 200) {
+            throw new RuntimeException("El campo Experiencia supera el máximo de 200 caracteres");
         }
 
-        if (form.getAprendizaje() != null && form.getAprendizaje().length() > 500) {
-            throw new RuntimeException("El campo Aprendizaje supera el máximo de 500 caracteres");
+        if (form.getAprendizaje() != null && form.getAprendizaje().length() > 200) {
+            throw new RuntimeException("El campo Aprendizaje supera el máximo de 200 caracteres");
         }
 
         // 3. Armar y guardar la PlanillaSemanal (cabecera)
@@ -138,5 +138,28 @@ public class PlanillaSemanalService {
         if (dia.getDescripcion() != null && dia.getDescripcion().length() > 500) {
             throw new RuntimeException("La descripción de " + dia.getNombreDia() + " supera el máximo de 500 caracteres");
         }
+    }
+
+    public PlanillaSemanalForm cargarParaEdicion(PlanillaSemanal planilla) {
+        PlanillaSemanalForm form = new PlanillaSemanalForm(); // ya viene con Lunes..Sábado precargados
+
+        form.setSupervisor(planilla.getSupervisor());
+        form.setConocimientos(planilla.getConocimientos());
+        form.setExperiencia(planilla.getExperiencia());
+        form.setAprendizaje(planilla.getAprendizaje());
+
+        List<PlanillaSemanalDetalle> detalles =
+            planillaSemanalDetalleRepository.findByPlanillaSemanal_IdPs(planilla.getIdPs());
+
+        for (PlanillaSemanalDetalle detalle : detalles) {
+            // getValue() de DayOfWeek: Lunes=1 ... Domingo=7, por eso el -1
+            int indice = detalle.getFecha().getDayOfWeek().getValue() - 1;
+            DiaForm dia = form.getDias().get(indice);
+            dia.setFecha(detalle.getFecha());
+            dia.setDescripcion(detalle.getDescripcion());
+            dia.setHoras(detalle.getHoras());
+        }
+
+        return form;
     }
 }

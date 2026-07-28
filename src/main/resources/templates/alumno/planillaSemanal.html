@@ -34,40 +34,75 @@
             <p th:text="${exito}"></p>
         </div>
 
-        <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post">
+        <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post" id="formPlanilla">
 
-            <div th:each="dia, iterStat : *{dias}" class="dia-bloque">
-                <h3 th:text="${dia.nombreDia}"></h3>
+            <fieldset id="fieldsetPlanilla" th:disabled="${!habilitado}">
 
-                <label>Fecha:</label>
-                <input type="date" th:field="*{dias[__${iterStat.index}__].fecha}">
+                <div th:each="dia, iterStat : *{dias}" class="dia-bloque">
+                    <h3 th:text="${dia.nombreDia}"></h3>
 
-                <label>Descripción:</label>
-                <textarea th:field="*{dias[__${iterStat.index}__].descripcion}" maxlength="65"></textarea>
+                    <label>Fecha:</label>
+                    <input type="date" th:field="*{dias[__${iterStat.index}__].fecha}">
 
-                <label>Horas trabajadas:</label>
-                <input type="number" step="0.01" min="0.01" th:field="*{dias[__${iterStat.index}__].horas}">
-            </div>
+                    <label>Descripción:</label>
+                    <textarea th:field="*{dias[__${iterStat.index}__].descripcion}" maxlength="65"></textarea>
 
-            <hr>
+                    <label>Horas trabajadas:</label>
+                    <input type="number" step="0.01" min="0.01" th:field="*{dias[__${iterStat.index}__].horas}">
+                </div>
 
-            <label>Supervisor:</label>
-            <input type="text" th:field="*{supervisor}" maxlength="100">
+                <hr>
 
-            <label>Conocimientos adquiridos:</label>
-            <textarea th:field="*{conocimientos}" maxlength="265"></textarea>
+                <label>Supervisor:</label>
+                <input type="text" th:field="*{supervisor}" maxlength="100">
 
-            <label>Experiencia:</label>
-            <textarea th:field="*{experiencia}" maxlength="200"></textarea>
+                <label>Conocimientos adquiridos:</label>
+                <textarea th:field="*{conocimientos}" maxlength="265"></textarea>
 
-            <label>Aprendizaje:</label>
-            <textarea th:field="*{aprendizaje}" maxlength="200"></textarea>
+                <label>Experiencia:</label>
+                <textarea th:field="*{experiencia}" maxlength="200"></textarea>
 
-            <button type="submit">Enviar</button>
+                <label>Aprendizaje:</label>
+                <textarea th:field="*{aprendizaje}" maxlength="200"></textarea>
+
+                <button type="submit">Enviar</button>
+                <button type="button" id="btnCancelar" onclick="limpiarFormulario()">Cancelar</button>
+
+            </fieldset>
+
+            <button type="button" id="btnNuevo" th:disabled="${habilitado}" onclick="habilitarFormulario()">Nuevo</button>
+
         </form>
+
+        <form method="get" th:action="@{/alumno/planilla}">
+            <label for="selectorPlanilla">Planillas cargadas:</label>
+            <select id="selectorPlanilla" name="idPs" onchange="this.form.submit()">
+                <option value="">Nueva planilla</option>
+                <option th:each="p : ${planillas}"
+                        th:value="${p.idPs}"
+                        th:text="${'Semana del ' + #temporals.format(p.fechaDesde, 'dd/MM/yyyy') + ' al ' + #temporals.format(p.fechaHasta, 'dd/MM/yyyy')}"
+                        th:selected="${p.idPs == idPsSeleccionado}">
+                </option>
+            </select>
+        </form>
+
         <!-- <a th:href="@{/alumno/planilla/PlanillaSemanal.pdf}" target="_blank">
             <button>Generar PDF</button>
         </a> -->
+        
+        <script>
+            function habilitarFormulario() {
+                limpiarFormulario(); // la misma función que ya usás en "Cancelar"
+                document.getElementById('selectorPlanilla').value = ''; // vuelve a "-- Nueva planilla --"
+                document.getElementById('fieldsetPlanilla').disabled = false;
+                document.getElementById('btnNuevo').disabled = true;
+            }
+
+            function limpiarFormulario() {
+                const campos = document.querySelectorAll('#fieldsetPlanilla input, #fieldsetPlanilla textarea');
+                campos.forEach(campo => campo.value = '');
+            }
+        </script>
     </main>
 </body>
 </html>
