@@ -23,9 +23,201 @@
         <a th:href="@{/admin/alumnos}" class="nav-links">Alumnos</a>
         <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
     </nav>
+
     <main>
-        <h2>Reportes de Cumplimiento</h2>
-        <p>Acá va la lista de quién entregó y quién no.</p>
+        <h2>Reporte de Cumplimiento Semanal</h2>
+
+        <div id="filtro-container" style="display:flex; gap:1rem; align-items:center; margin: 1.5rem 0;">
+
+            <!-- Si es administrativo, elige la especialidad. Si es coordinador, ya viene fija. -->
+            <div th:if="${esAdministrativo}">
+                <label for="select-especialidad">Especialidad</label><br>
+                <select id="select-especialidad">
+                    <option value="">-- Elegí una especialidad --</option>
+                    <option th:each="esp : ${especialidades}"
+                            th:value="${esp.idEsp}"
+                            th:text="${esp.nombre}"></option>
+                </select>
+            </div>
+
+            <div th:unless="${esAdministrativo}">
+                <label>Especialidad</label><br>
+                <span th:text="${especialidadFija.nombre}" style="font-weight:bold;"></span>
+                <input type="hidden" id="idEspFijo" th:value="${especialidadFija.idEsp}">
+            </div>
+
+            <div>
+                <label for="select-curso">Curso</label><br>
+                <select id="select-curso" disabled>
+                    <option value="">-- Elegí un curso --</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="select-seccion">Sección</label><br>
+                <select id="select-seccion" disabled>
+                    <option value="">-- Elegí una sección --</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="semana-container" style="display:none; align-items:center; gap:1rem; margin-bottom: 1rem;">
+            <button id="btn-semana-anterior" type="button">&laquo; Semana anterior</button>
+            <span id="semana-label" style="font-weight:bold;"></span>
+            <button id="btn-semana-siguiente" type="button">Semana siguiente &raquo;</button>
+        </div>
+
+        <table id="tabla-cumplimiento" border="1" style="width:100%; border-collapse: collapse; display:none;">
+            <thead>
+                <tr>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>CI</th>
+                    <th>Entregó esta semana</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-cumplimiento-body"></tbody>
+        </table>
+
+        <p id="mensaje-vacio" style="display:none;">No hay alumnos que coincidan con ese filtro.</p>
     </main>
+
+    <script th:inline="javascript">
+        const esAdministrativo = /*[[${esAdministrativo}]]*/ false;
+
+        const selectEspecialidad = document.getElementById('select-especialidad');
+        const idEspFijoInput = document.getElementById('idEspFijo');
+        const selectCurso = document.getElementById('select-curso');
+        const selectSeccion = document.getElementById('select-seccion');
+        const semanaContainer = document.getElementById('semana-container');
+        const semanaLabel = document.getElementById('semana-label');
+        const btnSemanaAnterior = document.getElementById('btn-semana-anterior');
+        const btnSemanaSiguiente = document.getElementById('btn-semana-siguiente');
+        const tabla = document.getElementById('tabla-cumplimiento');
+        const tablaBody = document.getElementById('tabla-cumplimiento-body');
+        const mensajeVacio = document.getElementById('mensaje-vacio');
+
+        let offsetSemana = 0; // 0 = semana actual, -1 = anterior, +1 = siguiente
+
+        function idEspSeleccionado() {
+            return esAdministrativo ? selectEspecialidad.value : idEspFijoInput.value;
+        }
+
+        function resetSelect(select, placeholder) {
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            select.disabled = true;
+        }
+
+        function cargarCursos() {
+            resetSelect(selectCurso, '-- Elegí un curso --');
+            resetSelect(selectSeccion, '-- Elegí una sección --');
+            ocultarTabla();
+
+            const idEsp = idEspSeleccionado();
+            if (!idEsp) return;
+
+            fetch(`/admin/api/cursos?idEsp=${idEsp}`)
+                .then(res => res.json())
+                .then(cursos => {
+                    cursos.forEach(curso => {
+                        const opt = document.createElement('option');
+                        opt.value = curso;
+                        opt.textContent = curso;
+                        selectCurso.appendChild(opt);
+                    });
+                    selectCurso.disabled = false;
+                });
+        }
+
+        function cargarSecciones() {
+            resetSelect(selectSeccion, '-- Elegí una sección --');
+            ocultarTabla();
+
+            const idEsp = idEspSeleccionado();
+            const curso = selectCurso.value;
+            if (!idEsp || !curso) return;
+
+            fetch(`/admin/api/secciones?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}`)
+                .then(res => res.json())
+                .then(secciones => {
+                    secciones.forEach(seccion => {
+                        const opt = document.createElement('option');
+                        opt.value = seccion;
+                        opt.textContent = seccion;
+                        selectSeccion.appendChild(opt);
+                    });
+                    selectSeccion.disabled = false;
+                });
+        }
+
+        function cargarCumplimiento() {
+            const idEsp = idEspSeleccionado();
+            const curso = selectCurso.value;
+            const seccion = selectSeccion.value;
+            if (!idEsp || !curso || !seccion) {
+                ocultarTabla();
+                return;
+            }
+
+            fetch(`/admin/api/cumplimiento?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}&seccion=${encodeURIComponent(seccion)}&offset=${offsetSemana}`)
+                .then(res => res.json())
+                .then(data => {
+                    semanaContainer.style.display = 'flex';
+                    semanaLabel.textContent = `Semana del ${data.semanaDesde} al ${data.semanaHasta}`;
+
+                    if (data.alumnos.length === 0) {
+                        tabla.style.display = 'none';
+                        mensajeVacio.style.display = 'block';
+                        return;
+                    }
+
+                    mensajeVacio.style.display = 'none';
+                    tablaBody.innerHTML = '';
+                    data.alumnos.forEach(a => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `
+                            <td>${a.nombres ?? ''}</td>
+                            <td>${a.apellidos ?? ''}</td>
+                            <td>${a.ci ?? ''}</td>
+                            <td style="color:${a.entrego ? 'green' : 'red'}; font-weight:bold;">
+                                ${a.entrego ? 'Sí' : 'No'}
+                            </td>
+                        `;
+                        tablaBody.appendChild(fila);
+                    });
+                    tabla.style.display = 'table';
+                });
+        }
+
+        function ocultarTabla() {
+            tabla.style.display = 'none';
+            tablaBody.innerHTML = '';
+            mensajeVacio.style.display = 'none';
+            semanaContainer.style.display = 'none';
+        }
+
+        btnSemanaAnterior.addEventListener('click', () => {
+            offsetSemana--;
+            cargarCumplimiento();
+        });
+
+        btnSemanaSiguiente.addEventListener('click', () => {
+            offsetSemana++;
+            cargarCumplimiento();
+        });
+
+        if (esAdministrativo) {
+            selectEspecialidad.addEventListener('change', cargarCursos);
+        } else {
+            // El coordinador ya tiene especialidad fija: cargamos los cursos apenas entra a la página
+            cargarCursos();
+        }
+
+        selectCurso.addEventListener('change', cargarSecciones);
+        selectSeccion.addEventListener('change', () => {
+            offsetSemana = 0; // al cambiar de sección, siempre arrancamos en la semana actual
+            cargarCumplimiento();
+        });
+    </script>
 </body>
 </html>
