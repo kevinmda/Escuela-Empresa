@@ -86,16 +86,35 @@
             </select>
         </form>
 
-        <!-- <a th:href="@{/alumno/planilla/PlanillaSemanal.pdf}" target="_blank">
-            <button>Generar PDF</button>
-        </a> -->
-        
+        <a th:if="${idPsSeleccionado != null}"
+            id="btnGenerarPdf"
+            th:href="@{/alumno/planilla/PlanillaSemanal.pdf(idPs=${idPsSeleccionado})}"
+            target="_blank"
+            class="btn btn-generar-pdf">
+            Generar PDF
+        </a>
+
+        <button th:if="${idPsSeleccionado == null}" id="btnGenerarPdf" type="button" class="btn btn-generar-pdf" disabled>
+            Generar PDF
+        </button>
+
         <script>
             function habilitarFormulario() {
-                limpiarFormulario(); // la misma función que ya usás en "Cancelar"
-                document.getElementById('selectorPlanilla').value = ''; // vuelve a "-- Nueva planilla --"
+                limpiarFormulario();
+                document.getElementById('selectorPlanilla').value = '';
                 document.getElementById('fieldsetPlanilla').disabled = false;
                 document.getElementById('btnNuevo').disabled = true;
+
+                // Deshabilitar/ocultar el botón de generar PDF
+                const btnPdf = document.getElementById('btnGenerarPdf');
+                if (btnPdf.tagName === 'A') {
+                    // Era un link activo -> lo convertimos en inerte visualmente
+                    btnPdf.removeAttribute('href');
+                    btnPdf.classList.add('deshabilitado'); // clase CSS opcional para verlo "apagado"
+                } else {
+                    // Ya era un <button disabled>, no hace falta hacer nada
+                    btnPdf.disabled = true;
+                }
             }
 
             function limpiarFormulario() {
