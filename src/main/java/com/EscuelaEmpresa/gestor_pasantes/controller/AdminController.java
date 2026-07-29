@@ -1,6 +1,9 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -12,7 +15,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoCumplimientoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoFiltradoDTO;
+import com.EscuelaEmpresa.gestor_pasantes.dto.CumplimientoSemanaDTO;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Especialidad;
@@ -58,30 +63,33 @@ public class AdminController {
 
     @GetMapping("/admin/alumnos")
     public String alumnos(Model model, Authentication authentication) {
+        cargarFiltroEnModelo(model, authentication);
+        return "administrador/alumnos";
+    }
 
+    @GetMapping("/admin/reportes")
+    public String reportes(Model model, Authentication authentication) {
+        cargarFiltroEnModelo(model, authentication);
+        return "administrador/reportes";
+    }
+
+    // Arma los datos del filtro (Especialidad/es o especialidad fija) que usan tanto
+    // la pantalla de Alumnos como la de Reportes
+    private void cargarFiltroEnModelo(Model model, Authentication authentication) {
         Administrador admin = obtenerAdminAutenticado(authentication);
         boolean esAdministrativo = "administrativo".equalsIgnoreCase(admin.getCargo());
 
         model.addAttribute("esAdministrativo", esAdministrativo);
 
         if (esAdministrativo) {
-            // Ve todas las especialidades y elige una en el filtro
             model.addAttribute("especialidades", especialidadRepository.findAll());
         } else {
-            // Coordinador: su especialidad ya viene fija, no elige
             if (admin.getEspecialidades() == null || admin.getEspecialidades().isEmpty()) {
                 throw new RuntimeException("El coordinador no tiene especialidad asignada");
             }
             Especialidad especialidadFija = admin.getEspecialidades().get(0);
             model.addAttribute("especialidadFija", especialidadFija);
         }
-
-        return "administrador/alumnos";
-    }
-
-    @GetMapping("/admin/reportes")
-    public String reportes() {
-        return "administrador/reportes";
     }
 
     // --- Endpoints AJAX para el filtro en cascada ---
@@ -107,6 +115,37 @@ public class AdminController {
                 .stream()
                 .map(AlumnoFiltradoDTO::new)
                 .toList();
+    }
+
+    // --- Reporte de cumplimiento semanal ---
+
+    @GetMapping("/admin/api/cumplimiento")
+    @ResponseBody
+    public CumplimientoSemanaDTO cumplimiento(@RequestParam Integer idEsp,
+                                               @RequestParam String curso,
+                                               @RequestParam String seccion,
+                                               @RequestParam(defaultValue = "0") int offset) {
+
+        // 1. Calcular el lunes y el sábado de la semana consultada (offset 0 = semana actual,
+        // -1 = semana anterior, +1 = semana siguiente, etc.)
+        LocalDate lunesSemanaActual = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate semanaDesde = lunesSemanaActual.plusWeeks(offset);
+        LocalDate semanaHasta = semanaDesde.plusDays(5); // lunes a sábado
+
+        // 2. Traer los alumnos del filtro y chequear, uno por uno, si entregaron esa semana
+        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEspAndCursoAndSeccion(idEsp, curso, seccion);
+
+        List<AlumnoCumplimientoDTO> resultado = alumnos.stream()
+                .map(alumno -> {
+                    boolean entrego = planillaSemanalRepository
+                            .existsByAlumno_IdAlAndFechaDesdeLessThanEqualAndFechaHastaGreaterThanEqual(
+                                    alumno.getIdAl(), semanaHasta, semanaDesde);
+                    return new AlumnoCumplimientoDTO(alumno.getIdAl(), alumno.getNombres(),
+                            alumno.getApellidos(), alumno.getCi(), entrego);
+                })
+                .toList();
+
+        return new CumplimientoSemanaDTO(semanaDesde, semanaHasta, resultado);
     }
 
     // --- Descarga en ZIP de todas las planillas de los alumnos filtrados ---
