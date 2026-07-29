@@ -260,6 +260,72 @@ public class ImprimirController {
         document.close();
     }
 
+    //----------------------------------------------------------------//
+    @GetMapping("/alumno/imprimir/Contrato_Vacio.pdf")
+    public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+
+        // 1. Cargar la plantilla PDF
+        File archivoOriginal = new File("src/main/resources/plantillas/CONTRATO_PEL_2025.pdf");
+        PDDocument document = Loader.loadPDF(archivoOriginal);
+
+        // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+
+        // 3. Enviar el PDF final al navegador
+        document.save(response.getOutputStream());
+        document.close();
+    }
+
+    @GetMapping("/alumno/imprimir/Autorizacion_Vacio.pdf")
+    public void generarPdfAutorizacionVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+
+        // 1. Cargar la plantilla PDF
+        File archivoOriginal = new File("src/main/resources/plantillas/AUTORIZACION_PADRES_PEL_25.pdf");
+        PDDocument document = Loader.loadPDF(archivoOriginal);
+
+        // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+
+        // 3. Enviar el PDF final al navegador
+        document.save(response.getOutputStream());
+        document.close();
+    }
+
+    @GetMapping("/alumno/imprimir/Ficha_Final_Pel_Vacio.pdf")
+    public void generarPdfFichaFinalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+
+        // 1. Cargar la plantilla PDF
+        File archivoOriginal = new File("src/main/resources/plantillas/FICHA_FINAL_PEL_2025.pdf");
+        PDDocument document = Loader.loadPDF(archivoOriginal);
+
+        // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+
+        // 3. Enviar el PDF final al navegador
+        document.save(response.getOutputStream());
+        document.close();
+    }
+
+    @GetMapping("/alumno/imprimir/Ficha_Final_Eval_Pel_Vacio.pdf")
+    public void generarPdfFichaFinalEvalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+
+        // 1. Cargar la plantilla PDF
+        File archivoOriginal = new File("src/main/resources/plantillas/FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
+        PDDocument document = Loader.loadPDF(archivoOriginal);
+
+        // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+
+        // 3. Enviar el PDF final al navegador
+        document.save(response.getOutputStream());
+        document.close();
+    }
+    //----------------------------------------------------------------//
+
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
