@@ -227,6 +227,39 @@ public class ImprimirController {
         document.close();
     }
 
+    @GetMapping("/alumno/imprimir/Ficha_Final_Eval_Pel.pdf")
+    public void generarPdfFichaFinalEvalPel(Authentication authentication, HttpServletResponse response) throws IOException {
+
+        // 1. Buscar los datos del alumno logueado
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        // 2. Cargar la plantilla PDF
+        File archivoOriginal = new File("src/main/resources/plantillas/FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
+        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDPage pagina = document.getPage(3);
+
+        // 3. Abrir el "lienzo" para escribir encima del PDF
+        PDPageContentStream contentStream = new PDPageContentStream(
+                document, pagina, PDPageContentStream.AppendMode.APPEND, true, true);
+
+        PDType1Font fuente = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+        float tamanioFuente = 10;
+
+        // 4. Escribir cada dato en su posición (coordenadas ya calculadas con la grilla)
+        escribirParrafo(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 445, 290, 127, 14);
+
+        // 5. Cerrar el lienzo (ya no se puede seguir escribiendo después de esto)
+        contentStream.close();
+
+        // 6. Configurar la respuesta HTTP para que el navegador muestre el PDF
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+
+        // 7. Enviar el PDF final al navegador
+        document.save(response.getOutputStream());
+        document.close();
+    }
+
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
