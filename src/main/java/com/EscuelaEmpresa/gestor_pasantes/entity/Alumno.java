@@ -2,6 +2,7 @@ package com.EscuelaEmpresa.gestor_pasantes.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.Period;
 
 @Entity
 @Table(name = "alumno")
@@ -101,4 +102,12 @@ public class Alumno {
 
     public PadreTutor getPadreTutor() { return padreTutor; }
     public void setPadreTutor(PadreTutor padreTutor) { this.padreTutor = padreTutor; }
+
+    @Transient
+    public int getEdad() {
+        if (this.fechaNac == null) {
+            return 0; // o podrías lanzar excepción, según prefieras manejar el caso
+        }
+        return Period.between(this.fechaNac, LocalDate.now()).getYears();
+    }
 }

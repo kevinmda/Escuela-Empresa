@@ -40,12 +40,7 @@ public class ImprimirController {
     public void generarPdfContrato(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Buscar los datos del alumno logueado
-        String email = authentication.getName();
-        Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        Alumno alumno = alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 2. Cargar la plantilla PDF
         File archivoOriginal = new File("src/main/resources/plantillas/CONTRATO_PEL_2025.pdf");
@@ -91,12 +86,7 @@ public class ImprimirController {
     public void generarPdfAutorizacion(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Buscar los datos del alumno logueado
-        String email = authentication.getName();
-        Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        Alumno alumno = alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 2. Cargar la plantilla PDF
         File archivoOriginal = new File("src/main/resources/plantillas/AUTORIZACION_PADRES_PEL_25.pdf");
@@ -157,6 +147,57 @@ public class ImprimirController {
         document.close();
     }
 
+    @GetMapping("/alumno/imprimir/Ficha_Final_Pel.pdf")
+    public void generarPdfFichaFinalPel(Authentication authentication, HttpServletResponse response) throws IOException {
+
+        // 1. Buscar los datos del alumno logueado
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        // 2. Cargar la plantilla PDF
+        File archivoOriginal = new File("src/main/resources/plantillas/FICHA_FINAL_PEL_2025.pdf");
+        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDPage pagina = document.getPage(0);
+
+        // 3. Abrir el "lienzo" para escribir encima del PDF
+        PDPageContentStream contentStream = new PDPageContentStream(
+                document, pagina, PDPageContentStream.AppendMode.APPEND, true, true);
+
+        PDType1Font fuente = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+
+        // 4. Escribir cada dato en su posición (coordenadas ya calculadas con la grilla)
+        escribirTexto(contentStream, fuente, 10, alumno.getNombres() + " " + alumno.getApellidos(), 210, 756);
+        escribirTexto(contentStream, fuente, 10, alumno.getCi(), 210, 716);
+        escribirTexto(contentStream, fuente, 10, String.valueOf(alumno.getEdad()), 399, 716);
+
+        escribirTexto(contentStream, fuente, 10, alumno.getEspecialidad().getNombre(), 210, 677);
+        escribirTexto(contentStream, fuente, 10, alumno.getCurso(), 402, 677);
+        escribirTexto(contentStream, fuente, 10, alumno.getSeccion(), 488, 677);
+        escribirTexto(contentStream, fuente, 10, alumno.getEmail(), 210, 599);
+        escribirTexto(contentStream, fuente, 10, alumno.getTelefono(), 451, 599);
+        escribirParrafo(contentStream, fuente, 10, "13 de octubre de 2026", 210, 560, 106, 14);
+        escribirParrafo(contentStream, fuente, 10, "21 de noviembre de 2026", 451, 560, 106, 14);
+
+        // 5. Cerrar el lienzo (ya no se puede seguir escribiendo después de esto)
+        contentStream.close();
+
+        // 6. Configurar la respuesta HTTP para que el navegador muestre el PDF
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "inline; filename=Autorizacion_alumno.pdf");
+
+        // 7. Enviar el PDF final al navegador
+        document.save(response.getOutputStream());
+        document.close();
+    }
+
+    private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
+        String email = authentication.getName();
+        Usuario usuario = usuarioRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
+            .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+    }
+
     // Método reutilizable para centrar texto en una coordenada X específica
     private void escribirTextoCentrado(PDPageContentStream contentStream, PDType1Font fuente,
                                         float tamanioFuente, String texto,
@@ -170,5 +211,44 @@ public class ImprimirController {
         contentStream.newLineAtOffset(posicionX, y);
         contentStream.showText(texto);
         contentStream.endText();
+    }
+
+    private void escribirTexto(PDPageContentStream contentStream, PDType1Font fuente, float tamanioFuente, String texto, float posicionX, float y) throws IOException {
+        contentStream.beginText();
+        contentStream.setFont(fuente, tamanioFuente);
+        contentStream.newLineAtOffset(posicionX, y);
+        contentStream.showText(texto);
+        contentStream.endText();
+    }
+
+    private void escribirParrafo(PDPageContentStream contentStream, PDType1Font fuente,
+                               float tamanioFuente, String texto,
+                               float x, float yInicial, float anchoMaximo, float interlineado) throws IOException {
+
+        String[] palabras = texto.split(" ");
+        StringBuilder lineaActual = new StringBuilder();
+        float y = yInicial;
+
+        for (String palabra : palabras) {
+            String lineaConPalabraNueva = lineaActual.isEmpty()
+                ? palabra
+                : lineaActual + " " + palabra;
+
+            float anchoLinea = fuente.getStringWidth(lineaConPalabraNueva) / 1000 * tamanioFuente;
+
+            if (anchoLinea > anchoMaximo) {
+                // La línea actual ya está completa, la dibujamos y arrancamos una nueva
+                escribirTexto(contentStream, fuente, tamanioFuente, lineaActual.toString(), x, y);
+                y -= interlineado;
+                lineaActual = new StringBuilder(palabra);
+            } else {
+                lineaActual = new StringBuilder(lineaConPalabraNueva);
+            }
+        }
+
+        // Dibujar la última línea que quedó pendiente
+        if (!lineaActual.isEmpty()) {
+            escribirTexto(contentStream, fuente, tamanioFuente, lineaActual.toString(), x, y);
+        }
     }
 }

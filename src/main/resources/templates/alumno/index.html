@@ -22,11 +22,10 @@
     <nav>
         <a th:href="@{/alumno/imprimir}" class="nav-links">Imprimir</a>
         <a th:href="@{/alumno/planilla}" class="nav-links">Planilla Semanal</a>
-        <a class="nav-links">opcion3</a>
     </nav>
     <main>
         <section id="inicio-section-saludo">
-            <h1 th:text="|Bienvenido, ${alumno.nombres}|">Bienvenido, Alumno</h1>
+            <h1 th:text="|Bienvenido, ${alumno.nombres.trim().split(' ')[0]}|">Bienvenido, Alumno</h1>
         </section>
         <section id="inicio-section-info">
             <div id="inicio-info">
