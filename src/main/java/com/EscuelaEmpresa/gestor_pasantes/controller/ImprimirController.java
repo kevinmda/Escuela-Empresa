@@ -2,6 +2,11 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.util.List;
+import java.util.Locale;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -15,8 +20,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PadreTutor;
+import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,10 +32,12 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ImprimirController {
     private final UsuarioRepository usuarioRepository;
     private final AlumnoRepository alumnoRepository;
+    private final PlanillaSemanalRepository planillaSemanalRepository;
 
-    public ImprimirController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository) {
+    public ImprimirController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository, PlanillaSemanalRepository planillaSemanalRepository) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
+        this.planillaSemanalRepository = planillaSemanalRepository;
     }
 
     @GetMapping("/alumno/imprimir")
@@ -172,10 +181,39 @@ public class ImprimirController {
         escribirTexto(contentStream, fuente, 10, alumno.getEspecialidad().getNombre(), 210, 677);
         escribirTexto(contentStream, fuente, 10, alumno.getCurso(), 402, 677);
         escribirTexto(contentStream, fuente, 10, alumno.getSeccion(), 488, 677);
+
         escribirTexto(contentStream, fuente, 10, alumno.getEmail(), 210, 599);
         escribirTexto(contentStream, fuente, 10, alumno.getTelefono(), 451, 599);
-        escribirParrafo(contentStream, fuente, 10, "13 de octubre de 2026", 210, 560, 106, 14);
-        escribirParrafo(contentStream, fuente, 10, "21 de noviembre de 2026", 451, 560, 106, 14);
+
+        List<PlanillaSemanal> todasLasPlanillas =
+        planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
+
+        if (todasLasPlanillas.isEmpty()) {
+            // el alumno todavía no cargó ninguna planilla semanal
+            throw new RuntimeException("El alumno no tiene planillas cargadas, no se puede generar el documento");
+        }
+
+        LocalDate fechaInicioPasantia = todasLasPlanillas.stream()
+                .map(PlanillaSemanal::getFechaDesde)
+                .min(LocalDate::compareTo)
+                .orElseThrow();
+
+        LocalDate fechaFinPasantia = todasLasPlanillas.stream()
+                .map(PlanillaSemanal::getFechaHasta)
+                .max(LocalDate::compareTo)
+                .orElseThrow();
+
+        Locale localeEspanol = new Locale.Builder()
+                .setLanguage("es")
+                .setRegion("ES")
+                .build();
+
+        DateTimeFormatter formatoLargo = new DateTimeFormatterBuilder()
+                .appendPattern("d 'de' MMMM 'de' yyyy")
+                .toFormatter(localeEspanol);
+
+        escribirParrafo(contentStream, fuente, 10, fechaInicioPasantia.format(formatoLargo), 210, 560, 106, 14);
+        escribirParrafo(contentStream, fuente, 10, fechaFinPasantia.format(formatoLargo), 451, 560, 106, 14);
 
         // 5. Cerrar el lienzo (ya no se puede seguir escribiendo después de esto)
         contentStream.close();
