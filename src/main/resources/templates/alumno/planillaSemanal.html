@@ -87,7 +87,7 @@
 
         <a th:if="${idPsSeleccionado != null}"
             id="btnGenerarPdf"
-            th:href="@{/alumno/planilla/PlanillaSemanal.pdf(idPs=${idPsSeleccionado})}"
+            th:href="@{/alumno/planilla/Planilla_Semanal.pdf(idPs=${idPsSeleccionado})}"
             target="_blank"
             class="btn btn-generar-pdf">
             Generar PDF
@@ -97,30 +97,16 @@
             Generar PDF
         </button>
 
-        <script>
-            function habilitarFormulario() {
-                limpiarFormulario();
-                document.getElementById('selectorPlanilla').value = '';
-                document.getElementById('fieldsetPlanilla').disabled = false;
-                document.getElementById('btnNuevo').disabled = true;
-
-                // Deshabilitar/ocultar el botón de generar PDF
-                const btnPdf = document.getElementById('btnGenerarPdf');
-                if (btnPdf.tagName === 'A') {
-                    // Era un link activo -> lo convertimos en inerte visualmente
-                    btnPdf.removeAttribute('href');
-                    btnPdf.classList.add('deshabilitado'); // clase CSS opcional para verlo "apagado"
-                } else {
-                    // Ya era un <button disabled>, no hace falta hacer nada
-                    btnPdf.disabled = true;
-                }
-            }
-
-            function limpiarFormulario() {
-                const campos = document.querySelectorAll('#fieldsetPlanilla input, #fieldsetPlanilla textarea');
-                campos.forEach(campo => campo.value = '');
-            }
-        </script>
+        <br>
+        <br>
+        <h1>Planilla semanal vacio</h1>
+        <p>Como alternativa se puede descargar la planilla para rellenarlas a mano, pero posteriormente tendrian que subir el archivo</p>
+        <a th:href="@{/alumno/planilla/Planilla_Semanal_Vacio.pdf}" target="_blank">
+            <button>Descargar</button>
+        </a>
     </main>
+
+    <script th:src="@{/js/planillaSemanal.js}"></script>
+    
 </body>
 </html>

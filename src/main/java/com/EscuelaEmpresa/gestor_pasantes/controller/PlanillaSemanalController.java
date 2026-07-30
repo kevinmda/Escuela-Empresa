@@ -1,8 +1,11 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -108,7 +111,7 @@ public class PlanillaSemanalController {
 
     }
 
-    @GetMapping("/alumno/planilla/PlanillaSemanal.pdf")
+    @GetMapping("/alumno/planilla/Planilla_Semanal.pdf")
     public void generarPdfPlanillaSemanal(@RequestParam Integer idPs, Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Buscar los datos del alumno logueado
@@ -136,6 +139,22 @@ public class PlanillaSemanalController {
         // 6. Enviar el PDF final al navegador
         response.getOutputStream().write(pdfBytes);
         response.getOutputStream().flush();
+    }
+
+    @GetMapping("/alumno/planilla/Planilla_Semanal_Vacio.pdf")
+    public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+
+        // 1. Cargar la plantilla PDF
+        File archivoOriginal = new File("src/main/resources/plantillas/CONTROL_SEMANAL_PEL_2025.pdf");
+        PDDocument document = Loader.loadPDF(archivoOriginal);
+
+        // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+
+        // 3. Enviar el PDF final al navegador
+        document.save(response.getOutputStream());
+        document.close();
     }
 
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {

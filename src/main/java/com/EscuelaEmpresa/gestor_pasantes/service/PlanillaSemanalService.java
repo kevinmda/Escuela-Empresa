@@ -144,20 +144,20 @@ public class PlanillaSemanalService {
             throw new RuntimeException("Falta la fecha en " + dia.getNombreDia());
         }
 
-        if (dia.getHoras() == null) {
-            throw new RuntimeException("Faltan las horas en " + dia.getNombreDia());
-        }
-
-        if (dia.getHoras() <= 0) {
-            throw new RuntimeException("Las horas deben ser mayores a 0 en " + dia.getNombreDia());
-        }
-
         if (dia.getDescripcion() == null || dia.getDescripcion().isBlank()) {
             throw new RuntimeException("Falta la descripción en " + dia.getNombreDia());
         }
 
+        if (dia.getHoras() == null) {
+            throw new RuntimeException("Faltan las horas en " + dia.getNombreDia());
+        }
+
         if (dia.getDescripcion() != null && dia.getDescripcion().length() > 500) {
             throw new RuntimeException("La descripción de " + dia.getNombreDia() + " supera el máximo de 500 caracteres");
+        }
+
+        if (dia.getHoras() <= 0) {
+            throw new RuntimeException("Las horas deben ser mayores a 0 en " + dia.getNombreDia());
         }
 
         if (dia.getFecha() != null && dia.getFecha().getDayOfWeek() != diaEsperado) {
