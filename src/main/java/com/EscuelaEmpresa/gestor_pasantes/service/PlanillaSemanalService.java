@@ -1,5 +1,6 @@
 package com.EscuelaEmpresa.gestor_pasantes.service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -29,8 +30,15 @@ public class PlanillaSemanalService {
     public void guardarPlanilla(PlanillaSemanalForm form, Alumno alumno) {
 
         // Validar cada día ANTES de filtrar
-        for (DiaForm dia : form.getDias()) {
-            validarDia(dia);
+        DayOfWeek[] diasEsperados = {
+            DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+            DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY
+        };
+
+        // Validar cada día ANTES de filtrar
+        List<DiaForm> dias = form.getDias();
+        for (int i = 0; i < dias.size(); i++) {
+            validarDia(dias.get(i), diasEsperados[i]);
         }
 
         // 1. Filtrar solo los días que el alumno realmente cargó (fecha no vacía)
@@ -61,6 +69,19 @@ public class PlanillaSemanalService {
         }
 
         //valida el tamano de lo introducido en los campos de texto
+        if (form.getSupervisor() == null || form.getSupervisor().trim().isEmpty()) {
+        throw new RuntimeException("El campo Supervisor es obligatorio.");
+        }
+        if (form.getConocimientos() == null || form.getConocimientos().trim().isEmpty()) {
+            throw new RuntimeException("El campo Conocimientos es obligatorio.");
+        }
+        if (form.getExperiencia() == null || form.getExperiencia().trim().isEmpty()) {
+            throw new RuntimeException("El campo Experiencia es obligatorio.");
+        }
+        if (form.getAprendizaje() == null || form.getAprendizaje().trim().isEmpty()) {
+            throw new RuntimeException("El campo Aprendizaje es obligatorio.");
+        }
+
         if (form.getSupervisor() != null && form.getSupervisor().length() > 100) {
             throw new RuntimeException("El nombre del supervisor supera el máximo de 100 caracteres");
         }
@@ -108,7 +129,7 @@ public class PlanillaSemanalService {
         }
     }
 
-    private void validarDia(DiaForm dia) {
+    private void validarDia(DiaForm dia, DayOfWeek diaEsperado) {
 
         boolean tieneAlgunDato = dia.getFecha() != null 
                 || dia.getHoras() != null 
@@ -137,6 +158,13 @@ public class PlanillaSemanalService {
 
         if (dia.getDescripcion() != null && dia.getDescripcion().length() > 500) {
             throw new RuntimeException("La descripción de " + dia.getNombreDia() + " supera el máximo de 500 caracteres");
+        }
+
+        if (dia.getFecha() != null && dia.getFecha().getDayOfWeek() != diaEsperado) {
+            throw new RuntimeException(
+                "La fecha ingresada en la fila '" + dia.getNombreDia() + "' no corresponde a ese día de la semana. " +
+                "Verificá el calendario e intentá de nuevo."
+            );
         }
     }
 
