@@ -56,8 +56,9 @@ public class Alumno {
     @JoinColumn(name = "id_PT")
     private PadreTutor padreTutor;
 
-    // Nota: id_Sup queda pendiente de mapear
-    // cuando trabajemos Supervisor
+    @ManyToOne                         //muchos alumnos pueden tener el mismo supervisor asignado
+    @JoinColumn(name = "id_Sup")
+    private Supervisor supervisor;
 
     public Alumno() {} //constructor vacio, necesario porque internamente se crea un objeto vacio que luego recien se va llenando
     //getter y los setter. Estos son usados activamente por Hibernate para leer y escribir los valores de cada campo al convertir entre el objeto Java y la fila SQL
@@ -102,6 +103,9 @@ public class Alumno {
 
     public PadreTutor getPadreTutor() { return padreTutor; }
     public void setPadreTutor(PadreTutor padreTutor) { this.padreTutor = padreTutor; }
+
+    public Supervisor getSupervisor() { return supervisor; }
+    public void setSupervisor(Supervisor supervisor) { this.supervisor = supervisor; }
 
     @Transient
     public int getEdad() {

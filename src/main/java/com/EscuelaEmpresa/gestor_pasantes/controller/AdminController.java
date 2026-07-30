@@ -8,12 +8,15 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoCumplimientoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoFiltradoDTO;
@@ -23,12 +26,14 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Especialidad;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanalDetalle;
+import com.EscuelaEmpresa.gestor_pasantes.entity.Supervisor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EspecialidadRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.SupervisorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalPdfService;
 
@@ -44,6 +49,7 @@ public class AdminController {
     private final PlanillaSemanalRepository planillaSemanalRepository;
     private final PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository;
     private final PlanillaSemanalPdfService planillaSemanalPdfService;
+    private final SupervisorRepository supervisorRepository;
 
     public AdminController(UsuarioRepository usuarioRepository,
                             AdministradorRepository administradorRepository,
@@ -51,7 +57,8 @@ public class AdminController {
                             AlumnoRepository alumnoRepository,
                             PlanillaSemanalRepository planillaSemanalRepository,
                             PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
-                            PlanillaSemanalPdfService planillaSemanalPdfService) {
+                            PlanillaSemanalPdfService planillaSemanalPdfService,
+                            SupervisorRepository supervisorRepository) {
         this.usuarioRepository = usuarioRepository;
         this.administradorRepository = administradorRepository;
         this.especialidadRepository = especialidadRepository;
@@ -59,6 +66,7 @@ public class AdminController {
         this.planillaSemanalRepository = planillaSemanalRepository;
         this.planillaSemanalDetalleRepository = planillaSemanalDetalleRepository;
         this.planillaSemanalPdfService = planillaSemanalPdfService;
+        this.supervisorRepository = supervisorRepository;
     }
 
     @GetMapping("/admin/alumnos")
@@ -191,6 +199,97 @@ public class AdminController {
                 }
             }
         }
+    }
+
+    // --- Gestión de Supervisores (solo Coordinador) ---
+
+    @GetMapping("/admin/supervisores")
+    public String supervisores(Model model, Authentication authentication) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        List<Supervisor> supervisores = supervisorRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp());
+        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp());
+
+        model.addAttribute("especialidadFija", especialidadFija);
+        model.addAttribute("supervisores", supervisores);
+        model.addAttribute("alumnos", alumnos);
+
+        return "administrador/supervisores";
+    }
+
+    @PostMapping("/admin/supervisores/crear")
+    public String crearSupervisor(@RequestParam String nombres,
+                                   @RequestParam String apellidos,
+                                   @RequestParam String email,
+                                   Authentication authentication,
+                                   RedirectAttributes redirectAttributes) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        Supervisor supervisor = new Supervisor();
+        supervisor.setNombres(nombres);
+        supervisor.setApellidos(apellidos);
+        supervisor.setEmail(email);
+        supervisor.setEspecialidad(especialidadFija);
+
+        supervisorRepository.save(supervisor);
+
+        redirectAttributes.addFlashAttribute("exito", "Supervisor agregado correctamente.");
+        return "redirect:/admin/supervisores";
+    }
+
+    @PostMapping("/admin/supervisores/asignar")
+    public String asignarSupervisor(@RequestParam Integer idAl,
+                                     @RequestParam(required = false) Integer idSup,
+                                     Authentication authentication,
+                                     RedirectAttributes redirectAttributes) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        Alumno alumno = alumnoRepository.findById(idAl)
+                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+
+        // Seguridad: el coordinador solo puede tocar alumnos de su propia especialidad
+        if (!alumno.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
+            throw new AccessDeniedException("No podés modificar un alumno de otra especialidad");
+        }
+
+        if (idSup == null) {
+            alumno.setSupervisor(null); // se puede desasignar eligiendo "-- Sin asignar --"
+        } else {
+            Supervisor supervisor = supervisorRepository.findById(idSup)
+                    .orElseThrow(() -> new RuntimeException("Supervisor no encontrado"));
+
+            if (!supervisor.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
+                throw new AccessDeniedException("Ese supervisor no pertenece a tu especialidad");
+            }
+
+            alumno.setSupervisor(supervisor);
+        }
+
+        alumnoRepository.save(alumno);
+
+        redirectAttributes.addFlashAttribute("exito", "Supervisor actualizado correctamente.");
+        return "redirect:/admin/supervisores";
+    }
+
+    private Especialidad obtenerEspecialidadDeCoordinador(Administrador admin) {
+        boolean esAdministrativo = "administrativo".equalsIgnoreCase(admin.getCargo());
+
+        if (esAdministrativo) {
+            // La pantalla de Supervisores es exclusiva de Coordinación
+            throw new AccessDeniedException("Esta pantalla es solo para coordinadores");
+        }
+
+        if (admin.getEspecialidades() == null || admin.getEspecialidades().isEmpty()) {
+            throw new RuntimeException("El coordinador no tiene especialidad asignada");
+        }
+
+        return admin.getEspecialidades().get(0);
     }
 
     private String sanitizar(String texto) {

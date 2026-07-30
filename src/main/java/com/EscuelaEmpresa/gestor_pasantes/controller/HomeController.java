@@ -38,6 +38,14 @@ public class HomeController {
         Optional<Administrador> adminOpt = administradorRepository.findByUsuario_IdUsr(usuario.getIdUsr());
 
         if (adminOpt.isPresent()) {
+            Administrador admin = adminOpt.get();
+
+            // Administrativo y Coordinador comparten la misma tabla/rol, pero cada uno
+            // tiene su propia pantalla de inicio con su propio menú
+            if ("coordinador".equalsIgnoreCase(admin.getCargo())) {
+                return "coordinador/index";
+            }
+
             return "administrador/index";
         }
 

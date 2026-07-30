@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTN Pasantias coord</title>
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+</head>
+<body>
+    <header>
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/CtnLogo.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
+        </div>
+        <div class="h-links">
+            <a th:href="@{/home}">Inicio</a>
+            <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
+        </div>
+    </header>
+    <nav>
+        <a th:href="@{/admin/alumnos}" class="nav-links">Alumnos</a>
+        <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
+        <a th:href="@{/admin/supervisores}" class="nav-links">Supervisores</a>
+    </nav>
+</body>
+</html>
