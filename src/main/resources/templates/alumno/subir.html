@@ -25,20 +25,7 @@
         <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
     </nav>
     <main>
-        <section id="inicio-section-saludo">
-            <h1 th:text="|Bienvenido, ${alumno.nombres.trim().split(' ')[0]}|">Bienvenido, Alumno</h1>
-        </section>
-        <section id="inicio-section-info">
-            <div id="inicio-info">
-                <div id="info-titulo"><h2>Información</h2></div>
-                <div class="info"><span th:text="|Nombres: ${alumno.nombres}|"></span><span th:text="|Apellidos: ${alumno.apellidos}|"></span></div>
-                <p th:text="|CI: ${alumno.ci}|"></p>
-                <p th:text="|Sexo: ${alumno.sexo}|"></p>
-                <p th:text="|Telefono: ${alumno.telefono}|"></p>
-                <p th:text="|Email: ${alumno.email}|"></p>
-                <div class="info"><span th:text="|Curso: ${alumno.curso}|"></span><span th:text="|Sección: ${alumno.seccion}|"></span></div>
-            </div>
-        </section>
+        
     </main>
 </body>
 </html>
