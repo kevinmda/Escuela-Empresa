@@ -36,6 +36,9 @@
                 <p th:text="|Telefono: ${alumno.telefono}|"></p>
                 <p th:text="|Email: ${alumno.email}|"></p>
                 <div class="info"><span th:text="|Curso: ${alumno.curso}|"></span><span th:text="|Sección: ${alumno.seccion}|"></span></div>
+                <p th:text="${alumno.supervisor != null
+                                ? 'Supervisor asignado: ' + alumno.supervisor.nombres + ' ' + alumno.supervisor.apellidos
+                                : 'Supervisor asignado: aún no asignado'}"></p>
             </div>
         </section>
     </main>

@@ -22,6 +22,7 @@
     <nav>
         <a th:href="@{/admin/alumnos}" class="nav-links">Alumnos</a>
         <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
+        <a th:unless="${esAdministrativo}" th:href="@{/admin/supervisores}" class="nav-links">Supervisores</a>
     </nav>
 
     <main>
