@@ -1,6 +1,7 @@
 package com.EscuelaEmpresa.gestor_pasantes.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity                     //esto le dice a Hibernate que la clase representa una tabla, sin esto va a ser un java normal para JPA
 @Table(name = "usuario")    //esto indica especificamente a que tabla nos estamos refiriendo
@@ -15,6 +16,12 @@ public class Usuario {      //La Clase se llama Usuario con mayuscula para evita
     private String contrasena;
     private String email;
     private Boolean activo;
+
+    @Column(name = "token_activacion", length = 100)
+    private String tokenActivacion;
+
+    @Column(name = "token_expiracion")
+    private LocalDateTime tokenExpiracion;
 
     public Usuario() {} //constructor vacio, necesario porque internamente se crea un objeto vacio que luego recien se va llenando
     //getter y los setter. Estos son usados activamente por Hibernate para leer y escribir los valores de cada campo al convertir entre el objeto Java y la fila SQL
@@ -32,4 +39,10 @@ public class Usuario {      //La Clase se llama Usuario con mayuscula para evita
 
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }
+
+    public String getTokenActivacion() { return tokenActivacion; }
+    public void setTokenActivacion(String tokenActivacion) { this.tokenActivacion = tokenActivacion; }
+
+    public LocalDateTime getTokenExpiracion() { return tokenExpiracion; }
+    public void setTokenExpiracion(LocalDateTime tokenExpiracion) { this.tokenExpiracion = tokenExpiracion; }
 }
