@@ -216,7 +216,7 @@ public class AdminController {
         model.addAttribute("supervisores", supervisores);
         model.addAttribute("alumnos", alumnos);
 
-        return "administrador/supervisores";
+        return "coordinador/supervisores";
     }
 
     @PostMapping("/admin/supervisores/crear")

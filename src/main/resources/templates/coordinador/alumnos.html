@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTN Pasantias ad</title>
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+</head>
+<body>
+    <header>
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/CtnLogo.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
+        </div>
+        <div class="h-links">
+            <a th:href="@{/home}">Inicio</a>
+            <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
+        </div>
+    </header>
+    <nav>
+        <a th:href="@{/admin/alumnos}" class="nav-links">Alumnos</a>
+        <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
+        <a th:href="@{/admin/Supervisores}" class="nav-links">Supervisores</a>
+        <a th:unless="${esAdministrativo}" th:href="@{/admin/supervisores}" class="nav-links">Supervisores</a>
+    </nav>
+
+    <main>
+        <h2>Gestión de Alumnos</h2>
+
+        <div id="filtro-container" style="display:flex; gap:1rem; align-items:center; margin: 1.5rem 0;">
+
+            <!-- Si es administrativo, elige la especialidad. Si es coordinador, ya viene fija. -->
+            <div th:if="${esAdministrativo}">
+                <label for="select-especialidad">Especialidad</label><br>
+                <select id="select-especialidad">
+                    <option value="">-- Elegí una especialidad --</option>
+                    <option th:each="esp : ${especialidades}"
+                            th:value="${esp.idEsp}"
+                            th:text="${esp.nombre}"></option>
+                </select>
+            </div>
+
+            <div th:unless="${esAdministrativo}">
+                <label>Especialidad</label><br>
+                <span th:text="${especialidadFija.nombre}" style="font-weight:bold;"></span>
+                <input type="hidden" id="idEspFijo" th:value="${especialidadFija.idEsp}">
+            </div>
+
+            <div>
+                <label for="select-curso">Curso</label><br>
+                <select id="select-curso" disabled>
+                    <option value="">-- Elegí un curso --</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="select-seccion">Sección</label><br>
+                <select id="select-seccion" disabled>
+                    <option value="">-- Elegí una sección --</option>
+                </select>
+            </div>
+        </div>
+
+        <table id="tabla-alumnos" border="1" style="width:100%; border-collapse: collapse; display:none;">
+            <thead>
+                <tr>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>CI</th>
+                    <th>Email</th>
+                    <th>Curso</th>
+                    <th>Sección</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-alumnos-body"></tbody>
+        </table>
+
+        <div id="zip-container" style="margin-top: 1rem; display:none;">
+            <button id="btn-descargar-zip" type="button">Descargar planillas (ZIP)</button>
+        </div>
+
+        <p id="mensaje-vacio" style="display:none;">No hay alumnos que coincidan con ese filtro.</p>
+    </main>
+
+    <script th:inline="javascript">
+        const esAdministrativo = /*[[${esAdministrativo}]]*/ false;
+
+        const selectEspecialidad = document.getElementById('select-especialidad');
+        const idEspFijoInput = document.getElementById('idEspFijo');
+        const selectCurso = document.getElementById('select-curso');
+        const selectSeccion = document.getElementById('select-seccion');
+        const tabla = document.getElementById('tabla-alumnos');
+        const tablaBody = document.getElementById('tabla-alumnos-body');
+        const mensajeVacio = document.getElementById('mensaje-vacio');
+        const zipContainer = document.getElementById('zip-container');
+        const btnDescargarZip = document.getElementById('btn-descargar-zip');
+
+        function idEspSeleccionado() {
+            return esAdministrativo ? selectEspecialidad.value : idEspFijoInput.value;
+        }
+
+        function resetSelect(select, placeholder) {
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            select.disabled = true;
+        }
+
+        function cargarCursos() {
+            resetSelect(selectCurso, '-- Elegí un curso --');
+            resetSelect(selectSeccion, '-- Elegí una sección --');
+            ocultarTabla();
+
+            const idEsp = idEspSeleccionado();
+            if (!idEsp) return;
+
+            fetch(`/admin/api/cursos?idEsp=${idEsp}`)
+                .then(res => res.json())
+                .then(cursos => {
+                    cursos.forEach(curso => {
+                        const opt = document.createElement('option');
+                        opt.value = curso;
+                        opt.textContent = curso;
+                        selectCurso.appendChild(opt);
+                    });
+                    selectCurso.disabled = false;
+                });
+        }
+
+        function cargarSecciones() {
+            resetSelect(selectSeccion, '-- Elegí una sección --');
+            ocultarTabla();
+
+            const idEsp = idEspSeleccionado();
+            const curso = selectCurso.value;
+            if (!idEsp || !curso) return;
+
+            fetch(`/admin/api/secciones?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}`)
+                .then(res => res.json())
+                .then(secciones => {
+                    secciones.forEach(seccion => {
+                        const opt = document.createElement('option');
+                        opt.value = seccion;
+                        opt.textContent = seccion;
+                        selectSeccion.appendChild(opt);
+                    });
+                    selectSeccion.disabled = false;
+                });
+        }
+
+        function cargarAlumnos() {
+            ocultarTabla();
+
+            const idEsp = idEspSeleccionado();
+            const curso = selectCurso.value;
+            const seccion = selectSeccion.value;
+            if (!idEsp || !curso || !seccion) return;
+
+            fetch(`/admin/api/alumnos-filtrados?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}&seccion=${encodeURIComponent(seccion)}`)
+                .then(res => res.json())
+                .then(alumnos => {
+                    if (alumnos.length === 0) {
+                        mensajeVacio.style.display = 'block';
+                        return;
+                    }
+                    tablaBody.innerHTML = '';
+                    alumnos.forEach(a => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `
+                            <td>${a.nombres ?? ''}</td>
+                            <td>${a.apellidos ?? ''}</td>
+                            <td>${a.ci ?? ''}</td>
+                            <td>${a.email ?? ''}</td>
+                            <td>${a.curso ?? ''}</td>
+                            <td>${a.seccion ?? ''}</td>
+                        `;
+                        tablaBody.appendChild(fila);
+                    });
+                    tabla.style.display = 'table';
+                    zipContainer.style.display = 'block';
+                });
+        }
+
+        function ocultarTabla() {
+            tabla.style.display = 'none';
+            tablaBody.innerHTML = '';
+            mensajeVacio.style.display = 'none';
+            zipContainer.style.display = 'none';
+        }
+
+        btnDescargarZip.addEventListener('click', () => {
+            const idEsp = idEspSeleccionado();
+            const curso = selectCurso.value;
+            const seccion = selectSeccion.value;
+            if (!idEsp || !curso || !seccion) return;
+
+            window.location.href = `/admin/alumnos/zip?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}&seccion=${encodeURIComponent(seccion)}`;
+        });
+
+        if (esAdministrativo) {
+            selectEspecialidad.addEventListener('change', cargarCursos);
+        } else {
+            // El coordinador ya tiene especialidad fija: cargamos los cursos apenas entra a la página
+            cargarCursos();
+        }
+
+        selectCurso.addEventListener('change', cargarSecciones);
+        selectSeccion.addEventListener('change', cargarAlumnos);
+    </script>
+</body>
+</html>
