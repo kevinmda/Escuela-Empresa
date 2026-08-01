@@ -4,8 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration //con esta anotacion dice que esta clase se encarga de definir beans (objetos que Spring crea y gestiona por su cuenta) Sin esto Spring no sabria que hay metodos con anotacion Bean (@Bean)
@@ -18,10 +16,8 @@ public class SecurityConfig {
         this.loginFailureHandler = loginFailureHandler;
     }
 
-    @Bean //con esto le dice que el metodo crea un bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); //le dice que hasheo o encriptacion usar (en este caso BCrypt) Al declararlo como @bean, cualquier otra parte de la app (o el mismo Spring internamente) pueden llamarlo. Este objeto que se crea es el que se utiliza para el hasheado
-    }
+    // el PasswordEncoder ahora vive en PasswordEncoderConfig.java, para evitar dependencia circular
+    // con LoginFailureHandler (que tambien lo necesita)
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { //esto define cuales son las cadenas de filtros de seguridad por las cuales pasa cada peticion HTTP antes de llegar al Controlador. http es un objeto de la clase "HttpSecurity" que te proporciona una API fluida (especificamente Build Pattern) con la cual vas a ir configurando las reglas
