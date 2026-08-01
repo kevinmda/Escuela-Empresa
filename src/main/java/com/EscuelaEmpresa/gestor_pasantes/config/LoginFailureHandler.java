@@ -3,6 +3,7 @@ package com.EscuelaEmpresa.gestor_pasantes.config;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.EmailService;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.DisabledException;
@@ -40,7 +41,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-                                         AuthenticationException exception) throws IOException {
+                                         AuthenticationException exception) throws IOException, ServletException {
 
         // si el fallo no es por cuenta deshabilitada, usamos el comportamiento normal y listo
         if (!(exception instanceof DisabledException)) {
