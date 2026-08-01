@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificar código</title>
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+</head>
+<body>
+    <h2>Verificá tu cuenta</h2>
+
+    <p>Te enviamos un código de activación a tu correo. Ingresalo para poder iniciar sesión.</p>
+
+    <p th:if="${error}" style="color: red;" th:text="${error}"></p>
+
+    <form th:action="@{/verificar-codigo}" method="post">
+        <input type="hidden" name="email" th:value="${email}">
+        <div>
+            <label>Código:</label>
+            <input type="text" name="codigo" maxlength="6" required autofocus>
+        </div>
+        <button type="submit">Verificar</button>
+    </form>
+</body>
+</html>
