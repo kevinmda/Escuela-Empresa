@@ -44,7 +44,10 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
                                          AuthenticationException exception) throws IOException, ServletException {
 
         // si el fallo no es por cuenta deshabilitada, usamos el comportamiento normal y listo
-        if (!(exception instanceof DisabledException)) {
+        boolean esCuentaDeshabilitada = exception instanceof DisabledException
+        || exception.getCause() instanceof DisabledException;
+
+        if (!esCuentaDeshabilitada) {
             handlerPorDefecto.onAuthenticationFailure(request, response, exception);
             return;
         }
@@ -70,7 +73,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
         String codigo = generarCodigoNumerico();
 
         usuario.setTokenActivacion(codigo);
-        usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(15));
+        usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(5));
         usuarioRepository.save(usuario);
 
         emailService.enviarCorreoCodigoActivacion(usuario.getEmail(), codigo);

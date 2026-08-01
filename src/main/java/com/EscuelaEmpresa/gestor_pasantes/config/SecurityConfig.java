@@ -38,6 +38,10 @@ public class SecurityConfig {
                 // por defecto: .passwordParameter("password")
                 // esto esta bien tener en cuenta para entender un poco lo de login.html
             )
+            .rememberMe(remember -> remember
+            .key("gestor-pasantes-clave-secreta") // usada para firmar el token; podés cambiarla por cualquier string
+            .tokenValiditySeconds(1209600) // 14 dias en segundos
+            )
             .logout(logout -> logout.permitAll()); //esto activa la funcion de logout que viene de Spring Security en la URL "/logout". Permitiendo que cualquiera pueda acceder a esa URL para cerrar sesion
 
         return http.build(); //.build() aplica todas las configuraciones

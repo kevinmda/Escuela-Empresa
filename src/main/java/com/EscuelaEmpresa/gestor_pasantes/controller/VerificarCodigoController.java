@@ -20,8 +20,6 @@ public class VerificarCodigoController {
         this.usuarioRepository = usuarioRepository;
     }
 
-    // se muestra automaticamente despues de un login fallido por cuenta inactiva
-    // (el LoginFailureHandler redirige aca)
     @GetMapping("/verificar-codigo")
     public String mostrarFormulario(@RequestParam String email, Model model) {
         model.addAttribute("email", email);

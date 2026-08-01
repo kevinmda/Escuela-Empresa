@@ -21,8 +21,8 @@ public class EmailService {
             "¡Hola!\n\n" +
             "Tu código de activación es:\n\n" +
             codigo + "\n\n" +
-            "Ingresalo en la página para poder iniciar sesión. Este código vence en 15 minutos.\n\n" +
-            "Si no intentaste iniciar sesión, podés ignorar este correo.\n"
+            "Ingresalo en la página para poder iniciar sesión. Este código vence en 5 minutos.\n\n" +
+            "Si no intentaste iniciar sesión, puedes ignorar este correo.\n"
         );
 
         mailSender.send(mensaje);
