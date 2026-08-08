@@ -40,17 +40,34 @@ public class OlvideContrasenaController {
     }
 
     @GetMapping("/olvide-contrasena")
-    public String mostrarFormularioEmail(@RequestParam(required = false) String email, Model model) {
+    public String mostrarFormularioEmail(@RequestParam(required = false) String email, HttpSession session, Model model) {
+        // si llega el email por la URL (desde el link de login.html), lo guardamos en la sesion.
+        // si no llega (ej: alguien recarga la pagina), usamos el que ya estuviera guardado de antes
+        if (email != null) {
+            session.setAttribute(ATRIBUTO_SESION_EMAIL, email);
+        } else {
+            email = (String) session.getAttribute(ATRIBUTO_SESION_EMAIL);
+        }
+
+        // sin ningun email conocido (ni por URL ni por sesion), no tiene sentido mostrar esta pantalla
+        if (email == null) {
+            return "redirect:/login";
+        }
+
         model.addAttribute("email", email);
         return "olvide-contrasena";
     }
 
     @PostMapping("/olvide-contrasena")
-    public String enviarCodigo(@RequestParam String email, HttpSession session, Model model) {
+    public String enviarCodigo(HttpSession session, Model model) {
+        String email = (String) session.getAttribute(ATRIBUTO_SESION_EMAIL);
+
+        if (email == null) {
+            return "redirect:/login";
+        }
+
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
 
-        // solo generamos y mandamos el codigo si el usuario existe, pero lo que ve la
-        // persona en pantalla es lo mismo en ambos casos, para no revelar si el email esta registrado
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
             String codigo = generarCodigoNumerico();
@@ -68,11 +85,6 @@ public class OlvideContrasenaController {
                 return "olvide-contrasena";
             }
         }
-
-        // guardamos el email en la sesion del servidor: de aca en adelante, la pantalla de
-        // restablecer-contrasena va a operar SIEMPRE sobre este email, sin importar nada
-        // que llegue en el formulario
-        session.setAttribute(ATRIBUTO_SESION_EMAIL, email);
 
         return "redirect:/restablecer-contrasena";
     }
