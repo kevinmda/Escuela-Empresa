@@ -8,12 +8,11 @@
 <body>
     <h2>Restablecer contraseña</h2>
 
-    <p>Ingresá el código que te llegó por correo y elegí una nueva contraseña.</p>
+    <p>Estás restableciendo la contraseña de <strong th:text="${email}"></strong>. Ingresá el código que te llegó por correo y elegí una nueva contraseña.</p>
 
     <p th:if="${error}" style="color: red;" th:text="${error}"></p>
 
     <form th:action="@{/restablecer-contrasena}" method="post">
-        <input type="hidden" name="email" th:value="${email}">
         <div>
             <label>Código:</label>
             <input type="text" name="codigo" maxlength="6" required autofocus>
