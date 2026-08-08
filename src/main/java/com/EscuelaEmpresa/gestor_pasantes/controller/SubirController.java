@@ -140,6 +140,34 @@ public class SubirController {
         Files.copy(archivo.toPath(), response.getOutputStream());
     }
 
+    @PostMapping("/alumno/subir/{idDs}/eliminar")
+    public String eliminarDocumento(@PathVariable Integer idDs,
+                                     Authentication authentication,
+                                     RedirectAttributes redirectAttributes) throws IOException {
+
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        DocumentoSubido documento = documentoSubidoRepository.findById(idDs)
+                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+
+        // seguridad: que el alumno no pueda borrar documentos ajenos cambiando el idDs en la URL
+        if (!documento.getAlumno().getIdAl().equals(alumno.getIdAl())) {
+            throw new AccessDeniedException("No tenés permiso para eliminar este documento");
+        }
+
+        // borramos el archivo fisico primero; si no existiera (por algun motivo ya se perdio),
+        // igual seguimos y limpiamos el registro de la BD para no dejar basura ahi
+        File archivo = new File(documento.getRutaArchivo());
+        if (archivo.exists()) {
+            Files.delete(archivo.toPath());
+        }
+
+        documentoSubidoRepository.delete(documento);
+
+        redirectAttributes.addFlashAttribute("exito", "Documento eliminado correctamente.");
+        return "redirect:/alumno/subir";
+    }
+
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
