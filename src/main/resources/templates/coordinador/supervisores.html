@@ -60,16 +60,35 @@
                     <th>Nombres</th>
                     <th>Apellidos</th>
                     <th>Email</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:each="sup : ${supervisores}">
-                    <td th:text="${sup.nombres}"></td>
-                    <td th:text="${sup.apellidos}"></td>
-                    <td th:text="${sup.email}"></td>
+                    <td>
+                        <input type="text" th:form="${'editar-' + sup.idSup}" name="nombres" th:value="${sup.nombres}" required>
+                    </td>
+                    <td>
+                        <input type="text" th:form="${'editar-' + sup.idSup}" name="apellidos" th:value="${sup.apellidos}" required>
+                    </td>
+                    <td>
+                        <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}" required>
+                    </td>
+                    <td style="display:flex; gap:0.5rem;">
+                        <!-- Este form no tiene inputs propios adentro: los toma de la celdas de arriba via el atributo form="" -->
+                        <form th:id="${'editar-' + sup.idSup}" th:action="@{/admin/supervisores/editar}" method="post">
+                            <input type="hidden" name="idSup" th:value="${sup.idSup}">
+                            <button type="submit">Guardar</button>
+                        </form>
+                        <form th:action="@{/admin/supervisores/eliminar}" method="post"
+                              onsubmit="return confirm('¿Eliminar este supervisor? Los alumnos que lo tengan asignado van a quedar sin supervisor.');">
+                            <input type="hidden" name="idSup" th:value="${sup.idSup}">
+                            <button type="submit">Eliminar</button>
+                        </form>
+                    </td>
                 </tr>
                 <tr th:if="${supervisores.isEmpty()}">
-                    <td colspan="3">Todavía no cargaste ningún supervisor.</td>
+                    <td colspan="4">Todavía no cargaste ningún supervisor.</td>
                 </tr>
             </tbody>
         </table>

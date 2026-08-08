@@ -277,6 +277,68 @@ public class AdminController {
         return "redirect:/admin/supervisores";
     }
 
+    @PostMapping("/admin/supervisores/editar")
+    public String editarSupervisor(@RequestParam Integer idSup,
+                                    @RequestParam String nombres,
+                                    @RequestParam String apellidos,
+                                    @RequestParam String email,
+                                    Authentication authentication,
+                                    RedirectAttributes redirectAttributes) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        Supervisor supervisor = supervisorRepository.findById(idSup)
+                .orElseThrow(() -> new RuntimeException("Supervisor no encontrado"));
+
+        // Seguridad: el coordinador solo puede editar supervisores de su propia especialidad
+        if (!supervisor.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
+            throw new AccessDeniedException("No podés editar un supervisor de otra especialidad");
+        }
+
+        supervisor.setNombres(nombres);
+        supervisor.setApellidos(apellidos);
+        supervisor.setEmail(email);
+        supervisorRepository.save(supervisor);
+
+        redirectAttributes.addFlashAttribute("exito", "Supervisor editado correctamente.");
+        return "redirect:/admin/supervisores";
+    }
+
+    @PostMapping("/admin/supervisores/eliminar")
+    public String eliminarSupervisor(@RequestParam Integer idSup,
+                                      Authentication authentication,
+                                      RedirectAttributes redirectAttributes) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        Supervisor supervisor = supervisorRepository.findById(idSup)
+                .orElseThrow(() -> new RuntimeException("Supervisor no encontrado"));
+
+        // Seguridad: el coordinador solo puede eliminar supervisores de su propia especialidad
+        if (!supervisor.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
+            throw new AccessDeniedException("No podés eliminar un supervisor de otra especialidad");
+        }
+
+        // Antes de borrar, hay que desasignarlo de cualquier alumno que lo tenga puesto,
+        // porque la FK en la base no permite borrar un supervisor que todavía está en uso
+        List<Alumno> alumnosConEsteSupervisor = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp())
+                .stream()
+                .filter(alumno -> alumno.getSupervisor() != null && alumno.getSupervisor().getIdSup().equals(idSup))
+                .toList();
+
+        for (Alumno alumno : alumnosConEsteSupervisor) {
+            alumno.setSupervisor(null);
+            alumnoRepository.save(alumno);
+        }
+
+        supervisorRepository.delete(supervisor);
+
+        redirectAttributes.addFlashAttribute("exito", "Supervisor eliminado correctamente.");
+        return "redirect:/admin/supervisores";
+    }
+
     private Especialidad obtenerEspecialidadDeCoordinador(Administrador admin) {
         boolean esAdministrativo = "administrativo".equalsIgnoreCase(admin.getCargo());
 
