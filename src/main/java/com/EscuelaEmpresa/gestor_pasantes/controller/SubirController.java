@@ -83,7 +83,15 @@ public class SubirController {
         Files.createDirectories(carpetaDestino);
 
         Path rutaCompleta = carpetaDestino.resolve(nombreUnico);
-        archivo.transferTo(rutaCompleta.toFile());
+
+        // OJO: no usamos archivo.transferTo(rutaCompleta.toFile()) porque, con una ruta
+        // relativa, Tomcat la resuelve contra SU PROPIO directorio temporal interno
+        // (no contra el directorio de trabajo de la app), lo que tira FileNotFoundException.
+        // Usando Files.copy() con el InputStream, escribimos nosotros mismos con la ruta
+        // exacta que calculamos, sin depender de esa resolucion ambigua de Tomcat.
+        try (java.io.InputStream inputStream = archivo.getInputStream()) {
+            Files.copy(inputStream, rutaCompleta, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
 
         DocumentoSubido documento = new DocumentoSubido();
         String nombreOriginal = archivo.getOriginalFilename();
