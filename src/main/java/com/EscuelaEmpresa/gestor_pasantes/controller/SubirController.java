@@ -6,16 +6,20 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -106,6 +110,34 @@ public class SubirController {
 
         redirectAttributes.addFlashAttribute("exito", "Documento subido correctamente.");
         return "redirect:/alumno/subir";
+    }
+
+    @GetMapping("/alumno/subir/{idDs}/ver")
+    public void verDocumento(@PathVariable Integer idDs,
+                              Authentication authentication,
+                              HttpServletResponse response) throws IOException {
+
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        DocumentoSubido documento = documentoSubidoRepository.findById(idDs)
+                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+
+        // seguridad: que el alumno no pueda ver documentos ajenos cambiando el idDs en la URL
+        if (!documento.getAlumno().getIdAl().equals(alumno.getIdAl())) {
+            throw new AccessDeniedException("No tenés permiso para ver este documento");
+        }
+
+        File archivo = new File(documento.getRutaArchivo());
+        if (!archivo.exists()) {
+            throw new RuntimeException("El archivo ya no está disponible en el servidor");
+        }
+
+        response.setContentType("application/pdf");
+        // "inline" (no "attachment") para que el navegador lo abra en la misma pestaña/visor
+        // de PDF, en vez de forzar la descarga
+        response.setHeader("Content-Disposition", "inline; filename=" + documento.getNombreArchivo());
+
+        Files.copy(archivo.toPath(), response.getOutputStream());
     }
 
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
