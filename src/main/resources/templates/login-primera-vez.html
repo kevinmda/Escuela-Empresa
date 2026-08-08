@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Iniciar sesión</title>
+    <title>Iniciar sesión - Primera vez</title>
 
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 
@@ -13,12 +13,11 @@
     <p th:if="${param.error}" style="color: red;">
         Email o contraseña incorrectos.
     </p>
-    <p th:if="${param.bloqueado}" style="color: red;">
-        Tu cuenta fue bloqueada temporalmente por varios intentos fallidos. Probá de nuevo en 15 minutos.
-    </p>
     <p th:if="${param.errorCorreo}" style="color: red;">
         No pudimos enviarte el correo. Intentá iniciar sesión de nuevo en unos minutos.
     </p>
+
+    <p>Esta es tu primera vez ingresando. Después de poner tu contraseña, te vamos a mandar un código de activación por correo.</p>
 
     <form th:action="@{/login}" method="post">
         <div>
@@ -29,15 +28,9 @@
             <label>Contraseña:</label>
             <input type="password" name="password" required autofocus>
         </div>
-        <div>
-            <label>
-                <input type="checkbox" name="remember-me"> Recordarme mas tarde
-            </label>
-        </div>
         <button type="submit">Ingresar</button>
     </form>
 
-    <p><a th:href="@{/olvide-contrasena}">¿Olvidaste tu contraseña?</a></p>
     <p><a th:href="@{/login}">← Usar otro email</a></p>
 </body>
 </html>

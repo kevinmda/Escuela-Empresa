@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar sesión</title>
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+</head>
+<body>
+    <h2>Iniciar sesión</h2>
+
+    <p th:if="${param.logout}" style="color: green;">
+        Sesión cerrada correctamente.
+    </p>
+    <p th:if="${param.activado}" style="color: green;">
+        Cuenta activada correctamente. Ya podés iniciar sesión.
+    </p>
+    <p th:if="${param.restablecida}" style="color: green;">
+        Contraseña restablecida correctamente. Ya podés iniciar sesión.
+    </p>
+
+    <form th:action="@{/login-check}" method="post">
+        <div>
+            <label>Email:</label>
+            <input type="email" name="email" required autofocus>
+        </div>
+        <button type="submit">Continuar</button>
+    </form>
+</body>
+</html>
