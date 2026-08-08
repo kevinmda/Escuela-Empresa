@@ -17,6 +17,9 @@
         <div class="h-links">
             <a th:href="@{/home}">Inicio</a>
             <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro que quieres cerrar sesión?');">
+                <button type="submit" class="h-links-logout">Cerrar sesión</button>
+            </form>
         </div>
     </header>
     <nav>
@@ -101,7 +104,7 @@
         <br>
         <br>
         <h1>Planilla semanal vacio</h1>
-        <p>Como alternativa se puede descargar la planilla para rellenarlas a mano, pero posteriormente tendrian que subir el archivo</p>
+        <p>Como alternativa se puede descargar la planilla para rellenarlas completamente a mano</p>
         <a th:href="@{/alumno/planilla/Planilla_Semanal_Vacio.pdf}" target="_blank">
             <button>Descargar</button>
         </a>

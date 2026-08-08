@@ -2,6 +2,9 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +25,17 @@ public class VerificarCodigoController {
 
     @GetMapping("/verificar-codigo")
     public String mostrarFormulario(@RequestParam String email, Model model) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean yaAutenticado = authentication != null
+                && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getPrincipal());
+
+        if (yaAutenticado) {
+            return "redirect:/home";
+        }
+
         model.addAttribute("email", email);
         return "verificar-codigo";
     }
