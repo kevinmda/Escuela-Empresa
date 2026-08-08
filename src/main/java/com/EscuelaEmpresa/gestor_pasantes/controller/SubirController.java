@@ -86,7 +86,11 @@ public class SubirController {
         archivo.transferTo(rutaCompleta.toFile());
 
         DocumentoSubido documento = new DocumentoSubido();
-        documento.setNombreArchivo(archivo.getOriginalFilename());
+        String nombreOriginal = archivo.getOriginalFilename();
+        if (nombreOriginal != null && nombreOriginal.length() > 100) {
+            nombreOriginal = nombreOriginal.substring(0, 100); // el campo "nombre" en la BD es VARCHAR(100)
+        }
+        documento.setNombreArchivo(nombreOriginal);
         documento.setRutaArchivo(rutaCompleta.toString());
         documento.setFechaSubida(LocalDateTime.now());
         documento.setAlumno(alumno);

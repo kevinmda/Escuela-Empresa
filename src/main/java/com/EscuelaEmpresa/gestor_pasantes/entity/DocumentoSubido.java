@@ -4,18 +4,18 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "documento_subido")
+@Table(name = "documento_scan")
 public class DocumentoSubido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_Doc")
-    private Integer idDoc;
+    @Column(name = "id_DS")
+    private Integer idDs;
 
-    @Column(name = "nombre_archivo", length = 255)
+    @Column(name = "nombre", length = 100)
     private String nombreArchivo; // nombre original del archivo (lo que veia el alumno en su compu)
 
-    @Column(name = "ruta_archivo", length = 500)
+    @Column(name = "ruta", length = 200)
     private String rutaArchivo; // donde vive el archivo en el filesystem del servidor
 
     @Column(name = "fecha_subida")
@@ -25,8 +25,8 @@ public class DocumentoSubido {
     @JoinColumn(name = "id_Al")
     private Alumno alumno;
 
-    public Integer getIdDoc() { return idDoc; }
-    public void setIdDoc(Integer idDoc) { this.idDoc = idDoc; }
+    public Integer getIdDs() { return idDs; }
+    public void setIdDs(Integer idDs) { this.idDs = idDs; }
 
     public String getNombreArchivo() { return nombreArchivo; }
     public void setNombreArchivo(String nombreArchivo) { this.nombreArchivo = nombreArchivo; }
