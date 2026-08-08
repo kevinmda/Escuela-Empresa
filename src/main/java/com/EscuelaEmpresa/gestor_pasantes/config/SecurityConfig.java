@@ -10,10 +10,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity //esto activa el modulo de seguridad de Spring (Spring Security) pero aclarandole que vas a personalizar la seguridad por tu cuenta
 public class SecurityConfig {
 
-    private final LoginFailureHandler loginFailureHandler; // detecta cuenta inactiva y dispara el codigo
+    private final LoginFailureHandler loginFailureHandler; // detecta cuenta inactiva/bloqueada y actua en consecuencia
+    private final LoginSuccessHandler loginSuccessHandler; // resetea contadores de intentos al loguear con exito
 
-    public SecurityConfig(LoginFailureHandler loginFailureHandler) {
+    public SecurityConfig(LoginFailureHandler loginFailureHandler, LoginSuccessHandler loginSuccessHandler) {
         this.loginFailureHandler = loginFailureHandler;
+        this.loginSuccessHandler = loginSuccessHandler;
     }
 
     // el PasswordEncoder ahora vive en PasswordEncoderConfig.java, para evitar dependencia circular
@@ -23,15 +25,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { //esto define cuales son las cadenas de filtros de seguridad por las cuales pasa cada peticion HTTP antes de llegar al Controlador. http es un objeto de la clase "HttpSecurity" que te proporciona una API fluida (especificamente Build Pattern) con la cual vas a ir configurando las reglas
         http                                                                             //estos son una lista de reglas evaluadas en orden de arriba hacia abajo y se aplica la primera que coincida con la URL pedida. El orden y la complitud son muy importantes
             .authorizeHttpRequests(auth -> auth                                          //con .authorizeHttpRequests() lo que se hace es definir que rutas puede ver quien. auth es un objeto configurador de tipo "AuthorizeHttpRequestsConfigurer" que te da Spring Security para configurar el formulario, lo que esta despues de la flecha es lo que haces con ese form
-                .requestMatchers("/css/**", "/js/**", "/login", "/error", "/verificar-codigo").permitAll()    //esta regla dice que cualquiera puede entrar (logueado o no) si son las rutas /css/, /js/, /login, /error, o /verificar-codigo
+                .requestMatchers("/css/**", "/js/**", "/login", "/error", "/verificar-codigo", "/olvide-contrasena", "/restablecer-contrasena").permitAll()    //esta regla dice que cualquiera puede entrar (logueado o no) si son las rutas /css/, /js/, /login, /error, /verificar-codigo, /olvide-contrasena o /restablecer-contrasena
                 .requestMatchers("/admin/**").hasRole("ADMIN")                           //esta regla dice que cualquiera con el rol de ADMIN puede entrar si es la ruta /admin/
                 .requestMatchers("/alumno/**").hasRole("ALUMNO")                         //esta regla dice que cualquiera con el rol de ALUMNO puede entrar si es la ruta /alumno/
                 .anyRequest().authenticated()                                            //por ultimo esto dice que cualquier otra cosa que no matcheo ninguna de las anteriores tiene que estar autentificado (logueado) sin importar el rol
             )
             .formLogin(form -> form                                                      //.formLogin() le dice a Spring Security que se va a usar un formulario html tradicional. El primer form es un Objeto de tipo "FormLoginConfigurer" que te da Spring Security para configurar el formulario, lo que esta despues de la flecha es lo que haces con ese form
                 .loginPage("/login")                                                     //esto le dice que siempre que alguien quiere loguearse use esta URL "/login"
-                .defaultSuccessUrl("/home", true)                                            //esto le dice a donde mandar al usuario luego de que se haya logueado exitosamente. En este caso se le manda a la raiz (src/main/resources/templates/index.html) el parametro true es para indicarle que siempre se le mande ahi, sin importar donde trataba de acceder el usuario antes de mandarle a loguearse
-                .failureHandler(loginFailureHandler)                                     //reemplaza el comportamiento por defecto: si el fallo es por cuenta inactiva, dispara el codigo y redirige a /verificar-codigo en vez de mostrar el error generico
+                .successHandler(loginSuccessHandler)                                     //reemplaza defaultSuccessUrl: redirige a /home igual que antes, pero ademas resetea los contadores de intentos fallidos
+                .failureHandler(loginFailureHandler)                                     //reemplaza el comportamiento por defecto: cuenta bloqueada, cuenta inactiva (dispara el codigo), o contraseña incorrecta (cuenta el intento)
                 .permitAll()                                                             //este que se encuentra dentro de ".formLogin()" es el que permite especificamente el procesamiento del login (de la peticion POST/login que llega una vez que se envia el formulario desde el navegador)
                 // por defecto: .logoutSuccessUrl("/login?logout")
                 // por defecto: .usernameParameter("username")
