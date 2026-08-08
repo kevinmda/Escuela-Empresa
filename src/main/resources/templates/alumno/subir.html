@@ -28,7 +28,36 @@
         <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
     </nav>
     <main>
-        
+        <h2>Subir documento</h2>
+
+        <p th:if="${error}" style="color: red;" th:text="${error}"></p>
+        <p th:if="${exito}" style="color: green;" th:text="${exito}"></p>
+
+        <p>Subí acá la planilla que llenaste a mano, convertida a PDF.</p>
+
+        <form th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data">
+            <input type="file" name="archivo" accept="application/pdf" required>
+            <button type="submit">Subir</button>
+        </form>
+
+        <h3>Mis documentos subidos</h3>
+
+        <table th:if="${not #lists.isEmpty(documentos)}">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="doc : ${documentos}">
+                    <td th:text="${doc.nombreArchivo}"></td>
+                    <td th:text="${#temporals.format(doc.fechaSubida, 'dd/MM/yyyy HH:mm')}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p th:if="${#lists.isEmpty(documentos)}">Todavía no subiste ningún documento.</p>
     </main>
 </body>
 </html>
