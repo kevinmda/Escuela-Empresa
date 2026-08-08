@@ -16,6 +16,9 @@
     <p th:if="${param.logout}" style="color: green;">
         Sesión cerrada correctamente.
     </p>
+    <p th:if="${param.activado}" style="color: green;">
+        Cuenta activada correctamente. Ya podés iniciar sesión.
+    </p>
 
     <form th:action="@{/login}" method="post"> <!--th:action="@{/login} es la manera de Thymeleaf de armar URLs de manera segura-->
         <div>                                  <!--@{...} es sintaxis de URL expression, con esto Thymeleaf lo que hace es ajustar automaticamente la ruta completa-->
@@ -25,6 +28,11 @@
         <div>
             <label>Contraseña:</label>
             <input type="password" name="password" required>
+        </div>
+        <div>
+            <label>
+                <input type="checkbox" name="remember-me"> Recordame mas tarde
+            </label>
         </div>
         <button type="submit">Ingresar</button>
     </form>
