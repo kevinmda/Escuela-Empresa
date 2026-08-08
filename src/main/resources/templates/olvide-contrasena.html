@@ -15,11 +15,11 @@
     <form th:action="@{/olvide-contrasena}" method="post">
         <div>
             <label>Email:</label>
-            <input type="email" name="email" required autofocus>
+            <input type="email" name="email" th:value="${email}" required autofocus>
         </div>
         <button type="submit">Enviar código</button>
     </form>
 
-    <p><a th:href="@{/login}">← Volver al login</a></p>
+    <p><a th:href="@{/login(email=${email})}">← Volver al login</a></p>
 </body>
 </html>

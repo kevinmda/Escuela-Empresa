@@ -37,7 +37,7 @@
         <button type="submit">Ingresar</button>
     </form>
 
-    <p><a th:href="@{/olvide-contrasena}">¿Olvidaste tu contraseña?</a></p>
+    <p><a th:href="@{/olvide-contrasena(email=${email})}">¿Olvidaste tu contraseña?</a></p>
     <p><a th:href="@{/login}">← Usar otro email</a></p>
 </body>
 </html>

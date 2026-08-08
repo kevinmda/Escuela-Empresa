@@ -31,7 +31,8 @@ public class OlvideContrasenaController {
     }
 
     @GetMapping("/olvide-contrasena")
-    public String mostrarFormularioEmail() {
+    public String mostrarFormularioEmail(@RequestParam(required = false) String email, Model model) {
+        model.addAttribute("email", email);
         return "olvide-contrasena";
     }
 
@@ -53,6 +54,7 @@ public class OlvideContrasenaController {
             try {
                 emailService.enviarCorreoRecuperacion(usuario.getEmail(), codigo);
             } catch (MailException e) {
+                model.addAttribute("email", email);
                 model.addAttribute("error", "No pudimos enviar el correo. Intentá de nuevo en unos minutos.");
                 return "olvide-contrasena";
             }
