@@ -23,6 +23,15 @@ public class Usuario {      //La Clase se llama Usuario con mayuscula para evita
     @Column(name = "token_expiracion")
     private LocalDateTime tokenExpiracion;
 
+    @Column(name = "intentos_codigo")
+    private Integer intentosCodigo = 0;
+
+    @Column(name = "intentos_login")
+    private Integer intentosLogin = 0;
+
+    @Column(name = "bloqueado_hasta")
+    private LocalDateTime bloqueadoHasta;
+
     public Usuario() {} //constructor vacio, necesario porque internamente se crea un objeto vacio que luego recien se va llenando
     //getter y los setter. Estos son usados activamente por Hibernate para leer y escribir los valores de cada campo al convertir entre el objeto Java y la fila SQL
     public Integer getIdUsr() { return idUsr; }
@@ -45,4 +54,13 @@ public class Usuario {      //La Clase se llama Usuario con mayuscula para evita
 
     public LocalDateTime getTokenExpiracion() { return tokenExpiracion; }
     public void setTokenExpiracion(LocalDateTime tokenExpiracion) { this.tokenExpiracion = tokenExpiracion; }
+
+    public Integer getIntentosCodigo() { return intentosCodigo; }
+    public void setIntentosCodigo(Integer intentosCodigo) { this.intentosCodigo = intentosCodigo; }
+
+    public Integer getIntentosLogin() { return intentosLogin; }
+    public void setIntentosLogin(Integer intentosLogin) { this.intentosLogin = intentosLogin; }
+
+    public LocalDateTime getBloqueadoHasta() { return bloqueadoHasta; }
+    public void setBloqueadoHasta(LocalDateTime bloqueadoHasta) { this.bloqueadoHasta = bloqueadoHasta; }
 }

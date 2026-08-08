@@ -1,5 +1,7 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -8,6 +10,19 @@ public class LoginController {
 
     @GetMapping("/login") //esta anotacion va sobre el metodo y no sobre la clase. Lo que dice es que este metodo responde a peticiones HTTP tipo Get especificamente cuando la URL solicitada sea "/login"
     public String mostrarLogin() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // si ya hay alguien logueado (no es anonimo), lo mandamos directo a /home
+        // en vez de mostrarle el formulario de login de nuevo
+        boolean yaAutenticado = authentication != null
+                && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getPrincipal());
+
+        if (yaAutenticado) {
+            return "redirect:/home";
+        }
+        
         return "login"; //este String "login" es realmente el nombre logico de una vista. Gracias a la dependencia de Thymeleaf, Spring Boot interpreta como: "busca un archivo login.html dentro de src/main/resources/templates/"
     }
 } 

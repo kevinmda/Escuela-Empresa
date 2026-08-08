@@ -19,6 +19,15 @@
     <p th:if="${param.activado}" style="color: green;">
         Cuenta activada correctamente. Ya podés iniciar sesión.
     </p>
+    <p th:if="${param.bloqueado}" style="color: red;">
+        Tu cuenta fue bloqueada temporalmente por varios intentos fallidos. Probá de nuevo en 15 minutos.
+    </p>
+    <p th:if="${param.errorCorreo}" style="color: red;">
+        No pudimos enviarte el correo. Intentá iniciar sesión de nuevo en unos minutos.
+    </p>
+    <p th:if="${param.restablecida}" style="color: green;">
+        Contraseña restablecida correctamente. Ya podés iniciar sesión.
+    </p>
 
     <form th:action="@{/login}" method="post"> <!--th:action="@{/login} es la manera de Thymeleaf de armar URLs de manera segura-->
         <div>                                  <!--@{...} es sintaxis de URL expression, con esto Thymeleaf lo que hace es ajustar automaticamente la ruta completa-->
@@ -31,10 +40,12 @@
         </div>
         <div>
             <label>
-                <input type="checkbox" name="remember-me"> Recordame mas tarde
+                <input type="checkbox" name="remember-me"> Recordarme mas tarde
             </label>
         </div>
         <button type="submit">Ingresar</button>
     </form>
+
+    <p><a th:href="@{/olvide-contrasena}">¿Olvidaste tu contraseña?</a></p>
 </body>
 </html>

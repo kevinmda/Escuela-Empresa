@@ -51,6 +51,9 @@ public class ImprimirController {
         // 1. Buscar los datos del alumno logueado
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
+        List<PlanillaSemanal> planillas =
+            planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
+
         // 2. Cargar la plantilla PDF
         File archivoOriginal = new File("src/main/resources/plantillas/CONTRATO_PEL_2025.pdf");
         PDDocument document = Loader.loadPDF(archivoOriginal);
@@ -64,8 +67,14 @@ public class ImprimirController {
         float tamanioFuente = 10;
 
         // 4. Escribir cada dato en su posición (coordenadas ya calculadas con la grilla)
-        escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 411, 861);
-        escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEspecialidad().getNombre(), 393, 848);
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 411, 861.5f);
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEspecialidad().getNombre(), 393, 848.5f);
+
+        String supervisor = planillas.isEmpty() ? null : planillas.get(0).getSupervisor();
+        if (supervisor != null && !supervisor.isBlank()) {
+            escribirTextoCentrado(contentStream, fuente, 10, supervisor, 368, 835);
+        }
+
         if (alumno.getEmpresa() != null) { //Si ya tiene una empresa asignada entonces si se coloca en el pdf, sino no
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(), 203, 821.8f);
         }

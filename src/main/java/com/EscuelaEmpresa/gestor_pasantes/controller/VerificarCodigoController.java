@@ -2,6 +2,9 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,9 +25,22 @@ public class VerificarCodigoController {
 
     @GetMapping("/verificar-codigo")
     public String mostrarFormulario(@RequestParam String email, Model model) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean yaAutenticado = authentication != null
+                && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getPrincipal());
+
+        if (yaAutenticado) {
+            return "redirect:/home";
+        }
+
         model.addAttribute("email", email);
         return "verificar-codigo";
     }
+
+    private static final int MAX_INTENTOS_CODIGO = 5;
 
     @PostMapping("/verificar-codigo")
     public String verificarCodigo(@RequestParam String email,
@@ -41,13 +57,23 @@ public class VerificarCodigoController {
 
         Usuario usuario = usuarioOpt.get();
 
+        int intentos = usuario.getIntentosCodigo() == null ? 0 : usuario.getIntentosCodigo();
+        if (intentos >= MAX_INTENTOS_CODIGO) {
+            model.addAttribute("email", email);
+            model.addAttribute("error", "Superaste el máximo de intentos. Iniciá sesión de nuevo para recibir un código nuevo.");
+            return "verificar-codigo";
+        }
+
         boolean codigoCorrecto = codigo != null && codigo.equals(usuario.getTokenActivacion());
         boolean noVencido = usuario.getTokenExpiracion() != null
                 && usuario.getTokenExpiracion().isAfter(LocalDateTime.now());
 
         if (!codigoCorrecto || !noVencido) {
+            usuario.setIntentosCodigo(intentos + 1);
+            usuarioRepository.save(usuario);
+
             model.addAttribute("email", email);
-            model.addAttribute("error", "El código es incorrecto o venció. Intentá iniciar sesión de nuevo para recibir uno nuevo.");
+            model.addAttribute("error", "El código es incorrecto o venció. Intentos restantes: " + (MAX_INTENTOS_CODIGO - (intentos + 1)));
             return "verificar-codigo";
         }
 
@@ -55,6 +81,7 @@ public class VerificarCodigoController {
         usuario.setActivo(true);
         usuario.setTokenActivacion(null);
         usuario.setTokenExpiracion(null);
+        usuario.setIntentosCodigo(0);
         usuarioRepository.save(usuario);
 
         return "redirect:/login?activado";

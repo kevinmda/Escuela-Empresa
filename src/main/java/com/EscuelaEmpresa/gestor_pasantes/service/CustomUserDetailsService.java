@@ -5,6 +5,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,6 +36,10 @@ public class CustomUserDetailsService implements UserDetailsService { //UserDeta
 
         if (Boolean.FALSE.equals(usuario.getActivo())) { //esto sirve para verificar si el usuario se encuentra deshabilitado osea si en el campo activo de usuario tiene 0 o false. Se utiliza Boolean.FALSE.equals(usuario.getActivo()) en vez de solo (!usuario.getActivo()) para que en caso de que el valor no sea 0 o 1 sino null, entonces no de un error de NullPointerException
             throw new DisabledException("Usuario deshabilitado");
+        }
+
+        if (usuario.getBloqueadoHasta() != null && usuario.getBloqueadoHasta().isAfter(java.time.LocalDateTime.now())) {
+            throw new LockedException("Cuenta bloqueada temporalmente por intentos fallidos");
         }
         //GrantedAuthority es para indicarle a Spring Security que se trata de permisos o mas bien roles
         List<GrantedAuthority> authorities = new ArrayList<>(); //se crea una lista vacia que luego se va a ir llenando de acuerdo a los roles que se le da al usuario. En nuestro caso no es tannn importante porque cada usuario va a tener un rol unico, pero en el dia de mañana si un usuario necesita tener mas de un rol entonces se va a poder incluir en la lista nms y ya
