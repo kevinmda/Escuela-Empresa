@@ -26,6 +26,10 @@ public class Empresa {
     @Column(length = 100)
     private String direccion;
 
+    @ManyToOne                          // muchas empresas pueden pertenecer a la misma especialidad
+    @JoinColumn(name = "id_Esp")
+    private Especialidad especialidad;
+
     public Empresa() {}
 
     public Integer getIdEmp() { return idEmp; }
@@ -45,4 +49,7 @@ public class Empresa {
 
     public String getDireccion() { return direccion; }
     public void setDireccion(String direccion) { this.direccion = direccion; }
+
+    public Especialidad getEspecialidad() { return especialidad; }
+    public void setEspecialidad(Especialidad especialidad) { this.especialidad = especialidad; }
 }

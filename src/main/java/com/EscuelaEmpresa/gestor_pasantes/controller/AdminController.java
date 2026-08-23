@@ -23,6 +23,7 @@ import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoFiltradoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.dto.CumplimientoSemanaDTO;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
+import com.EscuelaEmpresa.gestor_pasantes.entity.Empresa;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Especialidad;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanalDetalle;
@@ -30,6 +31,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Supervisor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.EmpresaRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EspecialidadRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
@@ -50,6 +52,7 @@ public class AdminController {
     private final PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository;
     private final PlanillaSemanalPdfService planillaSemanalPdfService;
     private final SupervisorRepository supervisorRepository;
+    private final EmpresaRepository empresaRepository;
 
     public AdminController(UsuarioRepository usuarioRepository,
                             AdministradorRepository administradorRepository,
@@ -58,7 +61,8 @@ public class AdminController {
                             PlanillaSemanalRepository planillaSemanalRepository,
                             PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
                             PlanillaSemanalPdfService planillaSemanalPdfService,
-                            SupervisorRepository supervisorRepository) {
+                            SupervisorRepository supervisorRepository,
+                            EmpresaRepository empresaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.administradorRepository = administradorRepository;
         this.especialidadRepository = especialidadRepository;
@@ -67,6 +71,7 @@ public class AdminController {
         this.planillaSemanalDetalleRepository = planillaSemanalDetalleRepository;
         this.planillaSemanalPdfService = planillaSemanalPdfService;
         this.supervisorRepository = supervisorRepository;
+        this.empresaRepository = empresaRepository;
     }
 
     @GetMapping("/admin/alumnos")
@@ -352,6 +357,152 @@ public class AdminController {
         }
 
         return admin.getEspecialidades().get(0);
+    }
+
+    // --- Gestión de Empresas (solo Coordinador) ---
+
+    @GetMapping("/admin/empresas")
+    public String empresas(Model model, Authentication authentication) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        List<Empresa> empresas = empresaRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp());
+        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp());
+
+        model.addAttribute("especialidadFija", especialidadFija);
+        model.addAttribute("empresas", empresas);
+        model.addAttribute("alumnos", alumnos);
+
+        return "coordinador/empresas";
+    }
+
+    @PostMapping("/admin/empresas/crear")
+    public String crearEmpresa(@RequestParam String nombre,
+                                @RequestParam String ruc,
+                                @RequestParam String telefono,
+                                @RequestParam String email,
+                                @RequestParam String direccion,
+                                Authentication authentication,
+                                RedirectAttributes redirectAttributes) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        Empresa empresa = new Empresa();
+        empresa.setNombre(nombre);
+        empresa.setRuc(ruc);
+        empresa.setTelefono(telefono);
+        empresa.setEmail(email);
+        empresa.setDireccion(direccion);
+        empresa.setEspecialidad(especialidadFija);
+
+        empresaRepository.save(empresa);
+
+        redirectAttributes.addFlashAttribute("exito", "Empresa agregada correctamente.");
+        return "redirect:/admin/empresas";
+    }
+
+    @PostMapping("/admin/empresas/editar")
+    public String editarEmpresa(@RequestParam Integer idEmp,
+                                 @RequestParam String nombre,
+                                 @RequestParam String ruc,
+                                 @RequestParam String telefono,
+                                 @RequestParam String email,
+                                 @RequestParam String direccion,
+                                 Authentication authentication,
+                                 RedirectAttributes redirectAttributes) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        Empresa empresa = empresaRepository.findById(idEmp)
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+
+        // Seguridad: el coordinador solo puede editar empresas de su propia especialidad
+        if (empresa.getEspecialidad() == null || !empresa.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
+            throw new AccessDeniedException("No podés editar una empresa de otra especialidad");
+        }
+
+        empresa.setNombre(nombre);
+        empresa.setRuc(ruc);
+        empresa.setTelefono(telefono);
+        empresa.setEmail(email);
+        empresa.setDireccion(direccion);
+        empresaRepository.save(empresa);
+
+        redirectAttributes.addFlashAttribute("exito", "Empresa editada correctamente.");
+        return "redirect:/admin/empresas";
+    }
+
+    @PostMapping("/admin/empresas/eliminar")
+    public String eliminarEmpresa(@RequestParam Integer idEmp,
+                                   Authentication authentication,
+                                   RedirectAttributes redirectAttributes) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        Empresa empresa = empresaRepository.findById(idEmp)
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+
+        // Seguridad: el coordinador solo puede eliminar empresas de su propia especialidad
+        if (empresa.getEspecialidad() == null || !empresa.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
+            throw new AccessDeniedException("No podés eliminar una empresa de otra especialidad");
+        }
+
+        // Antes de borrar, desasignamos esta empresa de cualquier alumno que la tenga puesta,
+        // porque la FK en la base no permite borrar una empresa que todavía está en uso
+        List<Alumno> alumnosConEstaEmpresa = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp())
+                .stream()
+                .filter(alumno -> alumno.getEmpresa() != null && alumno.getEmpresa().getIdEmp().equals(idEmp))
+                .toList();
+
+        for (Alumno alumno : alumnosConEstaEmpresa) {
+            alumno.setEmpresa(null);
+            alumnoRepository.save(alumno);
+        }
+
+        empresaRepository.delete(empresa);
+
+        redirectAttributes.addFlashAttribute("exito", "Empresa eliminada correctamente.");
+        return "redirect:/admin/empresas";
+    }
+
+    @PostMapping("/admin/empresas/asignar")
+    public String asignarEmpresa(@RequestParam Integer idAl,
+                                  @RequestParam(required = false) Integer idEmp,
+                                  Authentication authentication,
+                                  RedirectAttributes redirectAttributes) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+
+        Alumno alumno = alumnoRepository.findById(idAl)
+                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+
+        // Seguridad: el coordinador solo puede tocar alumnos de su propia especialidad
+        if (!alumno.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
+            throw new AccessDeniedException("No podés modificar un alumno de otra especialidad");
+        }
+
+        if (idEmp == null) {
+            alumno.setEmpresa(null); // se puede desasignar eligiendo "-- Sin asignar --"
+        } else {
+            Empresa empresa = empresaRepository.findById(idEmp)
+                    .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+
+            if (empresa.getEspecialidad() == null || !empresa.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
+                throw new AccessDeniedException("Esa empresa no pertenece a tu especialidad");
+            }
+
+            alumno.setEmpresa(empresa);
+        }
+
+        alumnoRepository.save(alumno);
+
+        redirectAttributes.addFlashAttribute("exito", "Empresa actualizada correctamente.");
+        return "redirect:/admin/empresas";
     }
 
     private String sanitizar(String texto) {

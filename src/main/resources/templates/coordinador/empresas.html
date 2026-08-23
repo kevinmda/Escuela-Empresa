@@ -30,72 +30,88 @@
     </nav>
 
     <main>
-        <h2>Supervisores de <span th:text="${especialidadFija.nombre}"></span></h2>
+        <h2>Empresas de <span th:text="${especialidadFija.nombre}"></span></h2>
 
         <p th:if="${exito}" style="color:green; font-weight:bold;" th:text="${exito}"></p>
         <p th:if="${error}" style="color:red; font-weight:bold;" th:text="${error}"></p>
 
-        <!-- Formulario para agregar un nuevo supervisor -->
-        <h3>Agregar nuevo profesor/supervisor</h3>
-        <form th:action="@{/admin/supervisores/crear}" method="post" style="display:flex; gap:1rem; align-items:flex-end; margin-bottom:1.5rem;">
+        <!-- Formulario para agregar una nueva empresa -->
+        <h3>Agregar nueva empresa</h3>
+        <form th:action="@{/admin/empresas/crear}" method="post" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; margin-bottom:1.5rem;">
             <div>
-                <label for="nombres">Nombres</label><br>
-                <input type="text" id="nombres" name="nombres" required>
+                <label for="nombre">Nombre</label><br>
+                <input type="text" id="nombre" name="nombre" required>
             </div>
             <div>
-                <label for="apellidos">Apellidos</label><br>
-                <input type="text" id="apellidos" name="apellidos" required>
+                <label for="ruc">RUC</label><br>
+                <input type="text" id="ruc" name="ruc" required>
+            </div>
+            <div>
+                <label for="telefono">Teléfono</label><br>
+                <input type="text" id="telefono" name="telefono" required>
             </div>
             <div>
                 <label for="email">Email</label><br>
                 <input type="email" id="email" name="email" required>
             </div>
+            <div>
+                <label for="direccion">Dirección</label><br>
+                <input type="text" id="direccion" name="direccion" required>
+            </div>
             <button type="submit">Agregar</button>
         </form>
 
-        <!-- Lista de supervisores ya cargados -->
-        <h3>Supervisores cargados</h3>
+        <!-- Lista de empresas ya cargadas -->
+        <h3>Empresas cargadas</h3>
         <table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
             <thead>
                 <tr>
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
+                    <th>Nombre</th>
+                    <th>RUC</th>
+                    <th>Teléfono</th>
                     <th>Email</th>
+                    <th>Dirección</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="sup : ${supervisores}">
+                <tr th:each="emp : ${empresas}">
                     <td>
-                        <input type="text" th:form="${'editar-' + sup.idSup}" name="nombres" th:value="${sup.nombres}" required>
+                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="nombre" th:value="${emp.nombre}" required>
                     </td>
                     <td>
-                        <input type="text" th:form="${'editar-' + sup.idSup}" name="apellidos" th:value="${sup.apellidos}" required>
+                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="ruc" th:value="${emp.ruc}" required>
                     </td>
                     <td>
-                        <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}" required>
+                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="telefono" th:value="${emp.telefono}" required>
+                    </td>
+                    <td>
+                        <input type="email" th:form="${'editar-' + emp.idEmp}" name="email" th:value="${emp.email}" required>
+                    </td>
+                    <td>
+                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="direccion" th:value="${emp.direccion}" required>
                     </td>
                     <td style="display:flex; gap:0.5rem;">
-                        <!-- Este form no tiene inputs propios adentro: los toma de la celdas de arriba via el atributo form="" -->
-                        <form th:id="${'editar-' + sup.idSup}" th:action="@{/admin/supervisores/editar}" method="post">
-                            <input type="hidden" name="idSup" th:value="${sup.idSup}">
+                        <!-- Este form no tiene inputs propios adentro: los toma de las celdas de arriba via el atributo form="" -->
+                        <form th:id="${'editar-' + emp.idEmp}" th:action="@{/admin/empresas/editar}" method="post">
+                            <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
                             <button type="submit">Guardar</button>
                         </form>
-                        <form th:action="@{/admin/supervisores/eliminar}" method="post"
-                              onsubmit="return confirm('¿Eliminar este supervisor? Los alumnos que lo tengan asignado van a quedar sin supervisor.');">
-                            <input type="hidden" name="idSup" th:value="${sup.idSup}">
+                        <form th:action="@{/admin/empresas/eliminar}" method="post"
+                              onsubmit="return confirm('¿Eliminar esta empresa? Los alumnos que la tengan asignada van a quedar sin empresa.');">
+                            <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
                             <button type="submit">Eliminar</button>
                         </form>
                     </td>
                 </tr>
-                <tr th:if="${supervisores.isEmpty()}">
-                    <td colspan="4">Todavía no cargaste ningún supervisor.</td>
+                <tr th:if="${empresas.isEmpty()}">
+                    <td colspan="6">Todavía no cargaste ninguna empresa.</td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- Asignación de supervisor por alumno -->
-        <h3>Asignar supervisor a cada alumno</h3>
+        <!-- Asignación de empresa por alumno -->
+        <h3>Asignar empresa a cada alumno</h3>
         <table border="1" style="width:100%; border-collapse: collapse;">
             <thead>
                 <tr>
@@ -103,7 +119,7 @@
                     <th>Apellidos</th>
                     <th>Curso</th>
                     <th>Sección</th>
-                    <th>Supervisor asignado</th>
+                    <th>Empresa asignada</th>
                     <th></th>
                 </tr>
             </thead>
@@ -114,14 +130,14 @@
                     <td th:text="${alumno.curso}"></td>
                     <td th:text="${alumno.seccion}"></td>
                     <td>
-                        <form th:action="@{/admin/supervisores/asignar}" method="post" style="display:flex; gap:0.5rem;">
+                        <form th:action="@{/admin/empresas/asignar}" method="post" style="display:flex; gap:0.5rem;">
                             <input type="hidden" name="idAl" th:value="${alumno.idAl}">
-                            <select name="idSup">
+                            <select name="idEmp">
                                 <option value="">-- Sin asignar --</option>
-                                <option th:each="sup : ${supervisores}"
-                                        th:value="${sup.idSup}"
-                                        th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
-                                        th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
+                                <option th:each="emp : ${empresas}"
+                                        th:value="${emp.idEmp}"
+                                        th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
+                                        th:text="${emp.nombre}"></option>
                             </select>
                             <button type="submit">Guardar</button>
                         </form>
