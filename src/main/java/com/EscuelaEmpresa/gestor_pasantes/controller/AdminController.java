@@ -1,6 +1,8 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
@@ -23,6 +25,7 @@ import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoFiltradoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.dto.CumplimientoSemanaDTO;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
+import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Empresa;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Especialidad;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
@@ -31,6 +34,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Supervisor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EmpresaRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EspecialidadRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepository;
@@ -53,6 +57,7 @@ public class AdminController {
     private final PlanillaSemanalPdfService planillaSemanalPdfService;
     private final SupervisorRepository supervisorRepository;
     private final EmpresaRepository empresaRepository;
+    private final DocumentoSubidoRepository documentoSubidoRepository;
 
     public AdminController(UsuarioRepository usuarioRepository,
                             AdministradorRepository administradorRepository,
@@ -62,7 +67,8 @@ public class AdminController {
                             PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
                             PlanillaSemanalPdfService planillaSemanalPdfService,
                             SupervisorRepository supervisorRepository,
-                            EmpresaRepository empresaRepository) {
+                            EmpresaRepository empresaRepository,
+                            DocumentoSubidoRepository documentoSubidoRepository) {
         this.usuarioRepository = usuarioRepository;
         this.administradorRepository = administradorRepository;
         this.especialidadRepository = especialidadRepository;
@@ -72,6 +78,7 @@ public class AdminController {
         this.planillaSemanalPdfService = planillaSemanalPdfService;
         this.supervisorRepository = supervisorRepository;
         this.empresaRepository = empresaRepository;
+        this.documentoSubidoRepository = documentoSubidoRepository;
     }
 
     @GetMapping("/admin/alumnos")
@@ -130,6 +137,63 @@ public class AdminController {
                 .toList();
     }
 
+    // --- Búsqueda por nombre, apellido o CI (pantallas Alumnos y Reportes) ---
+
+    @GetMapping("/admin/api/buscar-alumnos")
+    @ResponseBody
+    public List<AlumnoFiltradoDTO> buscarAlumnos(@RequestParam String texto, Authentication authentication) {
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        List<Integer> idsEspPermitidos = obtenerIdsEspecialidadPermitidos(admin);
+
+        return alumnoRepository.buscarPorNombreApellidoOCi(idsEspPermitidos, texto)
+                .stream()
+                .map(AlumnoFiltradoDTO::new)
+                .toList();
+    }
+
+    @GetMapping("/admin/api/buscar-cumplimiento")
+    @ResponseBody
+    public CumplimientoSemanaDTO buscarCumplimiento(@RequestParam String texto,
+                                                     @RequestParam(defaultValue = "0") int offset,
+                                                     Authentication authentication) {
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        List<Integer> idsEspPermitidos = obtenerIdsEspecialidadPermitidos(admin);
+
+        LocalDate lunesSemanaActual = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate semanaDesde = lunesSemanaActual.plusWeeks(offset);
+        LocalDate semanaHasta = semanaDesde.plusDays(5); // lunes a sábado
+
+        List<Alumno> alumnos = alumnoRepository.buscarPorNombreApellidoOCi(idsEspPermitidos, texto);
+
+        List<AlumnoCumplimientoDTO> resultado = alumnos.stream()
+                .map(alumno -> {
+                    boolean entrego = planillaSemanalRepository
+                            .existsByAlumno_IdAlAndFechaDesdeLessThanEqualAndFechaHastaGreaterThanEqual(
+                                    alumno.getIdAl(), semanaHasta, semanaDesde);
+                    return new AlumnoCumplimientoDTO(alumno.getIdAl(), alumno.getNombres(),
+                            alumno.getApellidos(), alumno.getCi(), entrego);
+                })
+                .toList();
+
+        return new CumplimientoSemanaDTO(semanaDesde, semanaHasta, resultado);
+    }
+
+    // Devuelve los ids de especialidad dentro de los que este admin puede buscar/operar:
+    // todas, si es administrativo; solo la propia, si es coordinador
+    private List<Integer> obtenerIdsEspecialidadPermitidos(Administrador admin) {
+        boolean esAdministrativo = "administrativo".equalsIgnoreCase(admin.getCargo());
+
+        if (esAdministrativo) {
+            return especialidadRepository.findAll()
+                    .stream()
+                    .map(Especialidad::getIdEsp)
+                    .toList();
+        }
+
+        Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
+        return List.of(especialidadFija.getIdEsp());
+    }
+
     // --- Reporte de cumplimiento semanal ---
 
     @GetMapping("/admin/api/cumplimiento")
@@ -179,14 +243,11 @@ public class AdminController {
 
             for (Alumno alumno : alumnos) {
 
+                String carpetaAlumno = sanitizar(alumno.getApellidos() + "_" + alumno.getNombres());
+
+                // --- 1. Planillas semanales generadas por el sistema (PDF con formato) ---
                 List<PlanillaSemanal> planillas =
                         planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
-
-                if (planillas.isEmpty()) {
-                    continue; // este alumno no cargó ninguna planilla todavía, no agrega nada
-                }
-
-                String carpetaAlumno = sanitizar(alumno.getApellidos() + "_" + alumno.getNombres());
 
                 for (PlanillaSemanal planilla : planillas) {
 
@@ -200,6 +261,29 @@ public class AdminController {
 
                     zos.putNextEntry(new ZipEntry(nombreArchivo));
                     zos.write(pdfBytes);
+                    zos.closeEntry();
+                }
+
+                // --- 2. Documentos que el alumno subió directamente (contrato firmado, fotos, etc.) ---
+                List<DocumentoSubido> documentosSubidos =
+                        documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(alumno.getIdAl());
+
+                for (DocumentoSubido documento : documentosSubidos) {
+
+                    File archivoFisico = new File(documento.getRutaArchivo());
+                    if (!archivoFisico.exists()) {
+                        continue; // si el archivo ya no está en el disco, lo salteamos sin romper el ZIP entero
+                    }
+
+                    // Usamos el nombre original con el que el alumno lo subió, no el UUID interno,
+                    // para que sea legible cuando el admin/coordinador lo abra
+                    String nombreOriginal = documento.getNombreArchivo() != null
+                            ? documento.getNombreArchivo()
+                            : ("documento_" + documento.getIdDs() + ".pdf");
+                    String nombreArchivo = carpetaAlumno + "/Documentos_Subidos/" + nombreOriginal;
+
+                    zos.putNextEntry(new ZipEntry(nombreArchivo));
+                    Files.copy(archivoFisico.toPath(), zos);
                     zos.closeEntry();
                 }
             }

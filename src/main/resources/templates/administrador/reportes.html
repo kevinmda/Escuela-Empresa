@@ -32,6 +32,12 @@
     <main>
         <h2>Reporte de Cumplimiento Semanal</h2>
 
+        <div id="busqueda-container" style="display:flex; gap:0.5rem; align-items:center; margin: 1.5rem 0;">
+            <input type="text" id="input-busqueda" placeholder="Buscar por nombre, apellido o CI..." style="flex:1; max-width:400px;">
+            <button id="btn-buscar" type="button">Buscar</button>
+            <button id="btn-limpiar-busqueda" type="button" style="display:none;">Limpiar</button>
+        </div>
+
         <div id="filtro-container" style="display:flex; gap:1rem; align-items:center; margin: 1.5rem 0;">
 
             <!-- Si es administrativo, elige la especialidad. Si es coordinador, ya viene fija. -->
@@ -101,8 +107,13 @@
         const tabla = document.getElementById('tabla-cumplimiento');
         const tablaBody = document.getElementById('tabla-cumplimiento-body');
         const mensajeVacio = document.getElementById('mensaje-vacio');
+        const inputBusqueda = document.getElementById('input-busqueda');
+        const btnBuscar = document.getElementById('btn-buscar');
+        const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
+        const filtroContainer = document.getElementById('filtro-container');
 
         let offsetSemana = 0; // 0 = semana actual, -1 = anterior, +1 = siguiente
+        let modoBusqueda = false; // false = usando el filtro en cascada, true = usando la barra de búsqueda
 
         function idEspSeleccionado() {
             return esAdministrativo ? selectEspecialidad.value : idEspFijoInput.value;
@@ -166,32 +177,46 @@
 
             fetch(`/admin/api/cumplimiento?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}&seccion=${encodeURIComponent(seccion)}&offset=${offsetSemana}`)
                 .then(res => res.json())
-                .then(data => {
-                    semanaContainer.style.display = 'flex';
-                    semanaLabel.textContent = `Semana del ${data.semanaDesde} al ${data.semanaHasta}`;
+                .then(renderizarCumplimiento);
+        }
 
-                    if (data.alumnos.length === 0) {
-                        tabla.style.display = 'none';
-                        mensajeVacio.style.display = 'block';
-                        return;
-                    }
+        function buscarCumplimiento() {
+            const texto = inputBusqueda.value.trim();
+            if (!texto) return;
 
-                    mensajeVacio.style.display = 'none';
-                    tablaBody.innerHTML = '';
-                    data.alumnos.forEach(a => {
-                        const fila = document.createElement('tr');
-                        fila.innerHTML = `
-                            <td>${a.nombres ?? ''}</td>
-                            <td>${a.apellidos ?? ''}</td>
-                            <td>${a.ci ?? ''}</td>
-                            <td style="color:${a.entrego ? 'green' : 'red'}; font-weight:bold;">
-                                ${a.entrego ? 'Sí' : 'No'}
-                            </td>
-                        `;
-                        tablaBody.appendChild(fila);
-                    });
-                    tabla.style.display = 'table';
-                });
+            fetch(`/admin/api/buscar-cumplimiento?texto=${encodeURIComponent(texto)}&offset=${offsetSemana}`)
+                .then(res => res.json())
+                .then(renderizarCumplimiento);
+        }
+
+        function renderizarCumplimiento(data) {
+            semanaContainer.style.display = 'flex';
+            semanaLabel.textContent = `Semana del ${data.semanaDesde} al ${data.semanaHasta}`;
+
+            if (data.alumnos.length === 0) {
+                tabla.style.display = 'none';
+                mensajeVacio.textContent = modoBusqueda
+                    ? 'No se encontró ningún alumno con ese criterio.'
+                    : 'No hay alumnos que coincidan con ese filtro.';
+                mensajeVacio.style.display = 'block';
+                return;
+            }
+
+            mensajeVacio.style.display = 'none';
+            tablaBody.innerHTML = '';
+            data.alumnos.forEach(a => {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${a.nombres ?? ''}</td>
+                    <td>${a.apellidos ?? ''}</td>
+                    <td>${a.ci ?? ''}</td>
+                    <td style="color:${a.entrego ? 'green' : 'red'}; font-weight:bold;">
+                        ${a.entrego ? 'Sí' : 'No'}
+                    </td>
+                `;
+                tablaBody.appendChild(fila);
+            });
+            tabla.style.display = 'table';
         }
 
         function ocultarTabla() {
@@ -203,12 +228,12 @@
 
         btnSemanaAnterior.addEventListener('click', () => {
             offsetSemana--;
-            cargarCumplimiento();
+            modoBusqueda ? buscarCumplimiento() : cargarCumplimiento();
         });
 
         btnSemanaSiguiente.addEventListener('click', () => {
             offsetSemana++;
-            cargarCumplimiento();
+            modoBusqueda ? buscarCumplimiento() : cargarCumplimiento();
         });
 
         if (esAdministrativo) {
@@ -220,9 +245,39 @@
 
         selectCurso.addEventListener('change', cargarSecciones);
         selectSeccion.addEventListener('change', () => {
+            modoBusqueda = false;
             offsetSemana = 0; // al cambiar de sección, siempre arrancamos en la semana actual
             cargarCumplimiento();
         });
+
+        // --- Búsqueda por nombre, apellido o CI ---
+
+        function ejecutarBusqueda() {
+            const texto = inputBusqueda.value.trim();
+            if (!texto) return;
+
+            modoBusqueda = true;
+            offsetSemana = 0; // toda búsqueda nueva arranca en la semana actual
+            filtroContainer.style.display = 'none';
+            btnLimpiarBusqueda.style.display = 'inline-block';
+
+            buscarCumplimiento();
+        }
+
+        function limpiarBusqueda() {
+            inputBusqueda.value = '';
+            modoBusqueda = false;
+            offsetSemana = 0;
+            btnLimpiarBusqueda.style.display = 'none';
+            filtroContainer.style.display = 'flex';
+            ocultarTabla();
+        }
+
+        btnBuscar.addEventListener('click', ejecutarBusqueda);
+        inputBusqueda.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') ejecutarBusqueda();
+        });
+        btnLimpiarBusqueda.addEventListener('click', limpiarBusqueda);
     </script>
 </body>
 </html>

@@ -32,6 +32,12 @@
     <main>
         <h2>Gestión de Alumnos</h2>
 
+        <div id="busqueda-container" style="display:flex; gap:0.5rem; align-items:center; margin: 1.5rem 0;">
+            <input type="text" id="input-busqueda" placeholder="Buscar por nombre, apellido o CI..." style="flex:1; max-width:400px;">
+            <button id="btn-buscar" type="button">Buscar</button>
+            <button id="btn-limpiar-busqueda" type="button" style="display:none;">Limpiar</button>
+        </div>
+
         <div id="filtro-container" style="display:flex; gap:1rem; align-items:center; margin: 1.5rem 0;">
 
             <!-- Si es administrativo, elige la especialidad. Si es coordinador, ya viene fija. -->
@@ -99,6 +105,10 @@
         const mensajeVacio = document.getElementById('mensaje-vacio');
         const zipContainer = document.getElementById('zip-container');
         const btnDescargarZip = document.getElementById('btn-descargar-zip');
+        const inputBusqueda = document.getElementById('input-busqueda');
+        const btnBuscar = document.getElementById('btn-buscar');
+        const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
+        const filtroContainer = document.getElementById('filtro-container');
 
         function idEspSeleccionado() {
             return esAdministrativo ? selectEspecialidad.value : idEspFijoInput.value;
@@ -209,6 +219,58 @@
 
         selectCurso.addEventListener('change', cargarSecciones);
         selectSeccion.addEventListener('change', cargarAlumnos);
+
+        // --- Búsqueda por nombre, apellido o CI ---
+
+        function ejecutarBusqueda() {
+            const texto = inputBusqueda.value.trim();
+            if (!texto) return;
+
+            // El ZIP requiere especialidad/curso/sección puntuales, así que no aplica
+            // sobre resultados de búsqueda (que pueden mezclar cursos y secciones distintas)
+            filtroContainer.style.display = 'none';
+            zipContainer.style.display = 'none';
+            btnLimpiarBusqueda.style.display = 'inline-block';
+
+            fetch(`/admin/api/buscar-alumnos?texto=${encodeURIComponent(texto)}`)
+                .then(res => res.json())
+                .then(alumnos => {
+                    if (alumnos.length === 0) {
+                        tabla.style.display = 'none';
+                        mensajeVacio.textContent = 'No se encontró ningún alumno con ese criterio.';
+                        mensajeVacio.style.display = 'block';
+                        return;
+                    }
+                    mensajeVacio.style.display = 'none';
+                    tablaBody.innerHTML = '';
+                    alumnos.forEach(a => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `
+                            <td>${a.nombres ?? ''}</td>
+                            <td>${a.apellidos ?? ''}</td>
+                            <td>${a.ci ?? ''}</td>
+                            <td>${a.email ?? ''}</td>
+                            <td>${a.curso ?? ''}</td>
+                            <td>${a.seccion ?? ''}</td>
+                        `;
+                        tablaBody.appendChild(fila);
+                    });
+                    tabla.style.display = 'table';
+                });
+        }
+
+        function limpiarBusqueda() {
+            inputBusqueda.value = '';
+            btnLimpiarBusqueda.style.display = 'none';
+            filtroContainer.style.display = 'flex';
+            ocultarTabla();
+        }
+
+        btnBuscar.addEventListener('click', ejecutarBusqueda);
+        inputBusqueda.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') ejecutarBusqueda();
+        });
+        btnLimpiarBusqueda.addEventListener('click', limpiarBusqueda);
     </script>
 </body>
 </html>
