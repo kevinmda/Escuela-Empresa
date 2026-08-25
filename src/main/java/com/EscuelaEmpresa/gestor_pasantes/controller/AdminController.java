@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,6 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoCumplimientoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoFiltradoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.dto.CumplimientoSemanaDTO;
+import com.EscuelaEmpresa.gestor_pasantes.dto.DocumentoSubidoAdminDTO;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
@@ -215,6 +217,48 @@ public class AdminController {
                 .toList();
 
         return new CumplimientoSemanaDTO(semanaDesde, semanaHasta, resultado);
+    }
+
+    @GetMapping("/admin/api/alumnos/{idAl}/documentos")
+    @ResponseBody
+    public List<DocumentoSubidoAdminDTO> documentosSubidosPorAlumno(@PathVariable Integer idAl,
+                                                                     Authentication authentication) {
+        verificarAccesoAlumno(idAl, authentication);
+
+        return documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(idAl)
+                .stream()
+                .map(documento -> new DocumentoSubidoAdminDTO(
+                        documento.getIdDs(),
+                        documento.getNombreArchivo(),
+                        documento.getFechaSubida(),
+                        "/admin/alumnos/" + idAl + "/documentos/" + documento.getIdDs() + "/ver"))
+                .toList();
+    }
+
+    @GetMapping("/admin/alumnos/{idAl}/documentos/{idDs}/ver")
+    public void verDocumentoSubido(@PathVariable Integer idAl,
+                                   @PathVariable Integer idDs,
+                                   Authentication authentication,
+                                   HttpServletResponse response) throws IOException {
+        Alumno alumno = verificarAccesoAlumno(idAl, authentication);
+        DocumentoSubido documento = documentoSubidoRepository.findById(idDs)
+                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+
+        if (!documento.getAlumno().getIdAl().equals(alumno.getIdAl())) {
+            throw new AccessDeniedException("Ese documento no pertenece al alumno indicado");
+        }
+
+        File archivo = new File(documento.getRutaArchivo());
+        if (!archivo.exists()) {
+            throw new RuntimeException("El archivo ya no está disponible en el servidor");
+        }
+
+        String nombreArchivo = documento.getNombreArchivo() == null
+                ? "documento_" + documento.getIdDs() + ".pdf"
+                : new File(documento.getNombreArchivo()).getName();
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "inline; filename=" + nombreArchivo);
+        Files.copy(archivo.toPath(), response.getOutputStream());
     }
 
     // --- Descarga en ZIP de los documentos subidos por los alumnos filtrados ---
@@ -562,6 +606,21 @@ public class AdminController {
 
         redirectAttributes.addFlashAttribute("exito", "Empresa actualizada correctamente.");
         return "redirect:/admin/empresas";
+    }
+
+    private Alumno verificarAccesoAlumno(Integer idAl, Authentication authentication) {
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        Alumno alumno = alumnoRepository.findById(idAl)
+                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+
+        Integer idEspecialidad = alumno.getEspecialidad() == null
+                ? null
+                : alumno.getEspecialidad().getIdEsp();
+        if (idEspecialidad == null || !obtenerIdsEspecialidadPermitidos(admin).contains(idEspecialidad)) {
+            throw new AccessDeniedException("No podés consultar documentos de esta especialidad");
+        }
+
+        return alumno;
     }
 
     private String sanitizar(String texto) {

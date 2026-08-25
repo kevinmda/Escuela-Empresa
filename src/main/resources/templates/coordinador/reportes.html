@@ -66,12 +66,6 @@
             </div>
         </div>
 
-        <div id="semana-container" style="display:none; align-items:center; gap:1rem; margin-bottom: 1rem;">
-            <button id="btn-semana-anterior" type="button">&laquo; Semana anterior</button>
-            <span id="semana-label" style="font-weight:bold;"></span>
-            <button id="btn-semana-siguiente" type="button">Semana siguiente &raquo;</button>
-        </div>
-
         <table id="tabla-cumplimiento" border="1" style="width:100%; border-collapse: collapse; display:none;">
             <thead>
                 <tr>
@@ -79,6 +73,7 @@
                     <th>Apellidos</th>
                     <th>CI</th>
                     <th>Entregó esta semana</th>
+                    <th>Documentos</th>
                 </tr>
             </thead>
             <tbody id="tabla-cumplimiento-body"></tbody>
@@ -94,15 +89,9 @@
         const idEspFijoInput = document.getElementById('idEspFijo');
         const selectCurso = document.getElementById('select-curso');
         const selectSeccion = document.getElementById('select-seccion');
-        const semanaContainer = document.getElementById('semana-container');
-        const semanaLabel = document.getElementById('semana-label');
-        const btnSemanaAnterior = document.getElementById('btn-semana-anterior');
-        const btnSemanaSiguiente = document.getElementById('btn-semana-siguiente');
         const tabla = document.getElementById('tabla-cumplimiento');
         const tablaBody = document.getElementById('tabla-cumplimiento-body');
         const mensajeVacio = document.getElementById('mensaje-vacio');
-
-        let offsetSemana = 0; // 0 = semana actual, -1 = anterior, +1 = siguiente
 
         function idEspSeleccionado() {
             return esAdministrativo ? selectEspecialidad.value : idEspFijoInput.value;
@@ -164,12 +153,9 @@
                 return;
             }
 
-            fetch(`/admin/api/cumplimiento?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}&seccion=${encodeURIComponent(seccion)}&offset=${offsetSemana}`)
+            fetch(`/admin/api/cumplimiento?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}&seccion=${encodeURIComponent(seccion)}`)
                 .then(res => res.json())
                 .then(data => {
-                    semanaContainer.style.display = 'flex';
-                    semanaLabel.textContent = `Semana del ${data.semanaDesde} al ${data.semanaHasta}`;
-
                     if (data.alumnos.length === 0) {
                         tabla.style.display = 'none';
                         mensajeVacio.style.display = 'block';
@@ -187,7 +173,19 @@
                             <td style="color:${a.entrego ? 'green' : 'red'}; font-weight:bold;">
                                 ${a.entrego ? 'Sí' : 'No'}
                             </td>
+                            <td>
+                                <details class="documentos-menu">
+                                    <summary>Ver documentos</summary>
+                                    <div class="documentos-lista">
+                                        <span class="documentos-cargando">Cargando...</span>
+                                    </div>
+                                </details>
+                            </td>
                         `;
+                        const menu = fila.querySelector('.documentos-menu');
+                        menu.addEventListener('toggle', () => {
+                            if (menu.open) cargarDocumentos(menu, a.idAl);
+                        });
                         tablaBody.appendChild(fila);
                     });
                     tabla.style.display = 'table';
@@ -198,18 +196,38 @@
             tabla.style.display = 'none';
             tablaBody.innerHTML = '';
             mensajeVacio.style.display = 'none';
-            semanaContainer.style.display = 'none';
         }
 
-        btnSemanaAnterior.addEventListener('click', () => {
-            offsetSemana--;
-            cargarCumplimiento();
-        });
+        function cargarDocumentos(menu, idAl) {
+            if (menu.dataset.cargado === 'true') return;
 
-        btnSemanaSiguiente.addEventListener('click', () => {
-            offsetSemana++;
-            cargarCumplimiento();
-        });
+            const lista = menu.querySelector('.documentos-lista');
+            fetch(`/admin/api/alumnos/${idAl}/documentos`)
+                .then(res => {
+                    if (!res.ok) throw new Error('No se pudieron cargar los documentos.');
+                    return res.json();
+                })
+                .then(documentos => {
+                    lista.innerHTML = '';
+                    if (documentos.length === 0) {
+                        lista.textContent = 'No hay documentos subidos.';
+                        return;
+                    }
+
+                    documentos.forEach(documento => {
+                        const enlace = document.createElement('a');
+                        enlace.href = documento.url;
+                        enlace.target = '_blank';
+                        enlace.rel = 'noopener';
+                        enlace.textContent = documento.nombreArchivo || `Documento ${documento.idDs}`;
+                        lista.appendChild(enlace);
+                    });
+                    menu.dataset.cargado = 'true';
+                })
+                .catch(error => {
+                    lista.textContent = error.message;
+                });
+        }
 
         if (esAdministrativo) {
             selectEspecialidad.addEventListener('change', cargarCursos);
@@ -220,7 +238,6 @@
 
         selectCurso.addEventListener('change', cargarSecciones);
         selectSeccion.addEventListener('change', () => {
-            offsetSemana = 0; // al cambiar de sección, siempre arrancamos en la semana actual
             cargarCumplimiento();
         });
     </script>

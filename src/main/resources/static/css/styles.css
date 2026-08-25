@@ -271,6 +271,42 @@ main h3 {
     color: var(--ink);
 }
 
+.documentos-menu {
+    position: relative;
+    min-width: 145px;
+}
+
+.documentos-menu summary {
+    color: var(--accent-ink);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.documentos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 220px;
+    padding: 0.65rem;
+    margin-top: 0.5rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px -4px rgba(30, 42, 51, 0.35);
+}
+
+.documentos-lista a {
+    color: var(--accent-ink);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+}
+
+.documentos-cargando {
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+}
+
 .bienvenida {
     max-width: 560px;
     margin: 3rem auto 0;
