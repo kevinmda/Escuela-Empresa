@@ -1,3 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+    --bg: #f6f5f2;
+    --surface: #ffffff;
+    --ink: #1e2a33;
+    --ink-soft: #55636b;
+    --accent: #e38b29;
+    --accent-ink: #7a4a12;
+    --accent-soft: #fbe6cc;
+    --line: #dcd7cc;
+    --success: #2f7a4d;
+    --success-soft: #e3f2e8;
+    --danger: #b23a2e;
+    --danger-soft: #fbe8e5;
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,57 +26,425 @@
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-body);
     font-size: 16px;
     line-height: 1.5;
-    color: #333;
-    background-color: #f5f5f5;
+    color: var(--ink);
+    background-color: var(--bg);
 }
 
+img {
+    display: block;
+}
+
+/* ---------------- Header / Nav ---------------- */
+
 header {
-    border-bottom: 3.5px black solid;
+    border-bottom: 1px solid var(--line);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
+    background-color: var(--surface);
 }
 
 .h-titulo {
     display: flex;
     align-items: center;
-    gap: 2rem;
+    gap: 1.25rem;
 }
 
 .h-titulo-logo {
-    width: 80px;
-    height: 90px;
+    width: 56px;
+    height: 63px;
+}
+
+.h-titulo h1 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
 .h-links {
     display: flex;
+    align-items: center;
     gap: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.h-links a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.h-links a:hover {
+    color: var(--accent-ink);
+}
+
+.h-links-logout {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.h-links-logout:hover {
+    color: var(--danger);
 }
 
 nav {
-    border-bottom: 3.5px black solid;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0.5rem;
-    gap: 1rem;
+    padding: 0;
+    gap: 0.25rem;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--line);
 }
 
 .nav-links {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 600;
     text-decoration: none;
-    color: inherit;
+    color: var(--ink-soft);
+    padding: 0.9rem 1.25rem;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-links:hover {
+    color: var(--ink);
+}
+
+.nav-links.activo {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
 }
 
 main {
-    padding: 2rem 0.5rem;
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
-img {
+/* ---------------- Títulos con marca de plano técnico ---------------- */
+
+main h2 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    position: relative;
+    padding: 0.25rem 0 0.25rem 1rem;
+    margin-bottom: 1.5rem;
+    border-left: 3px solid var(--accent);
+}
+
+main h3 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 1.75rem 0 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ---------------- Paneles (marca de escuadra tipo plano) ---------------- */
+
+.panel {
+    position: relative;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1.5rem 2rem;
+}
+
+.panel::before,
+.panel::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--accent);
+    opacity: 0.6;
+}
+
+.panel::before {
+    top: -1px;
+    left: -1px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.panel::after {
+    bottom: -1px;
+    right: -1px;
+    border-left: none;
+    border-top: none;
+}
+
+/* ---------------- Utilidades ---------------- */
+
+.oculto {
+    display: none;
+}
+
+.toolbar {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin: 1.25rem 0;
+}
+
+.toolbar input[type="text"] {
+    flex: 1;
+    max-width: 400px;
+}
+
+.valor-fijo {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--ink);
+    display: inline-block;
+    padding: 0.55rem 0;
+}
+
+.zip-container {
+    margin: 1.25rem 0;
+}
+
+.mensaje-vacio {
+    color: var(--ink-soft);
+    font-style: italic;
+    padding: 1rem 0.25rem;
+}
+
+.fila-acciones {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.semana-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.semana-label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.bienvenida {
+    max-width: 560px;
+    margin: 3rem auto 0;
+    text-align: left;
+}
+
+.eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-ink);
+    margin-bottom: 0.5rem;
+}
+
+.bienvenida-texto {
+    color: var(--ink-soft);
+    margin-top: 0.75rem;
+    line-height: 1.6;
+}
+
+.bienvenida-texto strong {
+    color: var(--ink);
+}
+
+/* ---------------- Formularios ---------------- */
+
+label {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    font-weight: 500;
     display: block;
+    margin-bottom: 0.3rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--ink);
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.55rem 0.75rem;
+    transition: border-color 0.15s ease;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* ---------------- Botones ---------------- */
+
+button,
+.btn {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+button[type="submit"],
+.btn-primary {
+    background-color: var(--ink);
+    color: #fff;
+}
+
+button[type="submit"]:hover,
+.btn-primary:hover {
+    background-color: var(--accent-ink);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--ink);
+    border-color: var(--line);
+}
+
+.btn-secondary:hover {
+    border-color: var(--ink);
+}
+
+.btn-danger,
+form[action*="eliminar"] button {
+    background-color: transparent;
+    color: var(--danger);
+    border-color: var(--danger-soft);
+}
+
+.btn-danger:hover,
+form[action*="eliminar"] button:hover {
+    background-color: var(--danger-soft);
+}
+
+.btn-generar-pdf.deshabilitado {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+/* ---------------- Tablas ---------------- */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    font-size: 0.9rem;
+}
+
+thead {
+    background-color: var(--ink);
+}
+
+thead th {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #fff;
+    text-align: left;
+    padding: 0.75rem 1rem;
+}
+
+tbody td {
+    padding: 0.65rem 1rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    vertical-align: middle;
+}
+
+tbody tr:nth-child(even) {
+    background-color: var(--bg);
+}
+
+tbody tr:hover {
+    background-color: var(--accent-soft);
+}
+
+/* Inputs sueltos dentro de celdas (ediciones inline) heredan el look de tabla */
+td input[type="text"],
+td input[type="email"] {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+/* ---------------- Badges de estado (cumplimiento Sí/No) ---------------- */
+
+.badge {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.65rem;
+    border-radius: 100px;
+}
+
+.badge-success {
+    background-color: var(--success-soft);
+    color: var(--success);
+}
+
+.badge-danger {
+    background-color: var(--danger-soft);
+    color: var(--danger);
+}
+
+/* ---------------- Mensajes de éxito/error ---------------- */
+
+.mensaje-exito,
+.mensaje-error {
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.mensaje-exito {
+    background-color: var(--success-soft);
+    color: var(--success);
+}
+
+.mensaje-error {
+    background-color: var(--danger-soft);
+    color: var(--danger);
 }
 
 /*---------------Inicio.html----------------*/
@@ -85,11 +474,4 @@ img {
 #info-titulo {
     text-align: center;
     margin-bottom: 0.5rem;
-}
-
-
-.btn-generar-pdf.deshabilitado {
-    opacity: 0.5;
-    pointer-events: none;
-    cursor: not-allowed;
 }

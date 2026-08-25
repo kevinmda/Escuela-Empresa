@@ -84,12 +84,14 @@ public class AdminController {
     @GetMapping("/admin/alumnos")
     public String alumnos(Model model, Authentication authentication) {
         cargarFiltroEnModelo(model, authentication);
+        model.addAttribute("paginaActual", "alumnos");
         return "administrador/alumnos";
     }
 
     @GetMapping("/admin/reportes")
     public String reportes(Model model, Authentication authentication) {
         cargarFiltroEnModelo(model, authentication);
+        model.addAttribute("paginaActual", "reportes");
         return "administrador/reportes";
     }
 
@@ -304,6 +306,7 @@ public class AdminController {
         model.addAttribute("especialidadFija", especialidadFija);
         model.addAttribute("supervisores", supervisores);
         model.addAttribute("alumnos", alumnos);
+        model.addAttribute("paginaActual", "supervisores");
 
         return "coordinador/supervisores";
     }
@@ -457,6 +460,7 @@ public class AdminController {
         model.addAttribute("especialidadFija", especialidadFija);
         model.addAttribute("empresas", empresas);
         model.addAttribute("alumnos", alumnos);
+        model.addAttribute("paginaActual", "empresas");
 
         return "coordinador/empresas";
     }

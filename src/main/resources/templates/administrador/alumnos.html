@@ -23,8 +23,8 @@
         </div>
     </header>
     <nav>
-        <a th:href="@{/admin/alumnos}" class="nav-links">Alumnos</a>
-        <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
+        <a th:href="@{/admin/alumnos}" th:classappend="${paginaActual == 'alumnos'} ? ' activo'" class="nav-links">Alumnos</a>
+        <a th:href="@{/admin/reportes}" th:classappend="${paginaActual == 'reportes'} ? ' activo'" class="nav-links">Reportes</a>
         <a th:unless="${esAdministrativo}" th:href="@{/admin/supervisores}" class="nav-links">Supervisores</a>
         <a th:unless="${esAdministrativo}" th:href="@{/admin/empresas}" class="nav-links">Empresas</a>
     </nav>
@@ -32,17 +32,17 @@
     <main>
         <h2>Gestión de Alumnos</h2>
 
-        <div id="busqueda-container" style="display:flex; gap:0.5rem; align-items:center; margin: 1.5rem 0;">
-            <input type="text" id="input-busqueda" placeholder="Buscar por nombre, apellido o CI..." style="flex:1; max-width:400px;">
-            <button id="btn-buscar" type="button">Buscar</button>
-            <button id="btn-limpiar-busqueda" type="button" style="display:none;">Limpiar</button>
+        <div id="busqueda-container" class="toolbar">
+            <input type="text" id="input-busqueda" placeholder="Buscar por nombre, apellido o CI...">
+            <button id="btn-buscar" type="button" class="btn-primary">Buscar</button>
+            <button id="btn-limpiar-busqueda" type="button" class="btn-secondary oculto">Limpiar</button>
         </div>
 
-        <div id="filtro-container" style="display:flex; gap:1rem; align-items:center; margin: 1.5rem 0;">
+        <div id="filtro-container" class="toolbar panel">
 
             <!-- Si es administrativo, elige la especialidad. Si es coordinador, ya viene fija. -->
             <div th:if="${esAdministrativo}">
-                <label for="select-especialidad">Especialidad</label><br>
+                <label for="select-especialidad">Especialidad</label>
                 <select id="select-especialidad">
                     <option value="">-- Elegí una especialidad --</option>
                     <option th:each="esp : ${especialidades}"
@@ -52,27 +52,27 @@
             </div>
 
             <div th:unless="${esAdministrativo}">
-                <label>Especialidad</label><br>
-                <span th:text="${especialidadFija.nombre}" style="font-weight:bold;"></span>
+                <label>Especialidad</label>
+                <span class="valor-fijo" th:text="${especialidadFija.nombre}"></span>
                 <input type="hidden" id="idEspFijo" th:value="${especialidadFija.idEsp}">
             </div>
 
             <div>
-                <label for="select-curso">Curso</label><br>
+                <label for="select-curso">Curso</label>
                 <select id="select-curso" disabled>
                     <option value="">-- Elegí un curso --</option>
                 </select>
             </div>
 
             <div>
-                <label for="select-seccion">Sección</label><br>
+                <label for="select-seccion">Sección</label>
                 <select id="select-seccion" disabled>
                     <option value="">-- Elegí una sección --</option>
                 </select>
             </div>
         </div>
 
-        <table id="tabla-alumnos" border="1" style="width:100%; border-collapse: collapse; display:none;">
+        <table id="tabla-alumnos" class="oculto">
             <thead>
                 <tr>
                     <th>Nombres</th>
@@ -86,11 +86,11 @@
             <tbody id="tabla-alumnos-body"></tbody>
         </table>
 
-        <div id="zip-container" style="margin-top: 1rem; display:none;">
-            <button id="btn-descargar-zip" type="button">Descargar planillas (ZIP)</button>
+        <div id="zip-container" class="oculto zip-container">
+            <button id="btn-descargar-zip" type="button" class="btn-primary">Descargar planillas (ZIP)</button>
         </div>
 
-        <p id="mensaje-vacio" style="display:none;">No hay alumnos que coincidan con ese filtro.</p>
+        <p id="mensaje-vacio" class="oculto mensaje-vacio">No hay alumnos que coincidan con ese filtro.</p>
     </main>
 
     <script th:inline="javascript">

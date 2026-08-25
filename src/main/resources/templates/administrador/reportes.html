@@ -23,8 +23,8 @@
         </div>
     </header>
     <nav>
-        <a th:href="@{/admin/alumnos}" class="nav-links">Alumnos</a>
-        <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
+        <a th:href="@{/admin/alumnos}" th:classappend="${paginaActual == 'alumnos'} ? ' activo'" class="nav-links">Alumnos</a>
+        <a th:href="@{/admin/reportes}" th:classappend="${paginaActual == 'reportes'} ? ' activo'" class="nav-links">Reportes</a>
         <a th:unless="${esAdministrativo}" th:href="@{/admin/supervisores}" class="nav-links">Supervisores</a>
         <a th:unless="${esAdministrativo}" th:href="@{/admin/empresas}" class="nav-links">Empresas</a>
     </nav>
@@ -32,17 +32,17 @@
     <main>
         <h2>Reporte de Cumplimiento Semanal</h2>
 
-        <div id="busqueda-container" style="display:flex; gap:0.5rem; align-items:center; margin: 1.5rem 0;">
-            <input type="text" id="input-busqueda" placeholder="Buscar por nombre, apellido o CI..." style="flex:1; max-width:400px;">
-            <button id="btn-buscar" type="button">Buscar</button>
-            <button id="btn-limpiar-busqueda" type="button" style="display:none;">Limpiar</button>
+        <div id="busqueda-container" class="toolbar">
+            <input type="text" id="input-busqueda" placeholder="Buscar por nombre, apellido o CI...">
+            <button id="btn-buscar" type="button" class="btn-primary">Buscar</button>
+            <button id="btn-limpiar-busqueda" type="button" class="btn-secondary oculto">Limpiar</button>
         </div>
 
-        <div id="filtro-container" style="display:flex; gap:1rem; align-items:center; margin: 1.5rem 0;">
+        <div id="filtro-container" class="toolbar panel">
 
             <!-- Si es administrativo, elige la especialidad. Si es coordinador, ya viene fija. -->
             <div th:if="${esAdministrativo}">
-                <label for="select-especialidad">Especialidad</label><br>
+                <label for="select-especialidad">Especialidad</label>
                 <select id="select-especialidad">
                     <option value="">-- Elegí una especialidad --</option>
                     <option th:each="esp : ${especialidades}"
@@ -52,33 +52,33 @@
             </div>
 
             <div th:unless="${esAdministrativo}">
-                <label>Especialidad</label><br>
-                <span th:text="${especialidadFija.nombre}" style="font-weight:bold;"></span>
+                <label>Especialidad</label>
+                <span class="valor-fijo" th:text="${especialidadFija.nombre}"></span>
                 <input type="hidden" id="idEspFijo" th:value="${especialidadFija.idEsp}">
             </div>
 
             <div>
-                <label for="select-curso">Curso</label><br>
+                <label for="select-curso">Curso</label>
                 <select id="select-curso" disabled>
                     <option value="">-- Elegí un curso --</option>
                 </select>
             </div>
 
             <div>
-                <label for="select-seccion">Sección</label><br>
+                <label for="select-seccion">Sección</label>
                 <select id="select-seccion" disabled>
                     <option value="">-- Elegí una sección --</option>
                 </select>
             </div>
         </div>
 
-        <div id="semana-container" style="display:none; align-items:center; gap:1rem; margin-bottom: 1rem;">
-            <button id="btn-semana-anterior" type="button">&laquo; Semana anterior</button>
-            <span id="semana-label" style="font-weight:bold;"></span>
-            <button id="btn-semana-siguiente" type="button">Semana siguiente &raquo;</button>
+        <div id="semana-container" class="oculto semana-nav">
+            <button id="btn-semana-anterior" type="button" class="btn-secondary">&laquo; Semana anterior</button>
+            <span id="semana-label" class="semana-label"></span>
+            <button id="btn-semana-siguiente" type="button" class="btn-secondary">Semana siguiente &raquo;</button>
         </div>
 
-        <table id="tabla-cumplimiento" border="1" style="width:100%; border-collapse: collapse; display:none;">
+        <table id="tabla-cumplimiento" class="oculto">
             <thead>
                 <tr>
                     <th>Nombres</th>
@@ -90,7 +90,7 @@
             <tbody id="tabla-cumplimiento-body"></tbody>
         </table>
 
-        <p id="mensaje-vacio" style="display:none;">No hay alumnos que coincidan con ese filtro.</p>
+        <p id="mensaje-vacio" class="oculto mensaje-vacio">No hay alumnos que coincidan con ese filtro.</p>
     </main>
 
     <script th:inline="javascript">
@@ -210,8 +210,8 @@
                     <td>${a.nombres ?? ''}</td>
                     <td>${a.apellidos ?? ''}</td>
                     <td>${a.ci ?? ''}</td>
-                    <td style="color:${a.entrego ? 'green' : 'red'}; font-weight:bold;">
-                        ${a.entrego ? 'Sí' : 'No'}
+                    <td>
+                        <span class="badge ${a.entrego ? 'badge-success' : 'badge-danger'}">${a.entrego ? 'Sí' : 'No'}</span>
                     </td>
                 `;
                 tablaBody.appendChild(fila);
