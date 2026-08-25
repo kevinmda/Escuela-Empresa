@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <title>Olvidé mi contraseña</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script th:src="@{/js/theme.js}" defer></script>
 </head>
 <body>
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
     <h2>Recuperar contraseña</h2>
 
     <p>Te vamos a mandar un código a <strong th:text="${email}"></strong> para restablecer tu contraseña.</p>

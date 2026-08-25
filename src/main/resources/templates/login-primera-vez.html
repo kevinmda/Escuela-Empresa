@@ -5,9 +5,11 @@
     <title>Iniciar sesión - Primera vez</title>
 
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script th:src="@{/js/theme.js}" defer></script>
 
 </head>
 <body>
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
     <h2>Iniciar sesión</h2>
 
     <p th:if="${param.error}" style="color: red;">

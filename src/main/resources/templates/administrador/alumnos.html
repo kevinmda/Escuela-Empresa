@@ -6,6 +6,7 @@
     <title>CTN Pasantias ad</title>
 
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script th:src="@{/js/theme.js}" defer></script>
 
 </head>
 <body>
@@ -17,6 +18,7 @@
         <div class="h-links">
             <a th:href="@{/home}">Inicio</a>
             <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
+            <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
             <a th:href="@{/pdf/Escuela%20Empresa%20-%20Administradores.pdf}" class="h-links-help" target="_blank" rel="noopener">Ayuda</a>
             <form th:action="@{/logout}" method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro que quieres cerrar sesión?');">
                 <button type="submit" class="h-links-logout">Cerrar sesión</button>
