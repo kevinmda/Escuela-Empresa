@@ -17,6 +17,7 @@
         <div class="h-links">
             <a th:href="@{/home}">Inicio</a>
             <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
+            <a th:href="@{/pdf/Escuela%20Empresa%20-%20Coordinadores.pdf}" class="h-links-help" target="_blank" rel="noopener">Ayuda</a>
             <form th:action="@{/logout}" method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro que quieres cerrar sesión?');">
                 <button type="submit" class="h-links-logout">Cerrar sesión</button>
             </form>

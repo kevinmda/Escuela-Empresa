@@ -2,30 +2,44 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión</title>
 
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 
 </head>
 <body>
-    <h2>Iniciar sesión</h2>
+    <header>
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/CtnLogo.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
+        </div>
+    </header>
 
-    <p th:if="${param.logout}" style="color: green;">
+    <main class="auth-main">
+        <div class="panel auth-card">
+            <p class="eyebrow">Acceso al sistema</p>
+            <h2 class="auth-titulo">Iniciar sesión</h2>
+
+    <p th:if="${param.logout}" class="mensaje-exito">
         Sesión cerrada correctamente.
     </p>
-    <p th:if="${param.activado}" style="color: green;">
+    <p th:if="${param.activado}" class="mensaje-exito">
         Cuenta activada correctamente. Ya podés iniciar sesión.
     </p>
-    <p th:if="${param.restablecida}" style="color: green;">
+    <p th:if="${param.restablecida}" class="mensaje-exito">
         Contraseña restablecida correctamente. Ya podés iniciar sesión.
     </p>
 
-    <form th:action="@{/login-check}" method="post">
+    <form th:action="@{/login-check}" method="post" class="auth-form">
         <div>
-            <label>Email:</label>
-            <input type="email" name="email" required autofocus>
+            <label for="email">Email:</label>
+            <input id="email" type="email" name="email" required autofocus>
         </div>
-        <button type="submit">Continuar</button>
+        <button type="submit" class="btn-primary">Continuar</button>
     </form>
+
+        </div>
+    </main>
 </body>
 </html>
