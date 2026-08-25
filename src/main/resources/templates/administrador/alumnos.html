@@ -182,20 +182,20 @@
                     tablaBody.innerHTML = '';
                     alumnos.forEach(a => {
                         const fila = document.createElement('tr');
-                        fila.innerHTML = `
-                            <td>${a.nombres ?? ''}</td>
-                            <td>${a.apellidos ?? ''}</td>
-                            <td>${a.ci ?? ''}</td>
-                            <td>${a.email ?? ''}</td>
-                            <td>${a.curso ?? ''}</td>
-                            <td>${a.seccion ?? ''}</td>
-                        `;
+                        [a.nombres, a.apellidos, a.ci, a.email, a.curso, a.seccion]
+                            .forEach(valor => agregarCelda(fila, valor));
                         tablaBody.appendChild(fila);
                     });
                     tabla.style.display = 'table';
                     zipContainer.style.display = 'block';
                 });
         }
+
+            function agregarCelda(fila, valor) {
+                const celda = document.createElement('td');
+                celda.textContent = valor ?? '';
+                fila.appendChild(celda);
+            }
 
         function ocultarTabla() {
             tabla.style.display = 'none';
@@ -248,14 +248,8 @@
                     tablaBody.innerHTML = '';
                     alumnos.forEach(a => {
                         const fila = document.createElement('tr');
-                        fila.innerHTML = `
-                            <td>${a.nombres ?? ''}</td>
-                            <td>${a.apellidos ?? ''}</td>
-                            <td>${a.ci ?? ''}</td>
-                            <td>${a.email ?? ''}</td>
-                            <td>${a.curso ?? ''}</td>
-                            <td>${a.seccion ?? ''}</td>
-                        `;
+                        [a.nombres, a.apellidos, a.ci, a.email, a.curso, a.seccion]
+                            .forEach(valor => agregarCelda(fila, valor));
                         tablaBody.appendChild(fila);
                     });
                     tabla.style.display = 'table';

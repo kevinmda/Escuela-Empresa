@@ -29,6 +29,10 @@ public class CambiarContrasenaController {
 
     @PostMapping("/cambiar-contrasena")
     public String cambiarContrasena(Authentication authentication, @RequestParam String actual, @RequestParam String nueva) { //el objeto authentication guarda internamente quien esta autentificado (logueado)
+        if (nueva == null || nueva.trim().length() < 6) {
+            return "redirect:/cambiar-contrasena?errorContrasena";
+        }
+
         String email = authentication.getName(); //primero hay que saber quien esta logueado
 
         Usuario usuario = usuarioRepository.findByEmail(email)            //luego se busca al usuario que esta logueado por su email en la base de datos

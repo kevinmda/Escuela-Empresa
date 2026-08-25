@@ -110,13 +110,16 @@ public class AdminController {
 
     @GetMapping("/admin/api/cursos")
     @ResponseBody
-    public List<String> cursosPorEspecialidad(@RequestParam Integer idEsp) {
+    public List<String> cursosPorEspecialidad(@RequestParam Integer idEsp, Authentication authentication) {
+        verificarEspecialidadPermitida(idEsp, authentication);
         return alumnoRepository.findCursosPorEspecialidad(idEsp);
     }
 
     @GetMapping("/admin/api/secciones")
     @ResponseBody
-    public List<String> seccionesPorEspecialidadYCurso(@RequestParam Integer idEsp, @RequestParam String curso) {
+    public List<String> seccionesPorEspecialidadYCurso(@RequestParam Integer idEsp, @RequestParam String curso,
+                                                       Authentication authentication) {
+        verificarEspecialidadPermitida(idEsp, authentication);
         return alumnoRepository.findSeccionesPorEspecialidadYCurso(idEsp, curso);
     }
 
@@ -124,7 +127,9 @@ public class AdminController {
     @ResponseBody
     public List<AlumnoFiltradoDTO> alumnosFiltrados(@RequestParam Integer idEsp,
                                                       @RequestParam String curso,
-                                                      @RequestParam String seccion) {
+                                                      @RequestParam String seccion,
+                                                      Authentication authentication) {
+        verificarEspecialidadPermitida(idEsp, authentication);
         return alumnoRepository.findByEspecialidad_IdEspAndCursoAndSeccion(idEsp, curso, seccion)
                 .stream()
                 .map(AlumnoFiltradoDTO::new)
@@ -188,6 +193,13 @@ public class AdminController {
         return List.of(especialidadFija.getIdEsp());
     }
 
+    private void verificarEspecialidadPermitida(Integer idEsp, Authentication authentication) {
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        if (!obtenerIdsEspecialidadPermitidos(admin).contains(idEsp)) {
+            throw new AccessDeniedException("No podés consultar otra especialidad");
+        }
+    }
+
     // --- Reporte de cumplimiento semanal ---
 
     @GetMapping("/admin/api/cumplimiento")
@@ -195,7 +207,9 @@ public class AdminController {
     public CumplimientoSemanaDTO cumplimiento(@RequestParam Integer idEsp,
                                                @RequestParam String curso,
                                                @RequestParam String seccion,
-                                               @RequestParam(defaultValue = "0") int offset) {
+                                               @RequestParam(defaultValue = "0") int offset,
+                                               Authentication authentication) {
+        verificarEspecialidadPermitida(idEsp, authentication);
 
         // 1. Calcular el lunes y el sábado de la semana consultada (offset 0 = semana actual,
         // -1 = semana anterior, +1 = semana siguiente, etc.)
@@ -267,7 +281,10 @@ public class AdminController {
     public void descargarZip(@RequestParam Integer idEsp,
                               @RequestParam String curso,
                               @RequestParam String seccion,
+                              Authentication authentication,
                               HttpServletResponse response) throws IOException {
+
+        verificarEspecialidadPermitida(idEsp, authentication);
 
         List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEspAndCursoAndSeccion(idEsp, curso, seccion);
 
@@ -295,8 +312,9 @@ public class AdminController {
                     // Usamos el nombre original con el que el alumno lo subió, no el UUID interno,
                     // para que sea legible cuando el admin/coordinador lo abra
                     String nombreOriginal = documento.getNombreArchivo() != null
-                            ? documento.getNombreArchivo()
+                            ? new File(documento.getNombreArchivo()).getName()
                             : ("documento_" + documento.getIdDs() + ".pdf");
+                        nombreOriginal = sanitizarNombreArchivo(nombreOriginal, documento.getIdDs());
                     String nombreArchivo = carpetaAlumno + "/Documentos_Subidos/" + nombreOriginal;
 
                     zos.putNextEntry(new ZipEntry(nombreArchivo));
@@ -626,6 +644,11 @@ public class AdminController {
     private String sanitizar(String texto) {
         if (texto == null) return "";
         return texto.replaceAll("[^a-zA-Z0-9_-]", "_");
+    }
+
+    private String sanitizarNombreArchivo(String nombre, Integer idDs) {
+        String seguro = nombre.replaceAll("[\\x00-\\x1F\\x7F\\\\/:*?\"<>|]", "_");
+        return seguro.isBlank() ? "documento_" + idDs + ".pdf" : seguro;
     }
 
     private Administrador obtenerAdminAutenticado(Authentication authentication) {

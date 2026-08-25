@@ -31,6 +31,9 @@
             <p th:if="${param.error}" class="mensaje-error">
                 La Contraseña Actual es Incorrecta
             </p>
+            <p th:if="${param.errorContrasena}" class="mensaje-error">
+                La nueva contraseña debe tener al menos 6 caracteres.
+            </p>
             <p th:if="${param.exito}" class="mensaje-exito">
                 Contraseña Actualizada correctamente
             </p>

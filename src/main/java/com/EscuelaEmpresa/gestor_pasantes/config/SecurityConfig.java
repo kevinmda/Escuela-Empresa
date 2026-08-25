@@ -1,5 +1,6 @@
 package com.EscuelaEmpresa.gestor_pasantes.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,10 +13,16 @@ public class SecurityConfig {
 
     private final LoginFailureHandler loginFailureHandler; // detecta cuenta inactiva/bloqueada y actua en consecuencia
     private final LoginSuccessHandler loginSuccessHandler; // resetea contadores de intentos al loguear con exito
+    private final String rememberMeKey;
 
-    public SecurityConfig(LoginFailureHandler loginFailureHandler, LoginSuccessHandler loginSuccessHandler) {
+    public SecurityConfig(LoginFailureHandler loginFailureHandler,
+                          LoginSuccessHandler loginSuccessHandler,
+                          @Value("${REMEMBER_ME_KEY:}") String rememberMeKey) {
         this.loginFailureHandler = loginFailureHandler;
         this.loginSuccessHandler = loginSuccessHandler;
+        this.rememberMeKey = rememberMeKey.isBlank()
+                ? java.util.UUID.randomUUID().toString()
+                : rememberMeKey;
     }
 
     // el PasswordEncoder ahora vive en PasswordEncoderConfig.java, para evitar dependencia circular
@@ -41,7 +48,7 @@ public class SecurityConfig {
                 // esto esta bien tener en cuenta para entender un poco lo de login.html
             )
             .rememberMe(remember -> remember
-            .key("gestor-pasantes-clave-secreta") // usada para firmar el token; podés cambiarla por cualquier string
+            .key(rememberMeKey)
             .tokenValiditySeconds(1209600) // 14 dias en segundos
             )
             .logout(logout -> logout.permitAll()); //esto activa la funcion de logout que viene de Spring Security en la URL "/logout". Permitiendo que cualquiera pueda acceder a esa URL para cerrar sesion

@@ -1,12 +1,14 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
-import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
-import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
-import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
-import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
-import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
-import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -19,14 +21,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
+import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
+import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
+import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 public class SubirController {
@@ -95,18 +97,23 @@ public class SubirController {
         // exacta que calculamos, sin depender de esa resolucion ambigua de Tomcat.
         try (java.io.InputStream inputStream = archivo.getInputStream()) {
             Files.copy(inputStream, rutaCompleta, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        }
 
-        DocumentoSubido documento = new DocumentoSubido();
-        String nombreOriginal = archivo.getOriginalFilename();
-        if (nombreOriginal != null && nombreOriginal.length() > 100) {
-            nombreOriginal = nombreOriginal.substring(0, 100); // el campo "nombre" en la BD es VARCHAR(100)
+            DocumentoSubido documento = new DocumentoSubido();
+            String nombreOriginal = archivo.getOriginalFilename();
+            if (nombreOriginal != null && nombreOriginal.length() > 100) {
+                nombreOriginal = nombreOriginal.substring(0, 100); // el campo "nombre" en la BD es VARCHAR(100)
+            }
+            documento.setNombreArchivo(nombreOriginal);
+            documento.setRutaArchivo(rutaCompleta.toString());
+            documento.setFechaSubida(LocalDateTime.now());
+            documento.setAlumno(alumno);
+            try {
+                documentoSubidoRepository.save(documento);
+            } catch (RuntimeException exception) {
+                Files.deleteIfExists(rutaCompleta);
+                throw exception;
+            }
         }
-        documento.setNombreArchivo(nombreOriginal);
-        documento.setRutaArchivo(rutaCompleta.toString());
-        documento.setFechaSubida(LocalDateTime.now());
-        documento.setAlumno(alumno);
-        documentoSubidoRepository.save(documento);
 
         redirectAttributes.addFlashAttribute("exito", "Documento subido correctamente.");
         return "redirect:/alumno/subir";

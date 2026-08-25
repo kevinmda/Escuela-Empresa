@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.EscuelaEmpresa.gestor_pasantes.dto.DiaForm;
 import com.EscuelaEmpresa.gestor_pasantes.dto.PlanillaSemanalForm;
@@ -27,6 +28,7 @@ public class PlanillaSemanalService {
         this.planillaSemanalDetalleRepository = planillaSemanalDetalleRepository;
     }
 
+    @Transactional
     public void guardarPlanilla(PlanillaSemanalForm form, Alumno alumno) {
 
         // Validar cada día ANTES de filtrar
@@ -37,6 +39,9 @@ public class PlanillaSemanalService {
 
         // Validar cada día ANTES de filtrar
         List<DiaForm> dias = form.getDias();
+        if (dias == null || dias.size() != diasEsperados.length) {
+            throw new RuntimeException("La planilla debe contener los seis días de la semana");
+        }
         for (int i = 0; i < dias.size(); i++) {
             validarDia(dias.get(i), diasEsperados[i]);
         }
@@ -152,8 +157,8 @@ public class PlanillaSemanalService {
             throw new RuntimeException("Faltan las horas en " + dia.getNombreDia());
         }
 
-        if (dia.getDescripcion() != null && dia.getDescripcion().length() > 500) {
-            throw new RuntimeException("La descripción de " + dia.getNombreDia() + " supera el máximo de 500 caracteres");
+        if (dia.getDescripcion() != null && dia.getDescripcion().length() > 65) {
+            throw new RuntimeException("La descripción de " + dia.getNombreDia() + " supera el máximo de 65 caracteres");
         }
 
         if (dia.getHoras() <= 0) {

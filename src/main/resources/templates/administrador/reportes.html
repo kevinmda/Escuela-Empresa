@@ -196,29 +196,43 @@
             tablaBody.innerHTML = '';
             data.alumnos.forEach(a => {
                 const fila = document.createElement('tr');
-                fila.innerHTML = `
-                    <td>${a.nombres ?? ''}</td>
-                    <td>${a.apellidos ?? ''}</td>
-                    <td>${a.ci ?? ''}</td>
-                    <td>
-                        <span class="badge ${a.entrego ? 'badge-success' : 'badge-danger'}">${a.entrego ? 'Sí' : 'No'}</span>
-                    </td>
-                    <td>
-                        <details class="documentos-menu">
-                            <summary>Ver documentos</summary>
-                            <div class="documentos-lista" data-id-alumno="${a.idAl}">
-                                <span class="documentos-cargando">Cargando...</span>
-                            </div>
-                        </details>
-                    </td>
-                `;
-                const menu = fila.querySelector('.documentos-menu');
+                agregarCelda(fila, a.nombres);
+                agregarCelda(fila, a.apellidos);
+                agregarCelda(fila, a.ci);
+
+                const estado = document.createElement('span');
+                estado.className = `badge ${a.entrego ? 'badge-success' : 'badge-danger'}`;
+                estado.textContent = a.entrego ? 'Sí' : 'No';
+                agregarCelda(fila, estado);
+
+                const menu = document.createElement('details');
+                menu.className = 'documentos-menu';
+                const resumen = document.createElement('summary');
+                resumen.textContent = 'Ver documentos';
+                const lista = document.createElement('div');
+                lista.className = 'documentos-lista';
+                const cargando = document.createElement('span');
+                cargando.className = 'documentos-cargando';
+                cargando.textContent = 'Cargando...';
+                lista.appendChild(cargando);
+                menu.append(resumen, lista);
+                agregarCelda(fila, menu);
                 menu.addEventListener('toggle', () => {
                     if (menu.open) cargarDocumentos(menu, a.idAl);
                 });
                 tablaBody.appendChild(fila);
             });
             tabla.style.display = 'table';
+        }
+
+        function agregarCelda(fila, contenido) {
+            const celda = document.createElement('td');
+            if (contenido instanceof Node) {
+                celda.appendChild(contenido);
+            } else {
+                celda.textContent = contenido ?? '';
+            }
+            fila.appendChild(celda);
         }
 
         function ocultarTabla() {
