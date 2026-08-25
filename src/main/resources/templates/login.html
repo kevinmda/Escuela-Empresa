@@ -2,42 +2,57 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión</title>
 
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 
 </head>
 <body>
-    <h2>Iniciar sesión</h2>
-
-    <p th:if="${param.error}" style="color: red;">
-        Email o contraseña incorrectos.
-    </p>
-    <p th:if="${param.bloqueado}" style="color: red;">
-        Tu cuenta fue bloqueada temporalmente por varios intentos fallidos. Probá de nuevo en 15 minutos.
-    </p>
-    <p th:if="${param.errorCorreo}" style="color: red;">
-        No pudimos enviarte el correo. Intentá iniciar sesión de nuevo en unos minutos.
-    </p>
-
-    <form th:action="@{/login}" method="post">
-        <div>
-            <label>Email:</label>
-            <input type="text" name="username" th:value="${email}" readonly>
+    <header>
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/CtnLogo.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
         </div>
-        <div>
-            <label>Contraseña:</label>
-            <input type="password" name="password" required autofocus>
-        </div>
-        <div>
-            <label>
-                <input type="checkbox" name="remember-me"> Recordarme mas tarde
-            </label>
-        </div>
-        <button type="submit">Ingresar</button>
-    </form>
+    </header>
 
-    <p><a th:href="@{/olvide-contrasena(email=${email})}">¿Olvidaste tu contraseña?</a></p>
-    <p><a th:href="@{/login}">← Usar otro email</a></p>
+    <main class="auth-main">
+        <div class="panel auth-card">
+            <p class="eyebrow">Acceso al sistema</p>
+            <h2 class="auth-titulo">Iniciar sesión</h2>
+
+            <p th:if="${param.error}" class="mensaje-error">
+                Email o contraseña incorrectos.
+            </p>
+            <p th:if="${param.bloqueado}" class="mensaje-error">
+                Tu cuenta fue bloqueada temporalmente por varios intentos fallidos. Probá de nuevo en 15 minutos.
+            </p>
+            <p th:if="${param.errorCorreo}" class="mensaje-error">
+                No pudimos enviarte el correo. Intentá iniciar sesión de nuevo en unos minutos.
+            </p>
+
+            <form th:action="@{/login}" method="post" class="auth-form">
+                <div>
+                    <label>Email:</label>
+                    <input type="text" name="username" th:value="${email}" readonly>
+                </div>
+                <div>
+                    <label>Contraseña:</label>
+                    <input type="password" name="password" required autofocus>
+                </div>
+                <div class="auth-checkbox">
+                    <label>
+                        <input type="checkbox" name="remember-me"> Recordarme mas tarde
+                    </label>
+                </div>
+                <button type="submit" class="btn-primary">Ingresar</button>
+            </form>
+
+            <div class="auth-links">
+                <a th:href="@{/olvide-contrasena(email=${email})}">¿Olvidaste tu contraseña?</a>
+                <a th:href="@{/login}">← Usar otro email</a>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

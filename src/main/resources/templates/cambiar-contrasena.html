@@ -22,27 +22,29 @@
             </form>
         </div>
     </header>
-    <main>
-        <h2>Cambiar Contraseña</h2>
+    <main class="auth-main">
+        <div class="panel auth-card">
+            <h2 class="auth-titulo">Cambiar Contraseña</h2>
 
-        <p th:if="${param.error}" style="color: red">
-            La Contraseña Actual es Incorrecta
-        </p>
-        <p th:if="${param.exito}" style="color: green">
-            Contraseña Actualizada correctamente
-        </p>
+            <p th:if="${param.error}" class="mensaje-error">
+                La Contraseña Actual es Incorrecta
+            </p>
+            <p th:if="${param.exito}" class="mensaje-exito">
+                Contraseña Actualizada correctamente
+            </p>
 
-        <form th:action="@{cambiar-contrasena}" method="post"> <!--th:action="@{/cambiarCon} es la manera de Thymeleaf de armar URLs de manera segura-->
-            <div>                                       <!--@{...} es sintaxis de URL expression, con esto Thymeleaf lo que hace es ajustar automaticamente la ruta completa-->
-                <label>Contraseña actual:</label>
-                <input type="password" name="actual" required>
-            </div>
-            <div>
-                <label>Contraseña nueva:</label>
-                <input type="password" name="nueva" required>
-            </div>
-            <button type="submit">Cambiar</button>
-        </form>
+            <form th:action="@{cambiar-contrasena}" method="post" class="auth-form"> <!--th:action="@{/cambiarCon} es la manera de Thymeleaf de armar URLs de manera segura-->
+                <div>                                       <!--@{...} es sintaxis de URL expression, con esto Thymeleaf lo que hace es ajustar automaticamente la ruta completa-->
+                    <label>Contraseña actual:</label>
+                    <input type="password" name="actual" required>
+                </div>
+                <div>
+                    <label>Contraseña nueva:</label>
+                    <input type="password" name="nueva" required>
+                </div>
+                <button type="submit" class="btn-primary">Cambiar</button>
+            </form>
+        </div>
     </main>
 </body>
 </html>

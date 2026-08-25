@@ -31,6 +31,11 @@ body {
     line-height: 1.5;
     color: var(--ink);
     background-color: var(--bg);
+    background-image:
+        linear-gradient(rgba(30, 42, 51, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 42, 51, 0.035) 1px, transparent 1px);
+    background-size: 24px 24px;
+    min-height: 100vh;
 }
 
 img {
@@ -46,6 +51,9 @@ header {
     align-items: center;
     padding: 1rem 2rem;
     background-color: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 20;
 }
 
 .h-titulo {
@@ -105,6 +113,10 @@ nav {
     gap: 0.25rem;
     background-color: var(--surface);
     border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 96px; /* alto aproximado del header (logo + padding + borde) */
+    z-index: 19;
+    box-shadow: 0 4px 8px -6px rgba(30, 42, 51, 0.15);
 }
 
 .nav-links {
@@ -163,6 +175,7 @@ main h3 {
     border: 1px solid var(--line);
     border-radius: 4px;
     padding: 1.5rem 2rem;
+    box-shadow: 0 2px 10px -4px rgba(30, 42, 51, 0.12);
 }
 
 .panel::before,
@@ -269,6 +282,63 @@ main h3 {
     color: var(--ink);
 }
 
+/* ---------------- Autenticación (login, cambiar contraseña) ---------------- */
+
+.auth-main {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 4rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 380px;
+}
+
+.auth-titulo {
+    border-left: none;
+    padding-left: 0;
+    margin-bottom: 1.25rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.auth-form button {
+    margin-top: 0.5rem;
+}
+
+.auth-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    font-weight: 400;
+}
+
+.auth-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+}
+
+.auth-links a {
+    color: var(--ink-soft);
+    text-decoration: none;
+}
+
+.auth-links a:hover {
+    color: var(--accent-ink);
+    text-decoration: underline;
+}
+
 /* ---------------- Formularios ---------------- */
 
 label {
@@ -311,8 +381,13 @@ button,
     border-radius: 4px;
     padding: 0.55rem 1.1rem;
     border: 1px solid transparent;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
     white-space: nowrap;
+}
+
+button:active,
+.btn:active {
+    transform: translateY(1px);
 }
 
 button[type="submit"],
@@ -364,6 +439,7 @@ table {
     border-radius: 4px;
     overflow: hidden;
     font-size: 0.9rem;
+    box-shadow: 0 2px 10px -4px rgba(30, 42, 51, 0.12);
 }
 
 thead {
@@ -391,6 +467,10 @@ tbody td {
 
 tbody tr:nth-child(even) {
     background-color: var(--bg);
+}
+
+tbody tr {
+    transition: background-color 0.12s ease;
 }
 
 tbody tr:hover {
@@ -474,4 +554,54 @@ td input[type="email"] {
 #info-titulo {
     text-align: center;
     margin-bottom: 0.5rem;
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 720px) {
+    header {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .h-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    nav {
+        flex-wrap: wrap;
+        top: 0; /* en mobile el header ya no es sticky, así que el nav puede pegarse arriba del todo */
+        position: static;
+    }
+
+    header {
+        position: static;
+    }
+
+    main {
+        padding: 1.25rem 1rem;
+    }
+
+    .panel,
+    .toolbar.panel {
+        padding: 1.25rem;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .bienvenida {
+        margin-top: 1.5rem;
+    }
 }
