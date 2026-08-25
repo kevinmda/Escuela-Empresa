@@ -28,8 +28,6 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Empresa;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Especialidad;
-import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
-import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanalDetalle;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Supervisor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
@@ -37,11 +35,9 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EmpresaRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EspecialidadRepository;
-import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.SupervisorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
-import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalPdfService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -53,8 +49,6 @@ public class AdminController {
     private final EspecialidadRepository especialidadRepository;
     private final AlumnoRepository alumnoRepository;
     private final PlanillaSemanalRepository planillaSemanalRepository;
-    private final PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository;
-    private final PlanillaSemanalPdfService planillaSemanalPdfService;
     private final SupervisorRepository supervisorRepository;
     private final EmpresaRepository empresaRepository;
     private final DocumentoSubidoRepository documentoSubidoRepository;
@@ -64,8 +58,6 @@ public class AdminController {
                             EspecialidadRepository especialidadRepository,
                             AlumnoRepository alumnoRepository,
                             PlanillaSemanalRepository planillaSemanalRepository,
-                            PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
-                            PlanillaSemanalPdfService planillaSemanalPdfService,
                             SupervisorRepository supervisorRepository,
                             EmpresaRepository empresaRepository,
                             DocumentoSubidoRepository documentoSubidoRepository) {
@@ -74,8 +66,6 @@ public class AdminController {
         this.especialidadRepository = especialidadRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
-        this.planillaSemanalDetalleRepository = planillaSemanalDetalleRepository;
-        this.planillaSemanalPdfService = planillaSemanalPdfService;
         this.supervisorRepository = supervisorRepository;
         this.empresaRepository = empresaRepository;
         this.documentoSubidoRepository = documentoSubidoRepository;
@@ -227,7 +217,7 @@ public class AdminController {
         return new CumplimientoSemanaDTO(semanaDesde, semanaHasta, resultado);
     }
 
-    // --- Descarga en ZIP de todas las planillas de los alumnos filtrados ---
+    // --- Descarga en ZIP de los documentos subidos por los alumnos filtrados ---
 
     @GetMapping("/admin/alumnos/zip")
     public void descargarZip(@RequestParam Integer idEsp,
@@ -237,7 +227,7 @@ public class AdminController {
 
         List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEspAndCursoAndSeccion(idEsp, curso, seccion);
 
-        String nombreZip = "Planillas_" + sanitizar(curso) + "_" + sanitizar(seccion) + ".zip";
+        String nombreZip = "Documentos_" + sanitizar(curso) + "_" + sanitizar(seccion) + ".zip";
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=" + nombreZip);
 
@@ -247,26 +237,7 @@ public class AdminController {
 
                 String carpetaAlumno = sanitizar(alumno.getApellidos() + "_" + alumno.getNombres());
 
-                // --- 1. Planillas semanales generadas por el sistema (PDF con formato) ---
-                List<PlanillaSemanal> planillas =
-                        planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
-
-                for (PlanillaSemanal planilla : planillas) {
-
-                    List<PlanillaSemanalDetalle> detalles =
-                            planillaSemanalDetalleRepository.findByPlanillaSemanal_IdPs(planilla.getIdPs());
-
-                    byte[] pdfBytes = planillaSemanalPdfService.generarPdf(alumno, planilla, detalles);
-
-                    String nombreArchivo = carpetaAlumno + "/PlanillaSemanal_"
-                            + planilla.getFechaDesde() + "_a_" + planilla.getFechaHasta() + ".pdf";
-
-                    zos.putNextEntry(new ZipEntry(nombreArchivo));
-                    zos.write(pdfBytes);
-                    zos.closeEntry();
-                }
-
-                // --- 2. Documentos que el alumno subió directamente (contrato firmado, fotos, etc.) ---
+                // Documentos que el alumno subió directamente (contrato firmado, fotos, etc.)
                 List<DocumentoSubido> documentosSubidos =
                         documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(alumno.getIdAl());
 
