@@ -31,21 +31,58 @@
         <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
     </nav>
     <main>
-        <section id="inicio-section-saludo">
-            <h1 th:text="|Bienvenido, ${alumno.nombres.trim().split(' ')[0]}|">Bienvenido, Alumno</h1>
+        <section id="inicio-section-saludo" class="saludo">
+            <div class="avatar-circulo" th:text="${#strings.substring(alumno.nombres.trim(), 0, 1)}">A</div>
+            <div>
+                <p class="eyebrow">Panel del alumno</p>
+                <h1 th:text="|Bienvenido, ${alumno.nombres.trim().split(' ')[0]}!|">Bienvenido, Alumno!</h1>
+            </div>
         </section>
+
         <section id="inicio-section-info">
-            <div id="inicio-info">
-                <div id="info-titulo"><h2>Información</h2></div>
-                <div class="info"><span th:text="|Nombres: ${alumno.nombres}|"></span><span th:text="|Apellidos: ${alumno.apellidos}|"></span></div>
-                <p th:text="|CI: ${alumno.ci}|"></p>
-                <p th:text="|Sexo: ${alumno.sexo}|"></p>
-                <p th:text="|Telefono: ${alumno.telefono}|"></p>
-                <p th:text="|Email: ${alumno.email}|"></p>
-                <div class="info"><span th:text="|Curso: ${alumno.curso}|"></span><span th:text="|Sección: ${alumno.seccion}|"></span></div>
-                <p th:text="${alumno.supervisor != null
-                                ? 'Supervisor asignado: ' + alumno.supervisor.nombres + ' ' + alumno.supervisor.apellidos
-                                : 'Supervisor asignado: aún no asignado'}"></p>
+            <div id="inicio-info" class="panel">
+                <h2>Mis datos</h2>
+
+                <dl class="info-grid">
+                    <div class="info-item">
+                        <dt>Nombres</dt>
+                        <dd th:text="${alumno.nombres}"></dd>
+                    </div>
+                    <div class="info-item">
+                        <dt>Apellidos</dt>
+                        <dd th:text="${alumno.apellidos}"></dd>
+                    </div>
+                    <div class="info-item">
+                        <dt>CI</dt>
+                        <dd th:text="${alumno.ci}"></dd>
+                    </div>
+                    <div class="info-item">
+                        <dt>Sexo</dt>
+                        <dd th:text="${alumno.sexo}"></dd>
+                    </div>
+                    <div class="info-item">
+                        <dt>Teléfono</dt>
+                        <dd th:text="${alumno.telefono}"></dd>
+                    </div>
+                    <div class="info-item">
+                        <dt>Email</dt>
+                        <dd th:text="${alumno.email}"></dd>
+                    </div>
+                    <div class="info-item">
+                        <dt>Curso</dt>
+                        <dd th:text="${alumno.curso}"></dd>
+                    </div>
+                    <div class="info-item">
+                        <dt>Sección</dt>
+                        <dd th:text="${alumno.seccion}"></dd>
+                    </div>
+                </dl>
+
+                <div class="supervisor-linea">
+                    <span>Supervisor asignado</span>
+                    <span class="badge" th:classappend="${alumno.supervisor != null} ? 'badge-success' : 'badge-danger'"
+                          th:text="${alumno.supervisor != null ? alumno.supervisor.nombres + ' ' + alumno.supervisor.apellidos : 'Aún no asignado'}"></span>
+                </div>
             </div>
         </section>
     </main>

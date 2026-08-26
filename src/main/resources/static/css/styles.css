@@ -792,4 +792,125 @@ td input[type="email"] {
     .bienvenida {
         margin-top: 1.5rem;
     }
+
+    .dias-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------------- Planilla Semanal (alumno) ---------------- */
+
+.subtitulo-pagina {
+    color: var(--ink-soft);
+    margin-bottom: 1.5rem;
+    max-width: 640px;
+}
+
+.subseccion-titulo {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin: 1.75rem 0 0.85rem;
+}
+
+.selector-semana {
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+}
+
+.selector-semana select {
+    min-width: 260px;
+}
+
+.dias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.dia-bloque {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.1rem 1.25rem;
+}
+
+.dia-bloque h3 {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--accent-ink);
+    margin-bottom: 0.25rem;
+}
+
+.dia-bloque label {
+    margin-top: 0.25rem;
+}
+
+.dia-bloque textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.resumen-semana {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.resumen-semana textarea {
+    min-height: 70px;
+    resize: vertical;
+}
+
+.acciones-planilla {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+#btnNuevo {
+    margin-top: 1.5rem;
+}
+
+.fieldset-planilla {
+    border: none;
+    transition: opacity 0.2s ease;
+}
+
+.fieldset-planilla:disabled {
+    opacity: 0.55;
+}
+
+button:disabled,
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.nota-planilla-vacia {
+    margin-top: 2.5rem;
+    max-width: 480px;
+}
+
+.nota-planilla-vacia h3 {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+}
+
+.nota-planilla-vacia p {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.dia-bloque input,
+.dia-bloque textarea,
+.resumen-semana input,
+.resumen-semana textarea {
+    width: 100%;
 }

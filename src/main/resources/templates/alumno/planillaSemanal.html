@@ -27,90 +27,108 @@
     </header>
     <nav>
         <a th:href="@{/alumno/imprimir}" class="nav-links">Imprimir</a>
-        <a th:href="@{/alumno/planilla}" class="nav-links">Planilla Semanal</a>
+        <a th:href="@{/alumno/planilla}" class="nav-links activo">Planilla Semanal</a>
         <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
     </nav>
     <main>
-        <h1>Cargar Planilla Semanal</h1>
+        <h2>Planilla Semanal</h2>
+        <p class="subtitulo-pagina">Registrá tus actividades día por día. Podés cargar una semana nueva o revisar una que ya enviaste.</p>
 
-        <div th:if="${error}" style="color: red; font-weight: bold;">
+        <div th:if="${error}" class="mensaje-error">
             <p th:text="${error}"></p>
         </div>
-        <div th:if="${exito}" style="color: green; font-weight: bold;">
+        <div th:if="${exito}" class="mensaje-exito">
             <p th:text="${exito}"></p>
         </div>
 
+        <!-- Selector de semana: elegís una ya cargada, o dejás "Nueva planilla" -->
+        <form method="get" th:action="@{/alumno/planilla}" class="toolbar panel selector-semana">
+            <div>
+                <label for="selectorPlanilla">Semana</label>
+                <select id="selectorPlanilla" name="idPs" onchange="this.form.submit()">
+                    <option value="">Nueva planilla</option>
+                    <option th:each="p : ${planillas}"
+                            th:value="${p.idPs}"
+                            th:text="${'Semana del ' + #temporals.format(p.fechaDesde, 'dd/MM/yyyy') + ' al ' + #temporals.format(p.fechaHasta, 'dd/MM/yyyy')}"
+                            th:selected="${p.idPs == idPsSeleccionado}">
+                    </option>
+                </select>
+            </div>
+
+            <a th:if="${idPsSeleccionado != null}"
+                id="btnGenerarPdf"
+                th:href="@{/alumno/planilla/Planilla_Semanal.pdf(idPs=${idPsSeleccionado})}"
+                target="_blank"
+                class="btn btn-generar-pdf btn-secondary">
+                Generar PDF
+            </a>
+
+            <button th:if="${idPsSeleccionado == null}" id="btnGenerarPdf" type="button" class="btn btn-generar-pdf btn-secondary" disabled>
+                Generar PDF
+            </button>
+        </form>
+
         <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post" id="formPlanilla">
 
-            <fieldset id="fieldsetPlanilla" th:disabled="${!habilitado}">
+            <fieldset id="fieldsetPlanilla" th:disabled="${!habilitado}" class="fieldset-planilla">
 
-                <div th:each="dia, iterStat : *{dias}" class="dia-bloque">
-                    <h3 th:text="${dia.nombreDia}"></h3>
+                <h3 class="subseccion-titulo">Días trabajados</h3>
+                <div class="dias-grid">
+                    <div th:each="dia, iterStat : *{dias}" class="dia-bloque panel">
+                        <h3 th:text="${dia.nombreDia}"></h3>
 
-                    <label>Fecha:</label>
-                    <input type="date" th:field="*{dias[__${iterStat.index}__].fecha}">
+                        <label>Fecha</label>
+                        <input type="date" th:field="*{dias[__${iterStat.index}__].fecha}">
 
-                    <label>Descripción:</label>
-                    <textarea th:field="*{dias[__${iterStat.index}__].descripcion}" maxlength="65"></textarea>
+                        <label>Descripción</label>
+                        <textarea th:field="*{dias[__${iterStat.index}__].descripcion}" maxlength="65" placeholder="¿Qué hiciste este día?"></textarea>
 
-                    <label>Horas trabajadas:</label>
-                    <input type="number" step="0.01" min="0.01" th:field="*{dias[__${iterStat.index}__].horas}">
+                        <label>Horas trabajadas</label>
+                        <input type="number" step="0.01" min="0.01" th:field="*{dias[__${iterStat.index}__].horas}" placeholder="0.00">
+                    </div>
                 </div>
 
-                <hr>
+                <h3 class="subseccion-titulo">Resumen de la semana</h3>
+                <div class="panel resumen-semana">
+                    <div>
+                        <label>Supervisor</label>
+                        <input type="text" th:field="*{supervisor}" maxlength="100" placeholder="Nombre de tu supervisor en la empresa">
+                    </div>
 
-                <label>Supervisor:</label>
-                <input type="text" th:field="*{supervisor}" maxlength="100">
+                    <div>
+                        <label>Conocimientos adquiridos</label>
+                        <textarea th:field="*{conocimientos}" maxlength="265"></textarea>
+                    </div>
 
-                <label>Conocimientos adquiridos:</label>
-                <textarea th:field="*{conocimientos}" maxlength="265"></textarea>
+                    <div>
+                        <label>Experiencia</label>
+                        <textarea th:field="*{experiencia}" maxlength="200"></textarea>
+                    </div>
 
-                <label>Experiencia:</label>
-                <textarea th:field="*{experiencia}" maxlength="200"></textarea>
+                    <div>
+                        <label>Aprendizaje</label>
+                        <textarea th:field="*{aprendizaje}" maxlength="200"></textarea>
+                    </div>
+                </div>
 
-                <label>Aprendizaje:</label>
-                <textarea th:field="*{aprendizaje}" maxlength="200"></textarea>
-
-                <button type="submit">Enviar</button>
-                <button type="button" id="btnCancelar" onclick="limpiarFormulario()">Cancelar</button>
+                <div class="acciones-planilla">
+                    <button type="submit" class="btn-primary">Enviar</button>
+                    <button type="button" id="btnCancelar" class="btn-secondary" onclick="limpiarFormulario()">Cancelar</button>
+                </div>
 
             </fieldset>
 
-            <button type="button" id="btnNuevo" th:disabled="${habilitado}" onclick="habilitarFormulario()">Nuevo</button>
+            <button type="button" id="btnNuevo" class="btn-secondary" th:disabled="${habilitado}" onclick="habilitarFormulario()">+ Cargar semana nueva</button>
 
         </form>
 
-        <form method="get" th:action="@{/alumno/planilla}">
-            <label for="selectorPlanilla">Planillas cargadas:</label>
-            <select id="selectorPlanilla" name="idPs" onchange="this.form.submit()">
-                <option value="">Nueva planilla</option>
-                <option th:each="p : ${planillas}"
-                        th:value="${p.idPs}"
-                        th:text="${'Semana del ' + #temporals.format(p.fechaDesde, 'dd/MM/yyyy') + ' al ' + #temporals.format(p.fechaHasta, 'dd/MM/yyyy')}"
-                        th:selected="${p.idPs == idPsSeleccionado}">
-                </option>
-            </select>
-        </form>
-
-        <a th:if="${idPsSeleccionado != null}"
-            id="btnGenerarPdf"
-            th:href="@{/alumno/planilla/Planilla_Semanal.pdf(idPs=${idPsSeleccionado})}"
-            target="_blank"
-            class="btn btn-generar-pdf">
-            Generar PDF
-        </a>
-
-        <button th:if="${idPsSeleccionado == null}" id="btnGenerarPdf" type="button" class="btn btn-generar-pdf" disabled>
-            Generar PDF
-        </button>
-
-        <br>
-        <br>
-        <h1>Planilla semanal vacio</h1>
-        <p>Como alternativa se puede descargar la planilla para rellenarlas completamente a mano</p>
-        <a th:href="@{/alumno/planilla/Planilla_Semanal_Vacio.pdf}" target="_blank">
-            <button>Descargar</button>
-        </a>
+        <div class="panel nota-planilla-vacia">
+            <h3>¿Preferís llenarla a mano?</h3>
+            <p>Descargá la planilla en blanco para completarla vos y luego escanearla.</p>
+            <a th:href="@{/alumno/planilla/Planilla_Semanal_Vacio.pdf}" target="_blank">
+                <button type="button" class="btn-secondary">Descargar planilla vacía</button>
+            </a>
+        </div>
     </main>
 
     <script th:src="@{/js/planillaSemanal.js}"></script>
