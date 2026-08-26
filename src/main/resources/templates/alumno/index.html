@@ -83,6 +83,12 @@
                     <span class="badge" th:classappend="${alumno.supervisor != null} ? 'badge-success' : 'badge-danger'"
                           th:text="${alumno.supervisor != null ? alumno.supervisor.nombres + ' ' + alumno.supervisor.apellidos : 'Aún no asignado'}"></span>
                 </div>
+
+                <div class="supervisor-linea">
+                    <span>Empresa asignada</span>
+                    <span class="badge" th:classappend="${alumno.empresa != null} ? 'badge-success' : 'badge-danger'"
+                          th:text="${alumno.empresa != null ? alumno.empresa.nombre : 'Aún no asignada'}"></span>
+                </div>
             </div>
         </section>
     </main>

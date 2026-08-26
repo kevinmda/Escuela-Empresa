@@ -33,6 +33,6 @@
         <button type="submit">Ingresar</button>
     </form>
 
-    <p><a th:href="@{/login}">← Usar otro email</a></p>
+    <p><a th:href="@{/login(volver=true, email=${email})}">← Usar otro email</a></p>
 </body>
 </html>

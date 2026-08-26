@@ -23,9 +23,13 @@ public class LoginController {
 
     // "email" es opcional: sin el, mostramos el primer paso (pedir el email).
     // con el (viene de un redirect de LoginFailureHandler, por ejemplo tras un error),
-    // mostramos directo la pantalla que corresponda, con el email ya cargado
+    // mostramos directo la pantalla que corresponda, con el email ya cargado.
+    // "volver" fuerza mostrar el primer paso (email) de nuevo, con el valor precargado
+    // -- se usa desde el link "Usar otro email" en login.html/login-primera-vez.html
     @GetMapping("/login")
-    public String mostrarLogin(@RequestParam(required = false) String email, Model model) {
+    public String mostrarLogin(@RequestParam(required = false) String email,
+                                @RequestParam(required = false) Boolean volver,
+                                Model model) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -37,6 +41,11 @@ public class LoginController {
 
         if (yaAutenticado) {
             return "redirect:/home";
+        }
+
+        if (Boolean.TRUE.equals(volver)) {
+            model.addAttribute("email", email);
+            return "login-email"; // primer paso, pero con el email ya cargado en el campo
         }
 
         if (email == null) {

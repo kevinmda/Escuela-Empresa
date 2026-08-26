@@ -52,7 +52,7 @@
 
             <div class="auth-links">
                 <a th:href="@{/olvide-contrasena(email=${email})}">¿Olvidaste tu contraseña?</a>
-                <a th:href="@{/login}">← Usar otro email</a>
+                <a th:href="@{/login(volver=true, email=${email})}">← Usar otro email</a>
             </div>
         </div>
     </main>

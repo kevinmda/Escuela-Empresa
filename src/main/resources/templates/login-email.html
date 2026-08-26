@@ -36,7 +36,7 @@
     <form th:action="@{/login-check}" method="post" class="auth-form">
         <div>
             <label for="email">Email:</label>
-            <input id="email" type="email" name="email" required autofocus>
+            <input id="email" type="email" name="email" th:value="${email}" required autofocus>
         </div>
         <button type="submit" class="btn-primary">Continuar</button>
     </form>
