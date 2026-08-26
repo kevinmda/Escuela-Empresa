@@ -37,10 +37,14 @@
         <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
 
-        <div class="panel">
-            <form th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data" class="toolbar">
-                <input type="file" name="archivo" accept="application/pdf" required>
-                <button type="submit" class="btn-primary">Subir</button>
+        <div class="panel upload-card">
+            <form th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data">
+                <label for="archivo-input" class="dropzone" id="dropzone">
+                    <span class="dropzone-titulo" id="dropzone-titulo">Hacé click o arrastrá tu PDF acá</span>
+                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
+                </label>
+                <input type="file" id="archivo-input" name="archivo" accept="application/pdf" required class="dropzone-input">
+                <button type="submit" class="btn-primary">Subir documento</button>
             </form>
         </div>
 
@@ -71,5 +75,40 @@
 
         <p th:if="${#lists.isEmpty(documentos)}" class="mensaje-vacio">Todavía no subiste ningún documento.</p>
     </main>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const inputArchivo = document.getElementById('archivo-input');
+        const dropzoneTitulo = document.getElementById('dropzone-titulo');
+
+        function actualizarNombreArchivo() {
+            if (inputArchivo.files && inputArchivo.files.length > 0) {
+                dropzoneTitulo.textContent = inputArchivo.files[0].name;
+                dropzone.classList.add('dropzone-con-archivo');
+            } else {
+                dropzoneTitulo.textContent = 'Hacé click o arrastrá tu PDF acá';
+                dropzone.classList.remove('dropzone-con-archivo');
+            }
+        }
+
+        inputArchivo.addEventListener('change', actualizarNombreArchivo);
+
+        ['dragover', 'dragleave', 'drop'].forEach(evento => {
+            dropzone.addEventListener(evento, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+
+        dropzone.addEventListener('dragover', () => dropzone.classList.add('dropzone-activo'));
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dropzone-activo'));
+        dropzone.addEventListener('drop', (e) => {
+            dropzone.classList.remove('dropzone-activo');
+            if (e.dataTransfer.files.length > 0) {
+                inputArchivo.files = e.dataTransfer.files;
+                actualizarNombreArchivo();
+            }
+        });
+    </script>
 </body>
 </html>

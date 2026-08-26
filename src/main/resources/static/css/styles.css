@@ -1004,26 +1004,70 @@ button:disabled,
 
 /* ---------------- Subir (alumno) ---------------- */
 
-input[type="file"] {
-    font-family: var(--font-body);
-    font-size: 0.85rem;
+.upload-card {
+    max-width: 480px;
+    margin: 0 0 2rem;
+}
+
+.upload-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    text-align: center;
+    padding: 2.75rem 1.5rem;
+    border: 1.5px dashed var(--line);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.dropzone:hover,
+.dropzone-activo {
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+}
+
+.dropzone-titulo {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 0.95rem;
+}
+
+.dropzone-subtitulo {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--ink-soft);
 }
 
-input[type="file"]::file-selector-button {
-    font-family: var(--font-display);
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--ink);
-    background-color: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 0.5rem 0.9rem;
-    margin-right: 0.75rem;
-    cursor: pointer;
-    transition: border-color 0.15s ease;
+.dropzone-con-archivo .dropzone-titulo {
+    color: var(--accent-ink);
 }
 
-input[type="file"]::file-selector-button:hover {
-    border-color: var(--accent);
+/* Oculta el input nativo visualmente sin perder accesibilidad (el <label for="">
+   sigue disparando el selector de archivos al hacer click en la dropzone) */
+.dropzone-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.upload-card button[type="submit"] {
+    align-self: flex-start;
 }
