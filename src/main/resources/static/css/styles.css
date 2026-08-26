@@ -161,6 +161,14 @@ header {
     padding: 0;
 }
 
+/* Selector mas especifico que "button[type='submit']" (que le da fondo oscuro a los
+   botones de formulario), necesario porque el logout es un <button type="submit">
+   dentro de un <form>, y sin esto el estilo oscuro le ganaba a .h-links-logout */
+.h-links button[type="submit"].h-links-logout {
+    background: none;
+    color: var(--ink-soft);
+}
+
 .h-links-logout:hover {
     color: var(--danger);
 }
@@ -557,6 +565,8 @@ button,
     border-radius: 4px;
     padding: 0.55rem 1.1rem;
     border: 1px solid transparent;
+    text-decoration: none;
+    display: inline-block;
     transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
     white-space: nowrap;
 }
@@ -954,4 +964,66 @@ button:disabled,
 .resumen-semana input,
 .resumen-semana textarea {
     width: 100%;
+}
+
+/* ---------------- Imprimir (alumno) ---------------- */
+
+.documentos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin: 1.5rem 0 2rem;
+}
+
+.documento-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.documento-card h3 {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--ink);
+    margin: 0;
+}
+
+.documento-card p {
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    flex: 1;
+}
+
+.documento-card .btn {
+    align-self: flex-start;
+}
+
+/* ---------------- Subir (alumno) ---------------- */
+
+input[type="file"] {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+}
+
+input[type="file"]::file-selector-button {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.5rem 0.9rem;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    border-color: var(--accent);
 }

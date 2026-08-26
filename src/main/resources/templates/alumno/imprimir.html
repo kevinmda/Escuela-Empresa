@@ -26,55 +26,48 @@
         </div>
     </header>
     <nav>
-        <a th:href="@{/alumno/imprimir}" class="nav-links">Imprimir</a>
+        <a th:href="@{/alumno/imprimir}" class="nav-links activo">Imprimir</a>
         <a th:href="@{/alumno/planilla}" class="nav-links">Planilla Semanal</a>
         <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
     </nav>
     <main>
-        <h1>Contrato del Alumno</h1>
-        <p>Hacé click en el botón para generar y ver tu contrato en PDF.</p>
-        <a th:href="@{/alumno/imprimir/Contrato.pdf}" target="_blank">
-            <button>Generar PDF</button>
-        </a>
-        <br>
+        <h2>Imprimir documentos</h2>
+        <p class="subtitulo-pagina">Generá tus documentos de pasantía ya completados con tus datos, listos para revisar, imprimir o firmar.</p>
 
-        <h1>Autorizacion del Alumno</h1>
-        <p>Hacé click en el botón para generar y ver tu autorizacion en PDF.</p>
-        <a th:href="@{/alumno/imprimir/Autorizacion.pdf}" target="_blank">
-            <button>Generar PDF</button>
-        </a>
-        <br>
+        <div class="documentos-grid">
+            <div class="panel documento-card">
+                <h3>Contrato del Alumno</h3>
+                <p>El contrato de pasantía, completado con tus datos personales.</p>
+                <a th:href="@{/alumno/imprimir/Contrato.pdf}" target="_blank" class="btn btn-primary">Generar PDF</a>
+            </div>
 
-        <h1>Ficha Final del Alumno</h1>
-        <p>Hacé click en el botón para generar y ver tu ficha final en PDF.</p>
-        <a th:href="@{/alumno/imprimir/Ficha_Final_Pel.pdf}" target="_blank">
-            <button>Generar PDF</button>
-        </a>
-        <br>
+            <div class="panel documento-card">
+                <h3>Autorización del Alumno</h3>
+                <p>La autorización de pasantía, completada con tus datos personales.</p>
+                <a th:href="@{/alumno/imprimir/Autorizacion.pdf}" target="_blank" class="btn btn-primary">Generar PDF</a>
+            </div>
 
-        <h1>Ficha Final Evaluativa del Alumno</h1>
-        <p>Hacé click en el botón para generar y ver tu ficha final evaluativa en PDF.</p>
-        <a th:href="@{/alumno/imprimir/Ficha_Final_Eval_Pel.pdf}" target="_blank">
-            <button>Generar PDF</button>
-        </a>
-        <br>
-        <br>
+            <div class="panel documento-card">
+                <h3>Ficha Final del Alumno</h3>
+                <p>La ficha final de pasantía, completada con tus datos personales.</p>
+                <a th:href="@{/alumno/imprimir/Ficha_Final_Pel.pdf}" target="_blank" class="btn btn-primary">Generar PDF</a>
+            </div>
 
-        <h1>Formularios vacios</h1>
-        <p>Botones para descargar los formularios vacios</p>
-        <div>
-        <a th:href="@{/alumno/imprimir/Contrato_Vacio.pdf}" target="_blank">
-            <button>Contrato</button>
-        </a>
-        <a th:href="@{/alumno/imprimir/Autorizacion_Vacio.pdf}" target="_blank">
-            <button>Autorizacion</button>
-        </a>
-        <a th:href="@{/alumno/imprimir/Ficha_Final_Pel_Vacio.pdf}" target="_blank">
-            <button>Ficha Final Pel</button>
-        </a>
-        <a th:href="@{/alumno/imprimir/Ficha_Final_Eval_Pel_Vacio.pdf}" target="_blank">
-            <button>Ficha Final Evaluativa</button>
-        </a>
+            <div class="panel documento-card">
+                <h3>Ficha Final Evaluativa</h3>
+                <p>La ficha final evaluativa, completada con tus datos personales.</p>
+                <a th:href="@{/alumno/imprimir/Ficha_Final_Eval_Pel.pdf}" target="_blank" class="btn btn-primary">Generar PDF</a>
+            </div>
+        </div>
+
+        <h3 class="subseccion-titulo">Formularios vacíos</h3>
+        <p class="subtitulo-pagina">Descargá las versiones en blanco por si necesitás completarlas a mano.</p>
+
+        <div class="toolbar">
+            <a th:href="@{/alumno/imprimir/Contrato_Vacio.pdf}" target="_blank" class="btn btn-secondary">Contrato</a>
+            <a th:href="@{/alumno/imprimir/Autorizacion_Vacio.pdf}" target="_blank" class="btn btn-secondary">Autorización</a>
+            <a th:href="@{/alumno/imprimir/Ficha_Final_Pel_Vacio.pdf}" target="_blank" class="btn btn-secondary">Ficha Final Pel</a>
+            <a th:href="@{/alumno/imprimir/Ficha_Final_Eval_Pel_Vacio.pdf}" target="_blank" class="btn btn-secondary">Ficha Final Evaluativa</a>
         </div>
     </main>
 </body>

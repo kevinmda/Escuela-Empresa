@@ -28,22 +28,23 @@
     <nav>
         <a th:href="@{/alumno/imprimir}" class="nav-links">Imprimir</a>
         <a th:href="@{/alumno/planilla}" class="nav-links">Planilla Semanal</a>
-        <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
+        <a th:href="@{/alumno/subir}" class="nav-links activo">Subir</a>
     </nav>
     <main>
         <h2>Subir documento</h2>
+        <p class="subtitulo-pagina">Subí acá la planilla que llenaste a mano, convertida a PDF.</p>
 
-        <p th:if="${error}" style="color: red;" th:text="${error}"></p>
-        <p th:if="${exito}" style="color: green;" th:text="${exito}"></p>
+        <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+        <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
 
-        <p>Subí acá la planilla que llenaste a mano, convertida a PDF.</p>
+        <div class="panel">
+            <form th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data" class="toolbar">
+                <input type="file" name="archivo" accept="application/pdf" required>
+                <button type="submit" class="btn-primary">Subir</button>
+            </form>
+        </div>
 
-        <form th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data">
-            <input type="file" name="archivo" accept="application/pdf" required>
-            <button type="submit">Subir</button>
-        </form>
-
-        <h3>Mis documentos subidos</h3>
+        <h3 class="subseccion-titulo">Mis documentos subidos</h3>
 
         <table th:if="${not #lists.isEmpty(documentos)}">
             <thead>
@@ -68,7 +69,7 @@
             </tbody>
         </table>
 
-        <p th:if="${#lists.isEmpty(documentos)}">Todavía no subiste ningún documento.</p>
+        <p th:if="${#lists.isEmpty(documentos)}" class="mensaje-vacio">Todavía no subiste ningún documento.</p>
     </main>
 </body>
 </html>
