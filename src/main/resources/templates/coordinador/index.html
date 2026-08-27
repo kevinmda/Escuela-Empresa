@@ -44,6 +44,17 @@
         <div class="panel bienvenida">
             <p class="bienvenida-texto">Desde acá manejás todo lo de tu especialidad: revisá a tus <strong>Alumnos</strong> y su documentación, controlá el <strong>cumplimiento</strong> semanal, y asigná <strong>Supervisores</strong> y <strong>Empresas</strong> a cada pasante.</p>
         </div>
+
+        <section class="estadisticas-inicio" aria-label="Resumen de la especialidad">
+            <div class="estadistica-inicio">
+                <strong th:text="${cantidadAlumnos}">0</strong>
+                <span>Alumnos de la especialidad</span>
+            </div>
+            <div class="estadistica-inicio">
+                <strong th:text="${cantidadSinSupervisor}">0</strong>
+                <span>Sin supervisor asignado</span>
+            </div>
+        </section>
     </main>
 </body>
 </html>

@@ -42,6 +42,17 @@
         <div class="panel bienvenida">
             <p class="bienvenida-texto">Elegí <strong>Alumnos</strong> para gestionar y descargar la documentación por especialidad, curso y sección, o <strong>Reportes</strong> para revisar el cumplimiento semanal de las planillas.</p>
         </div>
+
+        <section class="estadisticas-inicio" aria-label="Resumen del sistema">
+            <div class="estadistica-inicio">
+                <strong th:text="${cantidadAlumnos}">0</strong>
+                <span>Alumnos registrados</span>
+            </div>
+            <div class="estadistica-inicio">
+                <strong th:text="${cantidadSinSupervisor}">0</strong>
+                <span>Sin supervisor asignado</span>
+            </div>
+        </section>
     </main>
 </body>
 </html>
