@@ -14,6 +14,10 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Integer> {
     List<Alumno> findByEspecialidad_IdEspIn(List<Integer> idsEsp); //el guion dice "navegá a través de la relación Especialidad de Alumno, y mirá su campo idEsp", y In significa "que esté dentro de esta lista de valores". Es el equivalente a WHERE id_Esp IN (?, ?, ?, ...) en SQL. Al final devuelve una lista de los alumnos que cumplen eso
     List<Alumno> findByEspecialidad_IdEsp(Integer idEsp); // todos los alumnos de una especialidad, sin filtrar por curso/sección (usado en la asignación de supervisores)
 
+    long countByEspecialidad_IdEspIn(List<Integer> idsEsp);
+
+    long countByEspecialidad_IdEspInAndSupervisorIsNull(List<Integer> idsEsp);
+
     // --- Filtro en cascada: Especialidad -> Curso -> Sección ---
 
     @Query("SELECT DISTINCT a.curso FROM Alumno a WHERE a.especialidad.idEsp = :idEsp ORDER BY a.curso")
