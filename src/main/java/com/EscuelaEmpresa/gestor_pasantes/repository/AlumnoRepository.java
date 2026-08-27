@@ -16,6 +16,8 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Integer> {
 
     long countByEspecialidad_IdEspIn(List<Integer> idsEsp);
 
+    long countBySupervisorIsNull();
+
     long countByEspecialidad_IdEspInAndSupervisorIsNull(List<Integer> idsEsp);
 
     // --- Filtro en cascada: Especialidad -> Curso -> Sección ---
