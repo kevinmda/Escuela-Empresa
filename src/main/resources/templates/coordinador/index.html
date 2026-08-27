@@ -33,9 +33,15 @@
         <a th:href="@{/admin/empresas}" class="nav-links">Empresas</a>
     </nav>
     <main>
+        <section class="saludo">
+            <div class="avatar-circulo" th:text="${#strings.substring(admin.nombres.trim(), 0, 1)}">A</div>
+            <div>
+                <p class="eyebrow">Panel de coordinación</p>
+                <h1 th:text="|Bienvenido, ${admin.nombres.trim().split(' ')[0]}!|">Bienvenido!</h1>
+            </div>
+        </section>
+
         <div class="panel bienvenida">
-            <p class="eyebrow">Panel de coordinación</p>
-            <h2>Bienvenido/a</h2>
             <p class="bienvenida-texto">Desde acá manejás todo lo de tu especialidad: revisá a tus <strong>Alumnos</strong> y su documentación, controlá el <strong>cumplimiento</strong> semanal, y asigná <strong>Supervisores</strong> y <strong>Empresas</strong> a cada pasante.</p>
         </div>
     </main>

@@ -31,9 +31,15 @@
         <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
     </nav>
     <main>
+        <section class="saludo">
+            <div class="avatar-circulo" th:text="${#strings.substring(admin.nombres.trim(), 0, 1)}">A</div>
+            <div>
+                <p class="eyebrow">Panel administrativo</p>
+                <h1 th:text="|Bienvenido, ${admin.nombres.trim().split(' ')[0]}!|">Bienvenido!</h1>
+            </div>
+        </section>
+
         <div class="panel bienvenida">
-            <p class="eyebrow">Panel administrativo</p>
-            <h2>Bienvenido/a</h2>
             <p class="bienvenida-texto">Elegí <strong>Alumnos</strong> para gestionar y descargar la documentación por especialidad, curso y sección, o <strong>Reportes</strong> para revisar el cumplimiento semanal de las planillas.</p>
         </div>
     </main>

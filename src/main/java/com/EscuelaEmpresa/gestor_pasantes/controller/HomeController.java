@@ -39,6 +39,7 @@ public class HomeController {
 
         if (adminOpt.isPresent()) {
             Administrador admin = adminOpt.get();
+            model.addAttribute("admin", admin);
 
             // Administrativo y Coordinador comparten la misma tabla/rol, pero cada uno
             // tiene su propia pantalla de inicio con su propio menú
