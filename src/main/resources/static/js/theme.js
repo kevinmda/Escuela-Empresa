@@ -1,10 +1,58 @@
 (function () {
     const root = document.documentElement;
+    let solicitudesActivas = 0;
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
 
     root.dataset.theme = initialTheme;
+
+    function actualizarIndicadorCarga() {
+        let indicador = document.getElementById('indicador-carga');
+        if (!indicador) {
+            indicador = document.createElement('div');
+            indicador.id = 'indicador-carga';
+            indicador.setAttribute('role', 'progressbar');
+            indicador.setAttribute('aria-label', 'Cargando');
+            document.body.appendChild(indicador);
+        }
+        indicador.classList.toggle('activo', solicitudesActivas > 0);
+    }
+
+    const fetchOriginal = window.fetch;
+    window.fetch = function () {
+        solicitudesActivas++;
+        actualizarIndicadorCarga();
+        return fetchOriginal.apply(this, arguments).finally(function () {
+            solicitudesActivas = Math.max(0, solicitudesActivas - 1);
+            actualizarIndicadorCarga();
+        });
+    };
+
+    function prepararValidacion(form) {
+        form.addEventListener('submit', function (event) {
+            let primerInvalido = null;
+            form.querySelectorAll('[required]').forEach(function (campo) {
+                const anterior = campo.parentElement.querySelector('.campo-error');
+                if (anterior) anterior.remove();
+                campo.removeAttribute('aria-invalid');
+
+                if (!campo.checkValidity()) {
+                    campo.setAttribute('aria-invalid', 'true');
+                    const error = document.createElement('span');
+                    error.className = 'campo-error';
+                    error.textContent = 'Este campo es obligatorio.';
+                    campo.insertAdjacentElement('afterend', error);
+                    primerInvalido = primerInvalido || campo;
+                }
+            });
+
+            if (primerInvalido) {
+                event.preventDefault();
+                primerInvalido.focus();
+            }
+        });
+    }
 
     function actualizarBoton() {
         const button = document.getElementById('theme-toggle');
@@ -17,6 +65,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        actualizarIndicadorCarga();
+        document.querySelectorAll('form').forEach(prepararValidacion);
         actualizarBoton();
         const button = document.getElementById('theme-toggle');
         if (!button) return;
