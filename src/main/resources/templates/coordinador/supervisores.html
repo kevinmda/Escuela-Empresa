@@ -83,12 +83,12 @@
                         <!-- Este form no tiene inputs propios adentro: los toma de la celdas de arriba via el atributo form="" -->
                         <form th:id="${'editar-' + sup.idSup}" th:action="@{/admin/supervisores/editar}" method="post">
                             <input type="hidden" name="idSup" th:value="${sup.idSup}">
-                            <button type="submit" class="btn-secondary">Guardar</button>
+                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
                         </form>
                         <form th:action="@{/admin/supervisores/eliminar}" method="post"
                               onsubmit="return confirm('¿Eliminar este supervisor? Los alumnos que lo tengan asignado van a quedar sin supervisor.');">
                             <input type="hidden" name="idSup" th:value="${sup.idSup}">
-                            <button type="submit" class="btn-danger">Eliminar</button>
+                            <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
                         </form>
                     </td>
                 </tr>
@@ -127,7 +127,7 @@
                                         th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
                                         th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
                             </select>
-                            <button type="submit" class="btn-secondary">Guardar</button>
+                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
                         </form>
                     </td>
                 </tr>

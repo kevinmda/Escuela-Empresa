@@ -99,12 +99,12 @@
                         <!-- Este form no tiene inputs propios adentro: los toma de las celdas de arriba via el atributo form="" -->
                         <form th:id="${'editar-' + emp.idEmp}" th:action="@{/admin/empresas/editar}" method="post">
                             <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
-                            <button type="submit" class="btn-secondary">Guardar</button>
+                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
                         </form>
                         <form th:action="@{/admin/empresas/eliminar}" method="post"
                               onsubmit="return confirm('¿Eliminar esta empresa? Los alumnos que la tengan asignada van a quedar sin empresa.');">
                             <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
-                            <button type="submit" class="btn-danger">Eliminar</button>
+                            <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
                         </form>
                     </td>
                 </tr>
@@ -143,7 +143,7 @@
                                         th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
                                         th:text="${emp.nombre}"></option>
                             </select>
-                            <button type="submit" class="btn-secondary">Guardar</button>
+                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
                         </form>
                     </td>
                 </tr>

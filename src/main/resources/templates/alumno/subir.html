@@ -67,7 +67,7 @@
                     <td><a th:href="@{/alumno/subir/{id}/ver(id=${doc.idDs})}" target="_blank">Ver</a></td>
                     <td>
                         <form th:action="@{/alumno/subir/{id}/eliminar(id=${doc.idDs})}" method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro que querés eliminar este documento? Esta acción no se puede deshacer.');">
-                            <button type="submit">Eliminar</button>
+                            <button type="submit" class="icono-eliminar" aria-label="Eliminar documento">Eliminar</button>
                         </form>
                     </td>
                 </tr>
