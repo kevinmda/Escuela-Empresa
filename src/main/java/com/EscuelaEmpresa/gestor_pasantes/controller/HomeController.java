@@ -1,5 +1,8 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Optional;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,6 +17,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 
 @Controller
@@ -22,12 +26,14 @@ public class HomeController {
     private final UsuarioRepository usuarioRepository;
     private final AdministradorRepository administradorRepository;
     private final AlumnoRepository alumnoRepository;
+    private final PlanillaSemanalRepository planillaSemanalRepository;
 
     public HomeController(UsuarioRepository usuarioRepository, AdministradorRepository administradorRepository,
-            AlumnoRepository alumnoRepository) {
+            AlumnoRepository alumnoRepository, PlanillaSemanalRepository planillaSemanalRepository) {
         this.usuarioRepository = usuarioRepository;
         this.administradorRepository = administradorRepository;
         this.alumnoRepository = alumnoRepository;
+        this.planillaSemanalRepository = planillaSemanalRepository;
     }
 
     @GetMapping("/home")
@@ -83,7 +89,18 @@ public class HomeController {
                 ? alumnoRepository.countBySupervisorIsNull()
                 : alumnoRepository.countByEspecialidad_IdEspInAndSupervisorIsNull(idsEspecialidad);
 
+        // % de alumnos que ya entregaron su planilla de la semana actual (lunes a sábado)
+        LocalDate lunesSemanaActual = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate sabadoSemanaActual = lunesSemanaActual.plusDays(5);
+
+        long entregaron = idsEspecialidad == null
+                ? planillaSemanalRepository.countAlumnosConEntregaEnSemanaGlobal(lunesSemanaActual, sabadoSemanaActual)
+                : planillaSemanalRepository.countAlumnosConEntregaEnSemana(idsEspecialidad, lunesSemanaActual, sabadoSemanaActual);
+
+        long porcentajeCumplimiento = alumnos == 0 ? 0 : Math.round((entregaron * 100.0) / alumnos);
+
         model.addAttribute("cantidadAlumnos", alumnos);
         model.addAttribute("cantidadSinSupervisor", sinSupervisor);
+        model.addAttribute("porcentajeCumplimiento", porcentajeCumplimiento);
     }
 }

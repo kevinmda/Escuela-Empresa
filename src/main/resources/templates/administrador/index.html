@@ -11,6 +11,7 @@
 
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
     <header>
         <div class="h-titulo">
             <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
@@ -30,7 +31,7 @@
         <a th:href="@{/admin/alumnos}" class="nav-links">Alumnos</a>
         <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
     </nav>
-    <main>
+    <main id="main-content">
         <section class="saludo">
             <div class="avatar-circulo" th:text="${#strings.substring(admin.nombres.trim(), 0, 1)}">A</div>
             <div>
@@ -47,6 +48,10 @@
             <div class="estadistica-inicio">
                 <strong th:text="${cantidadAlumnos}">0</strong>
                 <span>Alumnos registrados</span>
+            </div>
+            <div class="estadistica-inicio">
+                <strong th:text="|${porcentajeCumplimiento}%|">0%</strong>
+                <span>Cumplimiento esta semana</span>
             </div>
             <div class="estadistica-inicio">
                 <strong th:text="${cantidadSinSupervisor}">0</strong>

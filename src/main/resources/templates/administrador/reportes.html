@@ -11,6 +11,7 @@
 
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
     <header>
         <div class="h-titulo">
             <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
@@ -33,7 +34,7 @@
         <a th:unless="${esAdministrativo}" th:href="@{/admin/empresas}" class="nav-links">Empresas</a>
     </nav>
 
-    <main>
+    <main id="main-content">
         <h2>Reporte de Cumplimiento Semanal</h2>
 
         <div id="busqueda-container" class="toolbar">
