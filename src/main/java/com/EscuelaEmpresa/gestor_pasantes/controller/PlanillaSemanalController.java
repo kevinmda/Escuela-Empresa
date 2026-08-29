@@ -72,6 +72,18 @@ public class PlanillaSemanalController {
             planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         model.addAttribute("planillas", planillas);
 
+        // El informe de pasantia solo se puede descargar si el alumno ya completo
+        // las 6 semanas, y tiene supervisor/docente y empresa asignados
+        boolean tieneSeisPlanillas = planillas.size() >= 6;
+        boolean tieneSupervisor = alumno.getSupervisor() != null;
+        boolean tieneEmpresa = alumno.getEmpresa() != null;
+        boolean informeHabilitado = tieneSeisPlanillas && tieneSupervisor && tieneEmpresa;
+
+        model.addAttribute("informeHabilitado", informeHabilitado);
+        model.addAttribute("tieneSeisPlanillas", tieneSeisPlanillas);
+        model.addAttribute("tieneSupervisor", tieneSupervisor);
+        model.addAttribute("tieneEmpresa", tieneEmpresa);
+
         PlanillaSemanalForm form;
 
         if (idPs != null) {
@@ -177,9 +189,23 @@ public class PlanillaSemanalController {
                 planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         Collections.reverse(planillas);
 
-        if (planillas.isEmpty()) {
+        if (planillas.size() < 6) {
             redirectAttributes.addFlashAttribute("error",
-                    "Todavía no cargaste ninguna planilla semanal, no se puede generar el informe.");
+                    "Todavía no completaste las 6 semanas de planilla, no se puede generar el informe.");
+            response.sendRedirect("/alumno/planilla");
+            return;
+        }
+
+        if (alumno.getSupervisor() == null) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Todavía no tenés un supervisor/docente asignado, no se puede generar el informe.");
+            response.sendRedirect("/alumno/planilla");
+            return;
+        }
+
+        if (alumno.getEmpresa() == null) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Todavía no tenés una empresa asignada, no se puede generar el informe.");
             response.sendRedirect("/alumno/planilla");
             return;
         }

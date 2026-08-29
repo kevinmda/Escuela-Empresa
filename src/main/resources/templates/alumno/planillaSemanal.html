@@ -46,8 +46,16 @@
             <p th:text="${exito}"></p>
         </div>
 
-        <div class="toolbar">
-            <a th:href="@{/alumno/planilla/Informe_Pasantia.docx}" class="btn btn-secondary">Descargar Informe de Pasantía (Word)</a>
+        <div class="panel">
+            <a th:if="${informeHabilitado}" th:href="@{/alumno/planilla/Informe_Pasantia.docx}" class="btn btn-secondary">Descargar Informe de Pasantía (Word)</a>
+            <button th:unless="${informeHabilitado}" type="button" class="btn btn-secondary" disabled>Descargar Informe de Pasantía (Word)</button>
+
+            <p class="subtitulo-pagina" style="margin-top: 0.75rem;">
+                Para descargar el informe, necesitás:
+                <span th:text="${tieneSeisPlanillas ? '✔' : '✘'}"></span> las 6 semanas de planilla cargadas,
+                <span th:text="${tieneSupervisor ? '✔' : '✘'}"></span> un supervisor/docente asignado, y
+                <span th:text="${tieneEmpresa ? '✔' : '✘'}"></span> una empresa asignada.
+            </p>
         </div>
 
         <!-- Selector de semana: elegís una ya cargada, o dejás "Nueva planilla" -->
