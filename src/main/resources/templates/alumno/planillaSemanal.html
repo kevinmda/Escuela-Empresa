@@ -46,6 +46,10 @@
             <p th:text="${exito}"></p>
         </div>
 
+        <div class="toolbar">
+            <a th:href="@{/alumno/planilla/Informe_Pasantia.docx}" class="btn btn-secondary">Descargar Informe de Pasantía (Word)</a>
+        </div>
+
         <!-- Selector de semana: elegís una ya cargada, o dejás "Nueva planilla" -->
         <form method="get" th:action="@{/alumno/planilla}" class="toolbar panel selector-semana">
             <div>

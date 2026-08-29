@@ -26,8 +26,14 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalPdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalService;
+import com.EscuelaEmpresa.gestor_pasantes.service.InformePasantiaService;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Collections;
 
 @Controller
 public class PlanillaSemanalController {
@@ -38,18 +44,21 @@ public class PlanillaSemanalController {
     private final PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository;
     private final PlanillaSemanalService planillaSemanalService;
     private final PlanillaSemanalPdfService planillaSemanalPdfService;
+    private final InformePasantiaService informePasantiaService;
 
     public PlanillaSemanalController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository,
                                     PlanillaSemanalRepository planillaSemanalRepository,
                                     PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
                                     PlanillaSemanalService planillaSemanalService,
-                                    PlanillaSemanalPdfService planillaSemanalPdfService) {
+                                    PlanillaSemanalPdfService planillaSemanalPdfService,
+                                    InformePasantiaService informePasantiaService) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
         this.planillaSemanalDetalleRepository = planillaSemanalDetalleRepository;
         this.planillaSemanalService = planillaSemanalService;
         this.planillaSemanalPdfService = planillaSemanalPdfService;
+        this.informePasantiaService = informePasantiaService;
     }
 
     @GetMapping("/alumno/planilla")
@@ -155,6 +164,36 @@ public class PlanillaSemanalController {
         // 3. Enviar el PDF final al navegador
         document.save(response.getOutputStream());
         document.close();
+    }
+
+    @GetMapping("/alumno/planilla/Informe_Pasantia.docx")
+    public void generarInformePasantia(Authentication authentication, HttpServletResponse response,
+                                        RedirectAttributes redirectAttributes) throws IOException {
+
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        // ordenamos de la semana mas antigua a la mas nueva (el repositorio las trae al reves)
+        List<PlanillaSemanal> planillas =
+                planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
+        Collections.reverse(planillas);
+
+        if (planillas.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Todavía no cargaste ninguna planilla semanal, no se puede generar el informe.");
+            response.sendRedirect("/alumno/planilla");
+            return;
+        }
+
+        XWPFDocument documento = informePasantiaService.generarInforme(alumno, planillas);
+
+        ByteArrayOutputStream salida = new ByteArrayOutputStream();
+        documento.write(salida);
+        documento.close();
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        response.setHeader("Content-Disposition", "attachment; filename=Informe_Pasantia_" + alumno.getApellidos() + ".docx");
+        response.getOutputStream().write(salida.toByteArray());
+        response.getOutputStream().flush();
     }
 
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
