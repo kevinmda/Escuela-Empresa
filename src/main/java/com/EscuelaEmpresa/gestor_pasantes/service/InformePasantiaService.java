@@ -7,9 +7,6 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepos
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.apache.xmlbeans.XmlCursor;
-import org.apache.xmlbeans.XmlObject;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTP;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -18,19 +15,21 @@ import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 // Rellena la plantilla "Informe_Pasantia_Plantilla.docx" usando los BOOKMARKS que ya tiene
 // armados el documento (Insertar > Marcador en Word). Cada bookmark (ej: "curso", "primer_lunes")
-// envuelve un fragmento de texto de ejemplo dentro de un parrafo.
+// envuelve un fragmento de texto de ejemplo dentro de un parrafo, y nosotros lo ubicamos
+// buscando el nombre del bookmark en el XML de cada parrafo con documento.getParagraphs().
 //
-// OJO: el bloque de la portada (Alumno/Curso/Turno/etc.) esta metido dentro de DOS cuadros de
-// texto superpuestos en la plantilla (por eso cada uno de esos 7 campos tiene el bookmark
-// duplicado dos veces). Los parrafos de un cuadro de texto NO aparecen en
-// documento.getParagraphs() (esa funcion solo devuelve parrafos "de primer nivel"), asi que
-// hay que recorrer el XML completo a mano para encontrarlos (ver obtenerTodosLosParrafos).
+// NOTA: la plantilla original tenia el bloque de la portada (Alumno/Curso/Turno/etc.) metido
+// dentro de un cuadro de texto flotante (representado en el XML como <mc:AlternateContent>
+// con dos versiones alternativas del mismo contenido: una moderna y una de compatibilidad
+// vieja). Apache POI no tiene soporte de alto nivel para editar texto dentro de cuadros de
+// texto, asi que la plantilla se modifico una sola vez (a mano, fuera de esta app) para sacar
+// esos campos del cuadro de texto y dejarlos como parrafos normales del documento -- por eso
+// esta clase puede usar simplemente documento.getParagraphs(), igual que para las semanas y dias.
 @Service
 public class InformePasantiaService {
 
@@ -113,7 +112,7 @@ public class InformePasantiaService {
 
             String bookmarkFecha = ORDINAL_SEMANA[semana] + "_semana_fecha";
             reemplazarParrafoCompleto(documento, bookmarkFecha,
-                    formatearRangoSemana(planilla.getFechaDesde(), planilla.getFechaHasta()));
+                    formatearTituloSemana(semana + 1, planilla.getFechaDesde(), planilla.getFechaHasta()));
 
             for (int dia = 0; dia < 6; dia++) {
                 String bookmarkDia = ORDINAL_DIA[semana] + "_" + NOMBRE_BOOKMARK_DIA[dia];
@@ -151,51 +150,28 @@ public class InformePasantiaService {
         return inicio.format(formatoInicio) + " al " + fin.format(formatoFin);
     }
 
-    private String formatearRangoSemana(LocalDate desde, LocalDate hasta) {
+    // Formato pedido: "Semana N (D AL D DE MES DE AAAA)", ej: "Semana 1 (6 AL 6 DE JULIO DE 2026)"
+    private String formatearTituloSemana(int numeroSemana, LocalDate desde, LocalDate hasta) {
         DateTimeFormatter formatoMes = DateTimeFormatter.ofPattern("MMMM", LOCALE_ES);
         String mes = hasta.format(formatoMes).toUpperCase(LOCALE_ES);
-        return "(" + desde.getDayOfMonth() + " AL " + hasta.getDayOfMonth() + " DE " + mes + " DE " + hasta.getYear() + ")";
+        return "Semana " + numeroSemana + " (" + desde.getDayOfMonth() + " AL " + hasta.getDayOfMonth()
+                + " DE " + mes + " DE " + hasta.getYear() + ")";
     }
 
     // ---------- Manipulacion de bookmarks ----------
 
-    // Recorre TODOS los <w:p> del documento, incluyendo los que estan anidados dentro de
-    // cuadros de texto/drawings (documento.getParagraphs() NO los devuelve, solo trae los
-    // parrafos "de primer nivel" del cuerpo del documento)
-    private List<XWPFParagraph> obtenerTodosLosParrafos(XWPFDocument documento) {
-        List<XWPFParagraph> resultado = new ArrayList<>();
-        XmlCursor cursor = documento.getDocument().getBody().newCursor();
-        cursor.selectPath("declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' .//w:p");
-        while (cursor.hasNextSelection()) {
-            cursor.toNextSelection();
-            XmlObject obj = cursor.getObject();
-            if (obj instanceof CTP) {
-                resultado.add(new XWPFParagraph((CTP) obj, documento));
-            }
-        }
-        cursor.dispose();
-        return resultado;
-    }
-
-    // Devuelve TODOS los parrafos REALES que contienen ese bookmark (puede haber mas de uno,
-    // ya que 7 de los campos de la portada estan duplicados en dos cuadros de texto).
-    // Filtra los parrafos "contenedores" vacios que envuelven un cuadro de texto: esos tienen
-    // el nombre del bookmark en su XML completo (por los hijos anidados) pero su texto PROPIO
-    // esta vacio, asi que no son el parrafo real a modificar (modificarlos rompe el cuadro de texto)
-    private List<XWPFParagraph> parrafosPorBookmark(XWPFDocument documento, String bookmarkName) {
+    private XWPFParagraph buscarParrafoPorBookmark(XWPFDocument documento, String bookmarkName) {
         String patron = "w:name=\"" + bookmarkName + "\"";
-        List<XWPFParagraph> resultado = new ArrayList<>();
-        for (XWPFParagraph parrafo : obtenerTodosLosParrafos(documento)) {
-            String texto = parrafo.getText();
-            if (parrafo.getCTP().xmlText().contains(patron) && texto != null && !texto.trim().isEmpty()) {
-                resultado.add(parrafo);
+        for (XWPFParagraph parrafo : documento.getParagraphs()) {
+            if (parrafo.getCTP().xmlText().contains(patron)) {
+                return parrafo;
             }
         }
-        return resultado;
+        return null;
     }
 
     private XWPFParagraph buscarParrafoConTexto(XWPFDocument documento, String texto) {
-        for (XWPFParagraph parrafo : obtenerTodosLosParrafos(documento)) {
+        for (XWPFParagraph parrafo : documento.getParagraphs()) {
             if (parrafo.getText() != null && parrafo.getText().contains(texto)) {
                 return parrafo;
             }
@@ -204,49 +180,44 @@ public class InformePasantiaService {
     }
 
     // Para bookmarks donde TODO el parrafo es el marcador (ej: "Alumno: Alumno" completo,
-    // o las fechas de semana/dia): se borran todos los runs del parrafo y se pone uno solo
-    // con el texto nuevo. Se aplica a TODAS las coincidencias encontradas (puede haber 2)
+    // o las fechas de semana/dia): se borran todos los runs del parrafo y se pone uno solo con el texto nuevo
     private void reemplazarParrafoCompleto(XWPFDocument documento, String bookmarkName, String textoNuevo) {
-        List<XWPFParagraph> parrafos = parrafosPorBookmark(documento, bookmarkName);
-        for (XWPFParagraph parrafo : parrafos) {
-            List<XWPFRun> runs = parrafo.getRuns();
-            if (runs.isEmpty()) {
-                parrafo.createRun().setText(textoNuevo);
-                continue;
-            }
-            runs.get(0).setText(textoNuevo, 0);
-            for (int i = runs.size() - 1; i >= 1; i--) {
-                parrafo.removeRun(i);
-            }
+        XWPFParagraph parrafo = buscarParrafoPorBookmark(documento, bookmarkName);
+        if (parrafo == null) return; // si no se encuentra el bookmark, no rompemos nada, seguimos de largo
+
+        List<XWPFRun> runs = parrafo.getRuns();
+        if (runs.isEmpty()) {
+            parrafo.createRun().setText(textoNuevo);
+            return;
+        }
+        runs.get(0).setText(textoNuevo, 0);
+        for (int i = runs.size() - 1; i >= 1; i--) {
+            parrafo.removeRun(i);
         }
     }
 
     // Para bookmarks donde el marcador es solo UNA PARTE del parrafo (ej: "Curso: " queda fijo,
     // solo "Curso" -el valor- se reemplaza): buscamos la secuencia de runs cuyo texto concatenado
-    // coincide exactamente con el texto original conocido, y reemplazamos solo esos runs.
-    // Se aplica a TODAS las coincidencias encontradas (puede haber 2, por los cuadros de texto duplicados)
+    // coincide exactamente con el texto original conocido, y reemplazamos solo esos runs
     private void reemplazarDentroDeParrafo(XWPFDocument documento, String bookmarkName, String textoOriginal, String textoNuevo) {
-        List<XWPFParagraph> parrafos = parrafosPorBookmark(documento, bookmarkName);
-        for (XWPFParagraph parrafo : parrafos) {
-            List<XWPFRun> runs = parrafo.getRuns();
-            for (int i = 0; i < runs.size(); i++) {
-                StringBuilder acumulado = new StringBuilder();
-                boolean reemplazado = false;
-                for (int j = i; j < runs.size(); j++) {
-                    String textoRun = runs.get(j).getText(0);
-                    acumulado.append(textoRun == null ? "" : textoRun);
+        XWPFParagraph parrafo = buscarParrafoPorBookmark(documento, bookmarkName);
+        if (parrafo == null) return;
 
-                    if (acumulado.toString().equals(textoOriginal)) {
-                        runs.get(i).setText(textoNuevo, 0);
-                        for (int k = j; k > i; k--) {
-                            parrafo.removeRun(k);
-                        }
-                        reemplazado = true;
-                        break;
+        List<XWPFRun> runs = parrafo.getRuns();
+        for (int i = 0; i < runs.size(); i++) {
+            StringBuilder acumulado = new StringBuilder();
+            for (int j = i; j < runs.size(); j++) {
+                String textoRun = runs.get(j).getText(0);
+                acumulado.append(textoRun == null ? "" : textoRun);
+
+                if (acumulado.toString().equals(textoOriginal)) {
+                    runs.get(i).setText(textoNuevo, 0);
+                    for (int k = j; k > i; k--) {
+                        parrafo.removeRun(k);
                     }
-                    if (acumulado.length() > textoOriginal.length()) break;
+                    return;
                 }
-                if (reemplazado) break;
+                if (acumulado.length() > textoOriginal.length()) break;
             }
         }
     }
@@ -258,18 +229,13 @@ public class InformePasantiaService {
     private void eliminarSemanasSobrantes(XWPFDocument documento, int cantidadPlanillas) {
         if (cantidadPlanillas >= 6) return;
 
-        List<XWPFParagraph> parrafosInicio = parrafosPorBookmark(documento, ORDINAL_SEMANA[cantidadPlanillas] + "_semana_fecha");
-        if (parrafosInicio.isEmpty()) return;
-        XWPFParagraph parrafoInicio = parrafosInicio.get(0);
+        XWPFParagraph parrafoInicio = buscarParrafoPorBookmark(documento, ORDINAL_SEMANA[cantidadPlanillas] + "_semana_fecha");
+        if (parrafoInicio == null) return;
         XWPFParagraph parrafoFin = buscarParrafoConTexto(documento, "CONCLUSIONES");
 
-        // ojo: no usamos elementos.indexOf(...) porque los parrafos encontrados por
-        // obtenerTodosLosParrafos() son instancias de XWPFParagraph reconstruidas a mano
-        // (necesario para llegar a los que estan dentro de cuadros de texto), y no son el
-        // mismo objeto Java que POI usa internamente en getBodyElements() -- comparamos el
-        // XML subyacente (CTP) en vez de la identidad del objeto envoltorio
-        int posInicio = encontrarPosicionEnBody(documento, parrafoInicio);
-        int posFin = parrafoFin != null ? encontrarPosicionEnBody(documento, parrafoFin) : documento.getBodyElements().size();
+        List<?> elementos = documento.getBodyElements();
+        int posInicio = elementos.indexOf(parrafoInicio);
+        int posFin = parrafoFin != null ? elementos.indexOf(parrafoFin) : elementos.size();
 
         if (posInicio == -1) return;
 
@@ -278,16 +244,4 @@ public class InformePasantiaService {
             documento.removeBodyElement(i);
         }
     }
-
-    private int encontrarPosicionEnBody(XWPFDocument documento, XWPFParagraph objetivo) {
-        List<?> elementos = documento.getBodyElements();
-        for (int i = 0; i < elementos.size(); i++) {
-            Object elemento = elementos.get(i);
-            if (elemento instanceof XWPFParagraph && ((XWPFParagraph) elemento).getCTP() == objetivo.getCTP()) {
-                return i;
-            }
-        }
-        return -1;
-    }
 }
-
