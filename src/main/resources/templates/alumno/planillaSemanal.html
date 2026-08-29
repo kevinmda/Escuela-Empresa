@@ -87,6 +87,8 @@
 
         <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post" id="formPlanilla">
 
+            <button type="button" id="btnNuevo" class="btn-secondary" th:disabled="${habilitado}" onclick="habilitarFormulario()">+ Cargar semana nueva</button>
+
             <fieldset id="fieldsetPlanilla" th:disabled="${!habilitado}" class="fieldset-planilla">
 
                 <h3 class="subseccion-titulo">Días trabajados</h3>
@@ -134,8 +136,6 @@
                 </div>
 
             </fieldset>
-
-            <button type="button" id="btnNuevo" class="btn-secondary" th:disabled="${habilitado}" onclick="habilitarFormulario()">+ Cargar semana nueva</button>
 
         </form>
 
