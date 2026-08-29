@@ -71,18 +71,7 @@ public class PlanillaSemanalController {
         List<PlanillaSemanal> planillas =
             planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         model.addAttribute("planillas", planillas);
-
-        // El informe de pasantia solo se puede descargar si el alumno ya completo
-        // las 6 semanas, y tiene supervisor/docente y empresa asignados
-        boolean tieneSeisPlanillas = planillas.size() >= 6;
-        boolean tieneSupervisor = alumno.getSupervisor() != null;
-        boolean tieneEmpresa = alumno.getEmpresa() != null;
-        boolean informeHabilitado = tieneSeisPlanillas && tieneSupervisor && tieneEmpresa;
-
-        model.addAttribute("informeHabilitado", informeHabilitado);
-        model.addAttribute("tieneSeisPlanillas", tieneSeisPlanillas);
-        model.addAttribute("tieneSupervisor", tieneSupervisor);
-        model.addAttribute("tieneEmpresa", tieneEmpresa);
+        agregarEstadoInforme(model, alumno, planillas);
 
         PlanillaSemanalForm form;
 
@@ -127,6 +116,7 @@ public class PlanillaSemanalController {
         List<PlanillaSemanal> planillas =
         planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         model.addAttribute("planillas", planillas);
+        agregarEstadoInforme(model, alumno, planillas);
 
         return "alumno/planillaSemanal";
 
@@ -220,6 +210,21 @@ public class PlanillaSemanalController {
         response.setHeader("Content-Disposition", "attachment; filename=Informe_Pasantia_" + alumno.getNombres()+ alumno.getApellidos() + ".docx");
         response.getOutputStream().write(salida.toByteArray());
         response.getOutputStream().flush();
+    }
+
+    // El informe de pasantia solo se puede descargar si el alumno ya completo las 6 semanas,
+    // y tiene supervisor/docente y empresa asignados. Se llama tanto desde el GET como el POST
+    // de /alumno/planilla, para que la pantalla nunca le falten estos atributos al modelo
+    private void agregarEstadoInforme(Model model, Alumno alumno, List<PlanillaSemanal> planillas) {
+        boolean tieneSeisPlanillas = planillas.size() >= 6;
+        boolean tieneSupervisor = alumno.getSupervisor() != null;
+        boolean tieneEmpresa = alumno.getEmpresa() != null;
+        boolean informeHabilitado = tieneSeisPlanillas && tieneSupervisor && tieneEmpresa;
+
+        model.addAttribute("informeHabilitado", informeHabilitado);
+        model.addAttribute("tieneSeisPlanillas", tieneSeisPlanillas);
+        model.addAttribute("tieneSupervisor", tieneSupervisor);
+        model.addAttribute("tieneEmpresa", tieneEmpresa);
     }
 
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
