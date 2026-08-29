@@ -76,7 +76,7 @@ public class InformePasantiaService {
         String nombreCompleto = alumno.getNombres() + " " + alumno.getApellidos();
         reemplazarParrafoCompleto(documento, "alumno", (esMujer ? "Alumna: " : "Alumno: ") + nombreCompleto);
 
-        reemplazarDentroDeParrafo(documento, "curso", "Curso", alumno.getCurso() + " " + alumno.getSeccion());
+        reemplazarDentroDeParrafo(documento, "curso", "Curso", alumno.getCurso());
         reemplazarDentroDeParrafo(documento, "turno", "Turno", calcularTurno(alumno.getSeccion()));
         reemplazarDentroDeParrafo(documento, "especialidad", "Especialidad",
                 alumno.getEspecialidad() != null ? alumno.getEspecialidad().getNombre() : "");
@@ -154,7 +154,7 @@ public class InformePasantiaService {
     private String formatearTituloSemana(int numeroSemana, LocalDate desde, LocalDate hasta) {
         DateTimeFormatter formatoMes = DateTimeFormatter.ofPattern("MMMM", LOCALE_ES);
         String mes = hasta.format(formatoMes).toUpperCase(LOCALE_ES);
-        return "Semana " + numeroSemana + " (" + desde.getDayOfMonth() + " AL " + hasta.getDayOfMonth()
+        return "SEMANA " + numeroSemana + " (" + desde.getDayOfMonth() + " AL " + hasta.getDayOfMonth()
                 + " DE " + mes + " DE " + hasta.getYear() + ")";
     }
 

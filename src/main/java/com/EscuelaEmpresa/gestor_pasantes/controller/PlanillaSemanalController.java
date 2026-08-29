@@ -191,7 +191,7 @@ public class PlanillaSemanalController {
         documento.close();
 
         response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        response.setHeader("Content-Disposition", "attachment; filename=Informe_Pasantia_" + alumno.getApellidos() + ".docx");
+        response.setHeader("Content-Disposition", "attachment; filename=Informe_Pasantia_" + alumno.getNombres()+ alumno.getApellidos() + ".docx");
         response.getOutputStream().write(salida.toByteArray());
         response.getOutputStream().flush();
     }
