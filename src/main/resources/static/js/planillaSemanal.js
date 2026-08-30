@@ -98,27 +98,36 @@ document.addEventListener('DOMContentLoaded', () => {
     inputsFecha.forEach((input, indice) => {
         input.addEventListener('input', () => {
 
-            if (input.value === '') {
-                // Si no queda NINGUN OTRO campo tocado a mano (sin importar si esta antes
-                // o despues de este en la grilla -- los que tienen valor solo porque se
-                // autocompletaron no cuentan), reiniciamos todo: se borran los demas dias
-                // y nos olvidamos de cuales se habian tocado, para que la proxima fecha
-                // que cargue el alumno dispare el autocompletado de cero otra vez.
-                let quedaOtraAnclaTocada = false;
-                for (let i = 0; i < inputsFecha.length; i++) {
-                    if (i === indice) continue;
-                    if (inputsFecha[i].value !== '' && camposTocados.has(i)) {
-                        quedaOtraAnclaTocada = true;
-                        break;
-                    }
+            // ¿queda algun OTRO campo tocado a mano que todavia tenga una fecha cargada?
+            // (los que tienen valor solo porque se autocompletaron no cuentan). Si la
+            // respuesta es NO, este campo es el UNICO dato real que queda en la planilla
+            // -- lo tratamos como el nuevo punto de partida: nos olvidamos de que los
+            // demas habian sido tocados (aunque el alumno los haya borrado a mano antes),
+            // para que se puedan volver a autocompletar en base a este campo.
+            let quedaOtraAnclaTocada = false;
+            for (let i = 0; i < inputsFecha.length; i++) {
+                if (i === indice) continue;
+                if (inputsFecha[i].value !== '' && camposTocados.has(i)) {
+                    quedaOtraAnclaTocada = true;
+                    break;
                 }
+            }
 
-                if (!quedaOtraAnclaTocada) {
+            if (!quedaOtraAnclaTocada) {
+                camposTocados.clear();
+                camposTocados.add(indice);
+
+                if (input.value === '') {
+                    // tambien se vacio este (ya no queda ningun dato cargado): borramos
+                    // el resto por las dudas y no restringimos nada hasta que carguen algo
                     inputsFecha.forEach(otro => otro.value = '');
-                    camposTocados.clear();
                     actualizarLimitesFecha();
-                    return;
+                } else {
+                    // este campo tiene una fecha nueva: recalculamos y autocompletamos
+                    // el resto en base a el, de cero
+                    actualizarLimitesFecha(indice);
                 }
+                return;
             }
 
             camposTocados.add(indice); // el alumno escribio o borro este campo a mano
