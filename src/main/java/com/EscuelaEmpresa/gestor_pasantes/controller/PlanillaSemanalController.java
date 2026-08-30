@@ -32,7 +32,6 @@ import com.EscuelaEmpresa.gestor_pasantes.service.InformePasantiaService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
