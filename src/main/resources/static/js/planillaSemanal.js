@@ -11,6 +11,11 @@ function habilitarFormulario() {
     } else {
         btnPdf.disabled = true;
     }
+
+    const formEliminar = document.getElementById('formEliminar');
+    if (formEliminar) {
+        formEliminar.style.display = 'none';
+    }
 }
 
 function limpiarFormulario() {

@@ -52,15 +52,15 @@
 
             <p class="subtitulo-pagina" style="margin-top: 0.75rem;">
                 Para descargar el informe, necesitás:
-                <br><span th:text="${tieneSeisPlanillas ? '✔' : '✘'}"></span> Las 6 semanas de planillas cargadas.
-                <br><span th:text="${tieneSupervisor ? '✔' : '✘'}"></span> Un supervisor/docente asignado.
                 <br><span th:text="${tieneEmpresa ? '✔' : '✘'}"></span> Una empresa asignada.
+                <br><span th:text="${tieneSupervisor ? '✔' : '✘'}"></span> Un supervisor/docente asignado.
+                <br><span th:text="${tieneSeisPlanillas ? '✔' : '✘'}"></span> Las 6 semanas de planillas cargadas.
             </p>
         </div>
 
         <!-- Selector de semana: elegís una ya cargada, o dejás "Nueva planilla" -->
-        <form method="get" th:action="@{/alumno/planilla}" class="toolbar panel selector-semana">
-            <div>
+        <div class="toolbar panel selector-semana">
+            <form method="get" th:action="@{/alumno/planilla}">
                 <label for="selectorPlanilla">Semana</label>
                 <select id="selectorPlanilla" name="idPs" onchange="this.form.submit()">
                     <option value="">Nueva planilla</option>
@@ -70,7 +70,15 @@
                             th:selected="${p.idPs == idPsSeleccionado}">
                     </option>
                 </select>
-            </div>
+            </form>
+
+            <form th:if="${idPsSeleccionado != null}"
+                id="formEliminar"
+                th:action="@{/alumno/planilla/{id}/eliminar(id=${idPsSeleccionado})}"
+                method="post"
+                onsubmit="return confirm('¿Estás seguro que querés eliminar esta planilla? Esta acción no se puede deshacer.');">
+                <button type="submit" class="btn-secondary">Eliminar esta planilla</button>
+            </form>
 
             <a th:if="${idPsSeleccionado != null}"
                 id="btnGenerarPdf"
@@ -83,15 +91,7 @@
             <button th:if="${idPsSeleccionado == null}" id="btnGenerarPdf" type="button" class="btn btn-generar-pdf btn-secondary" disabled>
                 Generar PDF
             </button>
-        </form>
-
-        <form th:if="${idPsSeleccionado != null}"
-              th:action="@{/alumno/planilla/{id}/eliminar(id=${idPsSeleccionado})}"
-              method="post"
-              onsubmit="return confirm('¿Estás seguro que querés eliminar esta planilla? Esta acción no se puede deshacer.');"
-              style="margin-bottom: 1.5rem;">
-            <button type="submit" class="btn-secondary">Eliminar esta planilla</button>
-        </form>
+        </div>
 
         <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post" id="formPlanilla">
 
