@@ -43,6 +43,7 @@ public class CambiarContrasenaController {
         }
 
         usuario.setContrasena(passwordEncoder.encode(nueva));
+        usuario.setContrasenaPorDefecto(false); // ya cambio la contraseña por una propia, no mostramos mas el aviso
         usuarioRepository.save(usuario);
 
         return "redirect:/cambiar-contrasena?exito";

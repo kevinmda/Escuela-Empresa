@@ -44,6 +44,13 @@
             </div>
         </section>
 
+        <div th:if="${avisoCambiarContrasena}" class="mensaje-error">
+            <p>
+                Todavía estás usando la contraseña que te asignaron por defecto. Por seguridad,
+                te recomendamos <a th:href="@{/cambiar-contrasena}">cambiarla ahora</a>.
+            </p>
+        </div>
+
         <section id="inicio-section-info">
             <div id="inicio-info" class="panel">
                 <h2>Mis datos</h2>

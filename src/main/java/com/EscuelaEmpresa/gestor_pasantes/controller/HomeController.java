@@ -64,6 +64,7 @@ public class HomeController {
         if (alumnoOpt.isPresent()) {
             Alumno alumno = alumnoOpt.get();
             model.addAttribute("alumno", alumno);
+            model.addAttribute("avisoCambiarContrasena", Boolean.TRUE.equals(usuario.getContrasenaPorDefecto()));
 
             return "alumno/index";
         }

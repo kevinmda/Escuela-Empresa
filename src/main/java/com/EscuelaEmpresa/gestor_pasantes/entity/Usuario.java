@@ -32,6 +32,12 @@ public class Usuario {      //La Clase se llama Usuario con mayuscula para evita
     @Column(name = "bloqueado_hasta")
     private LocalDateTime bloqueadoHasta;
 
+    // arranca en true porque, al activarse la cuenta, la contraseña sigue siendo
+    // la que se le asigno por defecto (compartida entre varios alumnos). Pasa a
+    // false la primera vez que el usuario la cambia por su cuenta en /cambiar-contrasena
+    @Column(name = "contrasena_por_defecto")
+    private Boolean contrasenaPorDefecto = true;
+
     public Usuario() {} //constructor vacio, necesario porque internamente se crea un objeto vacio que luego recien se va llenando
     //getter y los setter. Estos son usados activamente por Hibernate para leer y escribir los valores de cada campo al convertir entre el objeto Java y la fila SQL
     public Integer getIdUsr() { return idUsr; }
@@ -63,4 +69,7 @@ public class Usuario {      //La Clase se llama Usuario con mayuscula para evita
 
     public LocalDateTime getBloqueadoHasta() { return bloqueadoHasta; }
     public void setBloqueadoHasta(LocalDateTime bloqueadoHasta) { this.bloqueadoHasta = bloqueadoHasta; }
+
+    public Boolean getContrasenaPorDefecto() { return contrasenaPorDefecto; }
+    public void setContrasenaPorDefecto(Boolean contrasenaPorDefecto) { this.contrasenaPorDefecto = contrasenaPorDefecto; }
 }
