@@ -93,8 +93,33 @@ function actualizarLimitesFecha(indiceAnclaForzado) {
 document.addEventListener('DOMContentLoaded', () => {
     actualizarLimitesFecha();
 
-    document.querySelectorAll('.dia-bloque input[type="date"]').forEach((input, indice) => {
+    const inputsFecha = document.querySelectorAll('.dia-bloque input[type="date"]');
+
+    inputsFecha.forEach((input, indice) => {
         input.addEventListener('input', () => {
+
+            if (input.value === '') {
+                // Si el campo que se acaba de vaciar era el "ancla" (o sea, no habia
+                // ningun otro campo con fecha en una posicion anterior a la suya),
+                // reiniciamos todo: se borran los demas dias y nos olvidamos de cuales
+                // se habian tocado a mano, para que la proxima fecha que cargue el
+                // alumno dispare el autocompletado de cero otra vez.
+                let habiaOtroAnterior = false;
+                for (let i = 0; i < indice; i++) {
+                    if (inputsFecha[i].value !== '') {
+                        habiaOtroAnterior = true;
+                        break;
+                    }
+                }
+
+                if (!habiaOtroAnterior) {
+                    inputsFecha.forEach(otro => otro.value = '');
+                    camposTocados.clear();
+                    actualizarLimitesFecha();
+                    return;
+                }
+            }
+
             camposTocados.add(indice); // el alumno escribio o borro este campo a mano
             actualizarLimitesFecha(indice);
         });
