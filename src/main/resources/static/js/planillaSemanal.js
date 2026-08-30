@@ -99,21 +99,21 @@ document.addEventListener('DOMContentLoaded', () => {
         input.addEventListener('input', () => {
 
             if (input.value === '') {
-                // Si el campo que se acaba de vaciar era el "ancla real" (o sea, no habia
-                // ningun OTRO campo TOCADO A MANO en una posicion anterior a la suya -- los
-                // que tienen valor solo porque se autocompletaron no cuentan), reiniciamos
-                // todo: se borran los demas dias y nos olvidamos de cuales se habian tocado,
-                // para que la proxima fecha que cargue el alumno dispare el autocompletado
-                // de cero otra vez.
-                let habiaOtroAnclaAntes = false;
-                for (let i = 0; i < indice; i++) {
+                // Si no queda NINGUN OTRO campo tocado a mano (sin importar si esta antes
+                // o despues de este en la grilla -- los que tienen valor solo porque se
+                // autocompletaron no cuentan), reiniciamos todo: se borran los demas dias
+                // y nos olvidamos de cuales se habian tocado, para que la proxima fecha
+                // que cargue el alumno dispare el autocompletado de cero otra vez.
+                let quedaOtraAnclaTocada = false;
+                for (let i = 0; i < inputsFecha.length; i++) {
+                    if (i === indice) continue;
                     if (inputsFecha[i].value !== '' && camposTocados.has(i)) {
-                        habiaOtroAnclaAntes = true;
+                        quedaOtraAnclaTocada = true;
                         break;
                     }
                 }
 
-                if (!habiaOtroAnclaAntes) {
+                if (!quedaOtraAnclaTocada) {
                     inputsFecha.forEach(otro => otro.value = '');
                     camposTocados.clear();
                     actualizarLimitesFecha();
