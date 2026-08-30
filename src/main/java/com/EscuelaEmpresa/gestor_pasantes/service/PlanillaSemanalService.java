@@ -32,8 +32,8 @@ public class PlanillaSemanalService {
     public void guardarPlanilla(PlanillaSemanalForm form, Alumno alumno) {
 
         // Maximo 6 planillas por alumno (una pasantia dura exactamente 6 semanas)
-        long cantidadActual = planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl()).size();
-        if (cantidadActual >= 6) {
+        List<PlanillaSemanal> planillasExistentes = planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
+        if (planillasExistentes.size() >= 6) {
             throw new RuntimeException("Ya cargaste las 6 semanas de planilla. No se pueden cargar más.");
         }
 
@@ -61,6 +61,8 @@ public class PlanillaSemanalService {
             throw new RuntimeException("Debe cargar al menos un día trabajado");
         }
 
+        validarOrdenYRango(diasCargados);
+
         // 2. Calcular fecha_desde, fecha_hasta y total_horas
         LocalDate fechaDesde = diasCargados.stream()
                 .map(DiaForm::getFecha)
@@ -71,6 +73,8 @@ public class PlanillaSemanalService {
                 .map(DiaForm::getFecha)
                 .max(LocalDate::compareTo)
                 .orElseThrow();
+
+        validarSuperposicion(fechaDesde, fechaHasta, planillasExistentes);
 
         float totalHoras = 0f;
         for (DiaForm dia : diasCargados) {
@@ -148,6 +152,37 @@ public class PlanillaSemanalService {
             planillaSemanalDetalleRepository.findByPlanillaSemanal_IdPs(planilla.getIdPs());
         planillaSemanalDetalleRepository.deleteAll(detalles);
         planillaSemanalRepository.delete(planilla);
+    }
+
+    private void validarOrdenYRango(List<DiaForm> diasCargados) {
+        // Opción 1: orden cronológico -- cada día cargado tiene que tener una fecha
+        // posterior al día anterior (evita "Martes antes que Lunes")
+        for (int i = 1; i < diasCargados.size(); i++) {
+            LocalDate anterior = diasCargados.get(i - 1).getFecha();
+            LocalDate actual = diasCargados.get(i).getFecha();
+            if (!actual.isAfter(anterior)) {
+                throw new RuntimeException("Las fechas cargadas no siguen el orden correcto de los días de la semana.");
+            }
+        }
+
+        // Opción 2: rango máximo de 5 días (Lunes a Sábado) -- evita que las fechas
+        // cargadas pertenezcan a semanas distintas, aunque estén en el orden correcto
+        LocalDate minFecha = diasCargados.get(0).getFecha();
+        LocalDate maxFecha = diasCargados.get(diasCargados.size() - 1).getFecha();
+        if (java.time.temporal.ChronoUnit.DAYS.between(minFecha, maxFecha) > 5) {
+            throw new RuntimeException("Las fechas cargadas abarcan más de una semana. Revisá que todas correspondan a la misma semana.");
+        }
+    }
+
+    private void validarSuperposicion(LocalDate fechaDesde, LocalDate fechaHasta, List<PlanillaSemanal> planillasExistentes) {
+        // Opción 5: que la semana nueva no se superponga con ninguna semana ya cargada
+        for (PlanillaSemanal existente : planillasExistentes) {
+            boolean seSuperponen = !fechaHasta.isBefore(existente.getFechaDesde()) && !fechaDesde.isAfter(existente.getFechaHasta());
+            if (seSuperponen) {
+                throw new RuntimeException("Las fechas se superponen con una planilla ya cargada (semana del "
+                        + existente.getFechaDesde() + " al " + existente.getFechaHasta() + ").");
+            }
+        }
     }
 
     private void validarDia(DiaForm dia, DayOfWeek diaEsperado) {
