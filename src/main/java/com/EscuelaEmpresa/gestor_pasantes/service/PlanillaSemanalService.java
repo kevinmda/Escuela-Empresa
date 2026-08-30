@@ -31,6 +31,12 @@ public class PlanillaSemanalService {
     @Transactional
     public void guardarPlanilla(PlanillaSemanalForm form, Alumno alumno) {
 
+        // Maximo 6 planillas por alumno (una pasantia dura exactamente 6 semanas)
+        long cantidadActual = planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl()).size();
+        if (cantidadActual >= 6) {
+            throw new RuntimeException("Ya cargaste las 6 semanas de planilla. No se pueden cargar más.");
+        }
+
         // Validar cada día ANTES de filtrar
         DayOfWeek[] diasEsperados = {
             DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
@@ -132,6 +138,16 @@ public class PlanillaSemanalService {
 
             contador++;
         }
+    }
+
+    @Transactional
+    public void eliminarPlanilla(PlanillaSemanal planilla) {
+        // primero los detalles (dias trabajados), porque no hay cascade configurado
+        // en la relacion, y despues la cabecera
+        List<PlanillaSemanalDetalle> detalles =
+            planillaSemanalDetalleRepository.findByPlanillaSemanal_IdPs(planilla.getIdPs());
+        planillaSemanalDetalleRepository.deleteAll(detalles);
+        planillaSemanalRepository.delete(planilla);
     }
 
     private void validarDia(DiaForm dia, DayOfWeek diaEsperado) {

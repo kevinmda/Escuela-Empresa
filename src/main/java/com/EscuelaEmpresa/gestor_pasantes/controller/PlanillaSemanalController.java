@@ -12,8 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.EscuelaEmpresa.gestor_pasantes.dto.PlanillaSemanalForm;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
@@ -120,6 +122,27 @@ public class PlanillaSemanalController {
 
         return "alumno/planillaSemanal";
 
+    }
+
+    @PostMapping("/alumno/planilla/{idPs}/eliminar")
+    public String eliminarPlanilla(@PathVariable Integer idPs,
+                                    Authentication authentication,
+                                    RedirectAttributes redirectAttributes) {
+
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        PlanillaSemanal planilla = planillaSemanalRepository.findById(idPs)
+                .orElseThrow(() -> new RuntimeException("Planilla no encontrada"));
+
+        // seguridad: que el alumno no pueda borrar planillas ajenas cambiando el idPs en la URL
+        if (!planilla.getAlumno().getIdAl().equals(alumno.getIdAl())) {
+            throw new AccessDeniedException("No tenés permiso para eliminar esta planilla");
+        }
+
+        planillaSemanalService.eliminarPlanilla(planilla);
+
+        redirectAttributes.addFlashAttribute("exito", "Planilla eliminada correctamente.");
+        return "redirect:/alumno/planilla";
     }
 
     @GetMapping("/alumno/planilla/Planilla_Semanal.pdf")

@@ -85,6 +85,14 @@
             </button>
         </form>
 
+        <form th:if="${idPsSeleccionado != null}"
+              th:action="@{/alumno/planilla/{id}/eliminar(id=${idPsSeleccionado})}"
+              method="post"
+              onsubmit="return confirm('¿Estás seguro que querés eliminar esta planilla? Esta acción no se puede deshacer.');"
+              style="margin-bottom: 1.5rem;">
+            <button type="submit" class="btn-secondary">Eliminar esta planilla</button>
+        </form>
+
         <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post" id="formPlanilla">
 
             <button type="button" id="btnNuevo" class="btn-secondary" th:disabled="${habilitado}" onclick="habilitarFormulario()">+ Cargar semana nueva</button>
