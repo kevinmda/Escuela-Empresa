@@ -30,6 +30,7 @@ function habilitarFormulario() {
 function limpiarFormulario() {
     const campos = document.querySelectorAll('#fieldsetPlanilla input, #fieldsetPlanilla textarea');
     campos.forEach(campo => campo.value = '');
+    document.querySelectorAll('.aviso-limite').forEach(aviso => aviso.style.display = 'none');
     camposTocados.clear();
     actualizarLimitesFecha();
 }
@@ -90,8 +91,32 @@ function actualizarLimitesFecha(indiceAnclaForzado) {
     });
 }
 
+// Para cada campo con "maxlength" dentro del formulario, agrega un pequeño mensaje
+// (oculto por defecto) que aparece cuando el alumno llega al tope de caracteres permitido.
+// No hace falta tocar el HTML: el mensaje se genera solo, campo por campo.
+function inicializarAvisosLimite() {
+    const campos = document.querySelectorAll('#fieldsetPlanilla [maxlength]');
+
+    campos.forEach(campo => {
+        const aviso = document.createElement('small');
+        aviso.className = 'aviso-limite';
+        aviso.textContent = 'Alcanzaste el límite de caracteres.';
+        campo.insertAdjacentElement('afterend', aviso);
+
+        const limite = parseInt(campo.getAttribute('maxlength'), 10);
+
+        const actualizarAviso = () => {
+            aviso.style.display = campo.value.length >= limite ? 'block' : 'none';
+        };
+
+        campo.addEventListener('input', actualizarAviso);
+        actualizarAviso(); // por si el campo ya viene con datos cargados (ej. al editar)
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     actualizarLimitesFecha();
+    inicializarAvisosLimite();
 
     const inputsFecha = document.querySelectorAll('.dia-bloque input[type="date"]');
 

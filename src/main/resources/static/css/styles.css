@@ -619,6 +619,7 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
+textarea,
 select {
     font-family: var(--font-body);
     font-size: 0.95rem;
@@ -631,8 +632,16 @@ select {
 }
 
 input:focus,
+textarea:focus,
 select:focus {
     border-color: var(--accent);
+}
+
+.aviso-limite {
+    display: none;
+    color: var(--danger);
+    font-size: 0.78rem;
+    margin-top: 0.3rem;
 }
 
 /* ---------------- Botones ---------------- */
