@@ -989,7 +989,7 @@ td input[type="email"] {
 
 .dia-bloque textarea {
     min-height: 60px;
-    resize: vertical;
+    resize: none;
 }
 
 .resumen-semana {
@@ -1000,7 +1000,7 @@ td input[type="email"] {
 
 .resumen-semana textarea {
     min-height: 70px;
-    resize: vertical;
+    resize: none;
 }
 
 .acciones-planilla {
