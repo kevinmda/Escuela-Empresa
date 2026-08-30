@@ -42,6 +42,10 @@ public class CambiarContrasenaController {
             return "redirect:/cambiar-contrasena?error";                    //sino te manda a ?error
         }
 
+        if (passwordEncoder.matches(nueva, usuario.getContrasena())) {     //se verifica que la nueva contrasena no sea la misma que ya tenia
+            return "redirect:/cambiar-contrasena?errorMismaContrasena";
+        }
+
         usuario.setContrasena(passwordEncoder.encode(nueva));
         usuario.setContrasenaPorDefecto(false); // ya cambio la contraseña por una propia, no mostramos mas el aviso
         usuarioRepository.save(usuario);
