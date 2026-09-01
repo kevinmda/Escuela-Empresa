@@ -67,16 +67,18 @@
             </div>
 
             <div>
-                <label for="select-curso">Curso</label>
-                <select id="select-curso" disabled>
-                    <option value="">-- Elegí un curso --</option>
-                </select>
+                <label>Curso</label>
+                <span class="valor-fijo">3ro</span>
+                <input type="hidden" id="cursoFijo" value="3ro">
             </div>
 
             <div>
                 <label for="select-seccion">Sección</label>
                 <select id="select-seccion" disabled>
                     <option value="">-- Elegí una sección --</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
                 </select>
             </div>
         </div>
@@ -107,7 +109,6 @@
 
         const selectEspecialidad = document.getElementById('select-especialidad');
         const idEspFijoInput = document.getElementById('idEspFijo');
-        const selectCurso = document.getElementById('select-curso');
         const selectSeccion = document.getElementById('select-seccion');
         const tabla = document.getElementById('tabla-alumnos');
         const tablaBody = document.getElementById('tabla-alumnos-body');
@@ -119,66 +120,28 @@
         const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
         const filtroContainer = document.getElementById('filtro-container');
 
+        const CURSO_FIJO = '3ro'; // las pasantías son siempre en 3er año
+
         function idEspSeleccionado() {
             return esAdministrativo ? selectEspecialidad.value : idEspFijoInput.value;
         }
 
-        function resetSelect(select, placeholder) {
-            select.innerHTML = `<option value="">${placeholder}</option>`;
-            select.disabled = true;
-        }
-
-        function cargarCursos() {
-            resetSelect(selectCurso, '-- Elegí un curso --');
-            resetSelect(selectSeccion, '-- Elegí una sección --');
+        function habilitarSeccion() {
+            selectSeccion.value = '';
             ocultarTabla();
 
             const idEsp = idEspSeleccionado();
-            if (!idEsp) return;
-
-            fetch(`/admin/api/cursos?idEsp=${idEsp}`)
-                .then(res => res.json())
-                .then(cursos => {
-                    cursos.forEach(curso => {
-                        const opt = document.createElement('option');
-                        opt.value = curso;
-                        opt.textContent = curso;
-                        selectCurso.appendChild(opt);
-                    });
-                    selectCurso.disabled = false;
-                });
-        }
-
-        function cargarSecciones() {
-            resetSelect(selectSeccion, '-- Elegí una sección --');
-            ocultarTabla();
-
-            const idEsp = idEspSeleccionado();
-            const curso = selectCurso.value;
-            if (!idEsp || !curso) return;
-
-            fetch(`/admin/api/secciones?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}`)
-                .then(res => res.json())
-                .then(secciones => {
-                    secciones.forEach(seccion => {
-                        const opt = document.createElement('option');
-                        opt.value = seccion;
-                        opt.textContent = seccion;
-                        selectSeccion.appendChild(opt);
-                    });
-                    selectSeccion.disabled = false;
-                });
+            selectSeccion.disabled = !idEsp;
         }
 
         function cargarAlumnos() {
             ocultarTabla();
 
             const idEsp = idEspSeleccionado();
-            const curso = selectCurso.value;
             const seccion = selectSeccion.value;
-            if (!idEsp || !curso || !seccion) return;
+            if (!idEsp || !seccion) return;
 
-            fetch(`/admin/api/alumnos-filtrados?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}&seccion=${encodeURIComponent(seccion)}`)
+            fetch(`/admin/api/alumnos-filtrados?idEsp=${idEsp}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccion)}`)
                 .then(res => res.json())
                 .then(alumnos => {
                     if (alumnos.length === 0) {
@@ -212,21 +175,19 @@
 
         btnDescargarZip.addEventListener('click', () => {
             const idEsp = idEspSeleccionado();
-            const curso = selectCurso.value;
             const seccion = selectSeccion.value;
-            if (!idEsp || !curso || !seccion) return;
+            if (!idEsp || !seccion) return;
 
-            window.location.href = `/admin/alumnos/zip?idEsp=${idEsp}&curso=${encodeURIComponent(curso)}&seccion=${encodeURIComponent(seccion)}`;
+            window.location.href = `/admin/alumnos/zip?idEsp=${idEsp}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccion)}`;
         });
 
         if (esAdministrativo) {
-            selectEspecialidad.addEventListener('change', cargarCursos);
+            selectEspecialidad.addEventListener('change', habilitarSeccion);
         } else {
-            // El coordinador ya tiene especialidad fija: cargamos los cursos apenas entra a la página
-            cargarCursos();
+            // El coordinador ya tiene especialidad fija: habilitamos Sección apenas entra a la página
+            habilitarSeccion();
         }
 
-        selectCurso.addEventListener('change', cargarSecciones);
         selectSeccion.addEventListener('change', cargarAlumnos);
 
         // --- Búsqueda por nombre, apellido o CI ---
