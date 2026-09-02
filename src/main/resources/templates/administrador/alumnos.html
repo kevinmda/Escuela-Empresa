@@ -92,6 +92,8 @@
                     <th>Email</th>
                     <th>Curso</th>
                     <th>Sección</th>
+                    <th>Documentos</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody id="tabla-alumnos-body"></tbody>
@@ -149,12 +151,7 @@
                         return;
                     }
                     tablaBody.innerHTML = '';
-                    alumnos.forEach(a => {
-                        const fila = document.createElement('tr');
-                        [a.nombres, a.apellidos, a.ci, a.email, a.curso, a.seccion]
-                            .forEach(valor => agregarCelda(fila, valor));
-                        tablaBody.appendChild(fila);
-                    });
+                    alumnos.forEach(a => tablaBody.appendChild(crearFilaAlumno(a)));
                     tabla.style.display = 'table';
                     zipContainer.style.display = 'block';
                 });
@@ -164,6 +161,73 @@
                 const celda = document.createElement('td');
                 celda.textContent = valor ?? '';
                 fila.appendChild(celda);
+            }
+
+            // Arma la fila de un alumno con sus datos básicos, un desplegable con los
+            // documentos que subió, y un botón para descargar todos esos documentos
+            // en un ZIP individual (a diferencia del ZIP del toolbar, que baja los de
+            // toda la sección filtrada)
+            function crearFilaAlumno(a) {
+                const fila = document.createElement('tr');
+                [a.nombres, a.apellidos, a.ci, a.email, a.curso, a.seccion]
+                    .forEach(valor => agregarCelda(fila, valor));
+
+                const menu = document.createElement('details');
+                menu.className = 'documentos-menu';
+                const resumen = document.createElement('summary');
+                resumen.textContent = 'Ver documentos';
+                const lista = document.createElement('div');
+                lista.className = 'documentos-lista';
+                const cargando = document.createElement('span');
+                cargando.className = 'documentos-cargando';
+                cargando.textContent = 'Cargando...';
+                lista.appendChild(cargando);
+                menu.append(resumen, lista);
+                agregarCelda(fila, menu);
+                menu.addEventListener('toggle', () => {
+                    if (menu.open) cargarDocumentosDeAlumno(menu, a.idAl);
+                });
+
+                const celdaDescarga = document.createElement('td');
+                const btnDescargarUno = document.createElement('a');
+                btnDescargarUno.href = `/admin/alumnos/${a.idAl}/documentos/zip`;
+                btnDescargarUno.className = 'btn btn-secondary icono-descargar';
+                btnDescargarUno.textContent = 'Descargar (ZIP)';
+                celdaDescarga.appendChild(btnDescargarUno);
+                fila.appendChild(celdaDescarga);
+
+                return fila;
+            }
+
+            function cargarDocumentosDeAlumno(menu, idAl) {
+                if (menu.dataset.cargado === 'true') return;
+
+                const lista = menu.querySelector('.documentos-lista');
+                fetch(`/admin/api/alumnos/${idAl}/documentos`)
+                    .then(res => {
+                        if (!res.ok) throw new Error('No se pudieron cargar los documentos.');
+                        return res.json();
+                    })
+                    .then(documentos => {
+                        lista.innerHTML = '';
+                        if (documentos.length === 0) {
+                            lista.textContent = 'No hay documentos subidos.';
+                            return;
+                        }
+
+                        documentos.forEach(documento => {
+                            const enlace = document.createElement('a');
+                            enlace.href = documento.url;
+                            enlace.target = '_blank';
+                            enlace.rel = 'noopener';
+                            enlace.textContent = documento.nombreArchivo || `Documento ${documento.idDs}`;
+                            lista.appendChild(enlace);
+                        });
+                        menu.dataset.cargado = 'true';
+                    })
+                    .catch(error => {
+                        lista.textContent = error.message;
+                    });
             }
 
         function ocultarTabla() {
@@ -213,12 +277,7 @@
                     }
                     mensajeVacio.style.display = 'none';
                     tablaBody.innerHTML = '';
-                    alumnos.forEach(a => {
-                        const fila = document.createElement('tr');
-                        [a.nombres, a.apellidos, a.ci, a.email, a.curso, a.seccion]
-                            .forEach(valor => agregarCelda(fila, valor));
-                        tablaBody.appendChild(fila);
-                    });
+                    alumnos.forEach(a => tablaBody.appendChild(crearFilaAlumno(a)));
                     tabla.style.display = 'table';
                 });
         }
