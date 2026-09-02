@@ -44,12 +44,22 @@
 
         <div class="panel upload-card">
             <form th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data">
+                <label for="tipo-documento">Tipo de documento *</label>
+                <select id="tipo-documento" name="tipoDocumento" required>
+                    <option value="">-- Seleccioná un tipo --</option>
+                    <option th:each="tipo : ${tiposDocumento}" 
+                            th:value="${tipo.name()}"
+                            th:text="${tipo.descripcion + ' (' + (limitadorDynamic = __#{__'subidos_' + tipo.name__()} ?: 0__) + '/' + __#{__'limite_' + tipo.name__()} ?: 1__)}"
+                            th:disabled="${limitadorDynamic >= (__#{__'limite_' + tipo.name__()} ?: 1)}"></option>
+                </select>
+                <div id="estado-limite" class="info-limite" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--ink-soft);"></div>
+
                 <label for="archivo-input" class="dropzone" id="dropzone">
                     <span class="dropzone-titulo" id="dropzone-titulo">Hacé click o arrastrá tu PDF acá</span>
                     <span class="dropzone-subtitulo">Solo archivos PDF</span>
                 </label>
                 <input type="file" id="archivo-input" name="archivo" accept="application/pdf" required class="dropzone-input">
-                <button type="submit" class="btn-primary">Subir documento</button>
+                <button type="submit" class="btn-primary" id="btn-subir">Subir documento</button>
             </form>
         </div>
 
@@ -58,6 +68,7 @@
         <table th:if="${not #lists.isEmpty(documentos)}">
             <thead>
                 <tr>
+                    <th>Tipo</th>
                     <th>Nombre</th>
                     <th>Fecha</th>
                     <th></th>
@@ -66,6 +77,7 @@
             </thead>
             <tbody>
                 <tr th:each="doc : ${documentos}">
+                    <td th:text="${doc.tipoDocumento != null ? doc.tipoDocumento.descripcion : 'Sin especificar'}"></td>
                     <td th:text="${doc.nombreArchivo}"></td>
                     <td th:text="${#temporals.format(doc.fechaSubida, 'dd/MM/yyyy HH:mm')}"></td>
                     <td><a th:href="@{/alumno/subir/{id}/ver(id=${doc.idDs})}" target="_blank">Ver</a></td>
@@ -114,6 +126,52 @@
                 actualizarNombreArchivo();
             }
         });
+
+        // GESTIÓN DE LÍMITES DE DOCUMENTOS
+        const selectTipo = document.getElementById('tipo-documento');
+        const estadoLimite = document.getElementById('estado-limite');
+        const btnSubir = document.getElementById('btn-subir');
+
+        // Datos de límites desde el servidor (via Thymeleaf)
+        const limites = {
+            'CONTRATO': { limite: [[${limite_CONTRATO ?: 1}]], subidos: [[${subidos_CONTRATO ?: 0}]] },
+            'PLANTILLA_SEMANAL': { limite: [[${limite_PLANTILLA_SEMANAL ?: 6}]], subidos: [[${subidos_PLANTILLA_SEMANAL ?: 0}]] },
+            'AUTORIZACION': { limite: [[${limite_AUTORIZACION ?: 1}]], subidos: [[${subidos_AUTORIZACION ?: 0}]] },
+            'FICHA_FINAL_ALUMNO': { limite: [[${limite_FICHA_FINAL_ALUMNO ?: 1}]], subidos: [[${subidos_FICHA_FINAL_ALUMNO ?: 0}]] },
+            'FICHA_FINAL_EVALUATIVA': { limite: [[${limite_FICHA_FINAL_EVALUATIVA ?: 1}]], subidos: [[${subidos_FICHA_FINAL_EVALUATIVA ?: 0}]] }
+        };
+
+        function actualizarEstadoLimite() {
+            const tipoSeleccionado = selectTipo.value;
+            
+            if (!tipoSeleccionado) {
+                estadoLimite.textContent = '';
+                btnSubir.disabled = false;
+                return;
+            }
+
+            const datos = limites[tipoSeleccionado];
+            if (datos) {
+                const { limite, subidos } = datos;
+                const restante = limite - subidos;
+
+                if (subidos >= limite) {
+                    estadoLimite.innerHTML = '❌ Ya alcanzaste el máximo de ' + limite + ' documentos de este tipo.';
+                    estadoLimite.style.color = '#e74c3c';
+                    btnSubir.disabled = true;
+                } else if (restante <= 1 && limite > 1) {
+                    estadoLimite.innerHTML = '⚠️ Has subido ' + subidos + ' de ' + limite + ' (' + restante + ' restante)';
+                    estadoLimite.style.color = '#f39c12';
+                    btnSubir.disabled = false;
+                } else {
+                    estadoLimite.innerHTML = '✓ Has subido ' + subidos + ' de ' + limite + ' (' + restante + ' restantes)';
+                    estadoLimite.style.color = '#27ae60';
+                    btnSubir.disabled = false;
+                }
+            }
+        }
+
+        selectTipo.addEventListener('change', actualizarEstadoLimite);
     </script>
 </body>
 </html>

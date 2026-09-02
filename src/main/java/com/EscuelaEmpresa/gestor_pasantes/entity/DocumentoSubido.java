@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -29,6 +31,16 @@ public class DocumentoSubido {
     @Column(name = "fecha_subida")
     private LocalDateTime fechaSubida;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_documento", nullable = true)
+    private TipoDocumento tipoDocumento; // tipo de documento que se está subiendo
+
+    @Column(name = "hash_integridad", length = 64)
+    private String hashIntegridad; // SHA-256 del archivo para verificar integridad
+
+    @Column(name = "validado", columnDefinition = "boolean default false")
+    private Boolean validado = false; // indica si el documento pasó las validaciones
+
     @ManyToOne
     @JoinColumn(name = "id_Al")
     private Alumno alumno;
@@ -44,6 +56,15 @@ public class DocumentoSubido {
 
     public LocalDateTime getFechaSubida() { return fechaSubida; }
     public void setFechaSubida(LocalDateTime fechaSubida) { this.fechaSubida = fechaSubida; }
+
+    public TipoDocumento getTipoDocumento() { return tipoDocumento; }
+    public void setTipoDocumento(TipoDocumento tipoDocumento) { this.tipoDocumento = tipoDocumento; }
+
+    public String getHashIntegridad() { return hashIntegridad; }
+    public void setHashIntegridad(String hashIntegridad) { this.hashIntegridad = hashIntegridad; }
+
+    public Boolean getValidado() { return validado != null ? validado : false; }
+    public void setValidado(Boolean validado) { this.validado = validado; }
 
     public Alumno getAlumno() { return alumno; }
     public void setAlumno(Alumno alumno) { this.alumno = alumno; }

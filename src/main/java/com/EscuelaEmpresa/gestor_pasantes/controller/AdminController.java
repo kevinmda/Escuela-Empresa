@@ -245,7 +245,9 @@ public class AdminController {
                         documento.getIdDs(),
                         documento.getNombreArchivo(),
                         documento.getFechaSubida(),
-                        "/admin/alumnos/" + idAl + "/documentos/" + documento.getIdDs() + "/ver"))
+                        "/admin/alumnos/" + idAl + "/documentos/" + documento.getIdDs() + "/ver",
+                        documento.getTipoDocumento(),
+                        documento.getValidado()))
                 .toList();
     }
 

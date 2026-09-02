@@ -23,10 +23,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
+import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService;
+import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService.ValidacionResultado;
+import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -36,17 +40,26 @@ public class SubirController {
     private final AlumnoRepository alumnoRepository;
     private final UsuarioRepository usuarioRepository;
     private final DocumentoSubidoRepository documentoSubidoRepository;
+    private final ValidacionDocumentoService validacionDocumentoService;
+    private final LimitesDocumentoService limitesDocumentoService;
 
     // ruta configurable desde application.properties, para poder cambiarla entre
     // desarrollo (compu local) y produccion (VPS) sin tocar codigo
     @Value("${app.uploads.directorio}")
     private String directorioUploads;
 
+    // Tamaño máximo de archivo en bytes (50 MB)
+    private static final long TAMANIO_MAXIMO = 50 * 1024 * 1024;
+
     public SubirController(AlumnoRepository alumnoRepository, UsuarioRepository usuarioRepository,
-                            DocumentoSubidoRepository documentoSubidoRepository) {
+                            DocumentoSubidoRepository documentoSubidoRepository,
+                            ValidacionDocumentoService validacionDocumentoService,
+                            LimitesDocumentoService limitesDocumentoService) {
         this.alumnoRepository = alumnoRepository;
         this.usuarioRepository = usuarioRepository;
         this.documentoSubidoRepository = documentoSubidoRepository;
+        this.validacionDocumentoService = validacionDocumentoService;
+        this.limitesDocumentoService = limitesDocumentoService;
     }
 
     @GetMapping("/alumno/subir")
@@ -56,12 +69,24 @@ public class SubirController {
         List<DocumentoSubido> documentos =
                 documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(alumno.getIdAl());
         model.addAttribute("documentos", documentos);
+        
+        // Pasar los tipos de documento disponibles al modelo
+        model.addAttribute("tiposDocumento", TipoDocumento.values());
+        
+        // Pasar información de límites para cada tipo
+        for (TipoDocumento tipo : TipoDocumento.values()) {
+            long subidos = limitesDocumentoService.contarDocumentosSubidos(alumno.getIdAl(), tipo);
+            int limite = limitesDocumentoService.obtenerLimitePorTipo(tipo);
+            model.addAttribute("limite_" + tipo.name(), limite);
+            model.addAttribute("subidos_" + tipo.name(), subidos);
+        }
 
         return "alumno/subir";
     }
 
     @PostMapping("/alumno/subir")
     public String subirDocumento(@RequestParam("archivo") MultipartFile archivo,
+                                  @RequestParam("tipoDocumento") String tipoDocumentoStr,
                                   Authentication authentication,
                                   RedirectAttributes redirectAttributes) throws IOException {
 
@@ -72,13 +97,31 @@ public class SubirController {
             return "redirect:/alumno/subir";
         }
 
-        // chequeo basico de que sea un PDF (se puede falsear cambiando la extension,
-        // pero evita que alguien suba una imagen o un .docx por error de un click)
-        boolean esPdf = "application/pdf".equals(archivo.getContentType())
-                || (archivo.getOriginalFilename() != null && archivo.getOriginalFilename().toLowerCase().endsWith(".pdf"));
+        // Validar que se haya seleccionado un tipo de documento
+        if (tipoDocumentoStr == null || tipoDocumentoStr.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Seleccioná un tipo de documento.");
+            return "redirect:/alumno/subir";
+        }
 
-        if (!esPdf) {
-            redirectAttributes.addFlashAttribute("error", "El archivo debe ser un PDF.");
+        TipoDocumento tipoDocumento;
+        try {
+            tipoDocumento = TipoDocumento.valueOf(tipoDocumentoStr);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", "Tipo de documento inválido.");
+            return "redirect:/alumno/subir";
+        }
+
+        // VALIDACIÓN DE LÍMITES: Verificar si ya alcanzó el máximo de subidas para este tipo
+        if (!limitesDocumentoService.puedeSubirDocumento(alumno.getIdAl(), tipoDocumento)) {
+            String mensaje = limitesDocumentoService.obtenerMensajeError(tipoDocumento);
+            redirectAttributes.addFlashAttribute("error", mensaje);
+            return "redirect:/alumno/subir";
+        }
+        ValidacionResultado validacion = validacionDocumentoService.validarDocumentoCompleto(archivo, TAMANIO_MAXIMO);
+        
+        if (!validacion.isValido() || validacion.tieneErrores()) {
+            redirectAttributes.addFlashAttribute("error", 
+                "El documento no es válido: " + validacion.getErrores());
             return "redirect:/alumno/subir";
         }
 
@@ -98,6 +141,9 @@ public class SubirController {
         try (java.io.InputStream inputStream = archivo.getInputStream()) {
             Files.copy(inputStream, rutaCompleta, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
+            // Calcular hash del archivo para verificar integridad posterior
+            String hashIntegridad = validacionDocumentoService.calcularSHA256(rutaCompleta);
+
             DocumentoSubido documento = new DocumentoSubido();
             String nombreOriginal = archivo.getOriginalFilename();
             if (nombreOriginal != null && nombreOriginal.length() > 100) {
@@ -107,6 +153,10 @@ public class SubirController {
             documento.setRutaArchivo(rutaCompleta.toString());
             documento.setFechaSubida(LocalDateTime.now());
             documento.setAlumno(alumno);
+            documento.setTipoDocumento(tipoDocumento);
+            documento.setHashIntegridad(hashIntegridad);
+            documento.setValidado(true); // Se pasó todas las validaciones
+            
             try {
                 documentoSubidoRepository.save(documento);
             } catch (RuntimeException exception) {
@@ -115,7 +165,8 @@ public class SubirController {
             }
         }
 
-        redirectAttributes.addFlashAttribute("exito", "Documento subido correctamente.");
+        redirectAttributes.addFlashAttribute("exito", 
+            "Documento de tipo '" + tipoDocumento.getDescripcion() + "' subido correctamente.");
         return "redirect:/alumno/subir";
     }
 
