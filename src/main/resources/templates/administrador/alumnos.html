@@ -157,9 +157,13 @@
                 });
         }
 
-            function agregarCelda(fila, valor) {
+            function agregarCelda(fila, contenido) {
                 const celda = document.createElement('td');
-                celda.textContent = valor ?? '';
+                if (contenido instanceof Node) {
+                    celda.appendChild(contenido);
+                } else {
+                    celda.textContent = contenido ?? '';
+                }
                 fila.appendChild(celda);
             }
 
