@@ -632,17 +632,21 @@ main h3 {
     line-height: 1.5;
 }
 
-/* Pequeño temblor para llamar la atención sobre un error de autenticación,
-   sin ser agresivo. Respeta prefers-reduced-motion como el resto de animaciones. */
-@keyframes auth-error-shake {
-    10%, 90% { transform: translateX(-1px); }
-    20%, 80% { transform: translateX(2px); }
-    30%, 50%, 70% { transform: translateX(-4px); }
-    40%, 60% { transform: translateX(4px); }
+/* Entrada del mensaje de error (fade + slide, igual que "entrada") seguida de
+   un temblor sutil para llamar la atención sin ser agresivo. Todo en una sola
+   animación: dos animaciones separadas pisándose la propiedad "transform" al
+   mismo tiempo da resultados inconsistentes entre navegadores. */
+@keyframes auth-error-entrada {
+    0% { opacity: 0; transform: translateY(10px); }
+    40% { opacity: 1; transform: translateY(0); }
+    55% { transform: translateX(-4px); }
+    70% { transform: translateX(3px); }
+    85% { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
 }
 
 .auth-card .mensaje-error {
-    animation: entrada 0.28s cubic-bezier(0.16, 1, 0.3, 1) both, auth-error-shake 0.4s ease-in-out 0.1s both;
+    animation: auth-error-entrada 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
