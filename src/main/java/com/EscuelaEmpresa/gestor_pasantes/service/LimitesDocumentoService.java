@@ -2,7 +2,6 @@ package com.EscuelaEmpresa.gestor_pasantes.service;
 
 import org.springframework.stereotype.Service;
 
-import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
 import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 

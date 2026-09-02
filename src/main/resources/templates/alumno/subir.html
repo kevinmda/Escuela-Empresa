@@ -48,9 +48,9 @@
                 <select id="tipo-documento" name="tipoDocumento" required>
                     <option value="">-- Seleccioná un tipo --</option>
                     <option th:each="tipo : ${tiposDocumento}" 
-                            th:value="${tipo.name()}"
-                            th:text="${tipo.descripcion + ' (' + (limitadorDynamic = __#{__'subidos_' + tipo.name__()} ?: 0__) + '/' + __#{__'limite_' + tipo.name__()} ?: 1__)}"
-                            th:disabled="${limitadorDynamic >= (__#{__'limite_' + tipo.name__()} ?: 1)}"></option>
+                            th:value="${tipo.name()}" 
+                            th:text="${tipo.descripcion}"
+                            th:attr="data-limite=${__#{limite_${tipo.name()}}},data-subidos=${__#{subidos_${tipo.name()}}}"></option>
                 </select>
                 <div id="estado-limite" class="info-limite" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--ink-soft);"></div>
 
@@ -132,17 +132,9 @@
         const estadoLimite = document.getElementById('estado-limite');
         const btnSubir = document.getElementById('btn-subir');
 
-        // Datos de límites desde el servidor (via Thymeleaf)
-        const limites = {
-            'CONTRATO': { limite: [[${limite_CONTRATO ?: 1}]], subidos: [[${subidos_CONTRATO ?: 0}]] },
-            'PLANTILLA_SEMANAL': { limite: [[${limite_PLANTILLA_SEMANAL ?: 6}]], subidos: [[${subidos_PLANTILLA_SEMANAL ?: 0}]] },
-            'AUTORIZACION': { limite: [[${limite_AUTORIZACION ?: 1}]], subidos: [[${subidos_AUTORIZACION ?: 0}]] },
-            'FICHA_FINAL_ALUMNO': { limite: [[${limite_FICHA_FINAL_ALUMNO ?: 1}]], subidos: [[${subidos_FICHA_FINAL_ALUMNO ?: 0}]] },
-            'FICHA_FINAL_EVALUATIVA': { limite: [[${limite_FICHA_FINAL_EVALUATIVA ?: 1}]], subidos: [[${subidos_FICHA_FINAL_EVALUATIVA ?: 0}]] }
-        };
-
         function actualizarEstadoLimite() {
             const tipoSeleccionado = selectTipo.value;
+            const opcionSeleccionada = selectTipo.options[selectTipo.selectedIndex];
             
             if (!tipoSeleccionado) {
                 estadoLimite.textContent = '';
@@ -150,24 +142,23 @@
                 return;
             }
 
-            const datos = limites[tipoSeleccionado];
-            if (datos) {
-                const { limite, subidos } = datos;
-                const restante = limite - subidos;
+            // Obtener límite y subidos desde data attributes
+            const limite = parseInt(opcionSeleccionada.getAttribute('data-limite')) || 1;
+            const subidos = parseInt(opcionSeleccionada.getAttribute('data-subidos')) || 0;
+            const restante = limite - subidos;
 
-                if (subidos >= limite) {
-                    estadoLimite.innerHTML = '❌ Ya alcanzaste el máximo de ' + limite + ' documentos de este tipo.';
-                    estadoLimite.style.color = '#e74c3c';
-                    btnSubir.disabled = true;
-                } else if (restante <= 1 && limite > 1) {
-                    estadoLimite.innerHTML = '⚠️ Has subido ' + subidos + ' de ' + limite + ' (' + restante + ' restante)';
-                    estadoLimite.style.color = '#f39c12';
-                    btnSubir.disabled = false;
-                } else {
-                    estadoLimite.innerHTML = '✓ Has subido ' + subidos + ' de ' + limite + ' (' + restante + ' restantes)';
-                    estadoLimite.style.color = '#27ae60';
-                    btnSubir.disabled = false;
-                }
+            if (subidos >= limite) {
+                estadoLimite.innerHTML = '❌ Ya alcanzaste el máximo de ' + limite + ' documentos de este tipo.';
+                estadoLimite.style.color = '#e74c3c';
+                btnSubir.disabled = true;
+            } else if (restante <= 1 && limite > 1) {
+                estadoLimite.innerHTML = '⚠️ Has subido ' + subidos + ' de ' + limite + ' (' + restante + ' restante)';
+                estadoLimite.style.color = '#f39c12';
+                btnSubir.disabled = false;
+            } else {
+                estadoLimite.innerHTML = '✓ Has subido ' + subidos + ' de ' + limite + ' (' + restante + ' restantes)';
+                estadoLimite.style.color = '#27ae60';
+                btnSubir.disabled = false;
             }
         }
 
