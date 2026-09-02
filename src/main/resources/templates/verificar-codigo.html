@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificar código</title>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,20 +15,40 @@
 
 </head>
 <body>
-    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
-    <h2>Verificá tu cuenta</h2>
-
-    <p>Te enviamos un código de activación a tu correo. Ingresalo para poder activar la cuenta.</p>
-
-    <p th:if="${error}" style="color: red;" th:text="${error}"></p>
-
-    <form th:action="@{/verificar-codigo}" method="post">
-        <input type="hidden" name="email" th:value="${email}">
-        <div>
-            <label>Código:</label>
-            <input type="text" name="codigo" maxlength="6" required autofocus>
+    <header>
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
         </div>
-        <button type="submit">Verificar</button>
-    </form>
+        <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
+    </header>
+
+    <main class="auth-main">
+        <div class="panel auth-card">
+            <p class="eyebrow">Activación de cuenta</p>
+            <h2 class="auth-titulo">Verificá tu cuenta</h2>
+
+            <p class="auth-nota">
+                Te enviamos un código de 6 dígitos a <strong th:text="${email}"></strong>.
+                Ingresalo para activar tu cuenta.
+            </p>
+
+            <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+
+            <form th:action="@{/verificar-codigo}" method="post" class="auth-form">
+                <input type="hidden" name="email" th:value="${email}">
+                <div>
+                    <label for="codigo">Código de verificación</label>
+                    <input id="codigo" class="input-codigo" type="text" name="codigo" inputmode="numeric"
+                           autocomplete="one-time-code" maxlength="6" required autofocus>
+                </div>
+                <button type="submit" class="btn-primary">Verificar</button>
+            </form>
+
+            <div class="auth-links">
+                <a th:href="@{/login(email=${email})}">← Volver al login</a>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

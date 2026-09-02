@@ -3,25 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
-    <title>Olvidé mi contraseña</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar contraseña</title>
+
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <script th:src="@{/js/theme.js}" defer></script>
+
 </head>
 <body>
-    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
-    <h2>Recuperar contraseña</h2>
+    <header>
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
+        </div>
+        <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
+    </header>
 
-    <p>Te vamos a mandar un código a <strong th:text="${email}"></strong> para restablecer tu contraseña.</p>
+    <main class="auth-main">
+        <div class="panel auth-card">
+            <p class="eyebrow">Recuperar acceso</p>
+            <h2 class="auth-titulo">¿Olvidaste tu contraseña?</h2>
 
-    <p th:if="${error}" style="color: red;" th:text="${error}"></p>
+            <p class="auth-nota">
+                Te vamos a mandar un código de 6 dígitos a <strong th:text="${email}"></strong>
+                para que puedas elegir una contraseña nueva. El código vale por 5 minutos.
+            </p>
 
-    <form th:action="@{/olvide-contrasena}" method="post">
-        <button type="submit">Enviar código</button>
-    </form>
+            <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
 
-    <p><a th:href="@{/login(email=${email})}">← Volver al login</a></p>
+            <form th:action="@{/olvide-contrasena}" method="post" class="auth-form">
+                <button type="submit" class="btn-primary">Enviar código</button>
+            </form>
+
+            <div class="auth-links">
+                <a th:href="@{/login(email=${email})}">← Volver al login</a>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

@@ -3,35 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restablecer contraseña</title>
+
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <script th:src="@{/js/theme.js}" defer></script>
+
 </head>
 <body>
-    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
-    <h2>Restablecer contraseña</h2>
-
-    <p>Estás restableciendo la contraseña de <strong th:text="${email}"></strong>. Ingresá el código que te llegó por correo y elegí una nueva contraseña.</p>
-
-    <p th:if="${error}" style="color: red;" th:text="${error}"></p>
-
-    <form th:action="@{/restablecer-contrasena}" method="post">
-        <div>
-            <label>Código:</label>
-            <input type="text" name="codigo" maxlength="6" required autofocus>
+    <header>
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
         </div>
-        <div>
-            <label>Nueva contraseña:</label>
-            <input type="password" name="nuevaContrasena" required>
+        <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
+    </header>
+
+    <main class="auth-main">
+        <div class="panel auth-card">
+            <p class="eyebrow">Recuperar acceso</p>
+            <h2 class="auth-titulo">Elegí tu nueva contraseña</h2>
+
+            <p class="auth-nota">
+                Ingresá el código de 6 dígitos que te llegó a <strong th:text="${email}"></strong>
+                y elegí una contraseña nueva.
+            </p>
+
+            <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+
+            <form th:action="@{/restablecer-contrasena}" method="post" class="auth-form">
+                <div>
+                    <label for="codigo">Código de verificación</label>
+                    <input id="codigo" class="input-codigo" type="text" name="codigo" inputmode="numeric"
+                           autocomplete="one-time-code" maxlength="6" required autofocus>
+                </div>
+                <div>
+                    <label for="nuevaContrasena">Nueva contraseña</label>
+                    <div class="campo-password">
+                        <input id="nuevaContrasena" type="password" name="nuevaContrasena" required>
+                        <button type="button" class="toggle-password" data-target="nuevaContrasena"
+                                aria-label="Mostrar contraseña">Mostrar</button>
+                    </div>
+                </div>
+                <div>
+                    <label for="confirmarContrasena">Confirmar contraseña</label>
+                    <div class="campo-password">
+                        <input id="confirmarContrasena" type="password" name="confirmarContrasena" required>
+                        <button type="button" class="toggle-password" data-target="confirmarContrasena"
+                                aria-label="Mostrar contraseña">Mostrar</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">Restablecer contraseña</button>
+            </form>
+
+            <div class="auth-links">
+                <a th:href="@{/olvide-contrasena}">← Pedir un código nuevo</a>
+            </div>
         </div>
-        <div>
-            <label>Confirmar contraseña:</label>
-            <input type="password" name="confirmarContrasena" required>
-        </div>
-        <button type="submit">Restablecer</button>
-    </form>
+    </main>
 </body>
 </html>
