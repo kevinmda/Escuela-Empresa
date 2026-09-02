@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -40,6 +41,9 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.EspecialidadRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.SupervisorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
+import com.EscuelaEmpresa.gestor_pasantes.dto.ResumenDocumentoTipoDTO;
+import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -54,6 +58,7 @@ public class AdminController {
     private final SupervisorRepository supervisorRepository;
     private final EmpresaRepository empresaRepository;
     private final DocumentoSubidoRepository documentoSubidoRepository;
+    private final LimitesDocumentoService limitesDocumentoService;
 
     public AdminController(UsuarioRepository usuarioRepository,
                             AdministradorRepository administradorRepository,
@@ -62,7 +67,8 @@ public class AdminController {
                             PlanillaSemanalRepository planillaSemanalRepository,
                             SupervisorRepository supervisorRepository,
                             EmpresaRepository empresaRepository,
-                            DocumentoSubidoRepository documentoSubidoRepository) {
+                            DocumentoSubidoRepository documentoSubidoRepository,
+                            LimitesDocumentoService limitesDocumentoService) {
         this.usuarioRepository = usuarioRepository;
         this.administradorRepository = administradorRepository;
         this.especialidadRepository = especialidadRepository;
@@ -71,6 +77,7 @@ public class AdminController {
         this.supervisorRepository = supervisorRepository;
         this.empresaRepository = empresaRepository;
         this.documentoSubidoRepository = documentoSubidoRepository;
+        this.limitesDocumentoService = limitesDocumentoService;
     }
 
     @GetMapping("/admin/alumnos")
@@ -251,6 +258,36 @@ public class AdminController {
                 .toList();
     }
 
+    // Resumen de entregas por tipo de documento (contador x/límite + fecha exacta de
+    // cada entrega), para el menú desplegable de la pantalla de Reportes
+    @GetMapping("/admin/api/alumnos/{idAl}/resumen-documentos")
+    @ResponseBody
+    public List<ResumenDocumentoTipoDTO> resumenDocumentosPorAlumno(@PathVariable Integer idAl,
+                                                                     Authentication authentication) {
+        verificarAccesoAlumno(idAl, authentication);
+
+        List<DocumentoSubido> documentos =
+                documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(idAl);
+
+        return Arrays.stream(TipoDocumento.values())
+                .map(tipo -> {
+                    List<DocumentoSubidoAdminDTO> documentosDeEsteTipo = documentos.stream()
+                            .filter(documento -> documento.getTipoDocumento() == tipo)
+                            .map(documento -> new DocumentoSubidoAdminDTO(
+                                    documento.getIdDs(),
+                                    documento.getNombreArchivo(),
+                                    documento.getFechaSubida(),
+                                    "/admin/alumnos/" + idAl + "/documentos/" + documento.getIdDs() + "/ver",
+                                    documento.getTipoDocumento(),
+                                    documento.getValidado()))
+                            .toList();
+
+                    int limite = limitesDocumentoService.obtenerLimitePorTipo(tipo);
+                    return new ResumenDocumentoTipoDTO(tipo, limite, documentosDeEsteTipo);
+                })
+                .toList();
+    }
+
     @GetMapping("/admin/alumnos/{idAl}/documentos/{idDs}/ver")
     public void verDocumentoSubido(@PathVariable Integer idAl,
                                    @PathVariable Integer idDs,
@@ -323,6 +360,42 @@ public class AdminController {
                     Files.copy(archivoFisico.toPath(), zos);
                     zos.closeEntry();
                 }
+            }
+        }
+    }
+
+    // --- Descarga en ZIP de los documentos de UN alumno puntual ---
+
+    @GetMapping("/admin/alumnos/{idAl}/documentos/zip")
+    public void descargarZipDeAlumno(@PathVariable Integer idAl,
+                                      Authentication authentication,
+                                      HttpServletResponse response) throws IOException {
+
+        Alumno alumno = verificarAccesoAlumno(idAl, authentication);
+
+        List<DocumentoSubido> documentos =
+                documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(idAl);
+
+        String nombreZip = "Documentos_" + sanitizar(alumno.getApellidos() + "_" + alumno.getNombres()) + ".zip";
+        response.setContentType("application/zip");
+        response.setHeader("Content-Disposition", "attachment; filename=" + nombreZip);
+
+        try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+            for (DocumentoSubido documento : documentos) {
+
+                File archivoFisico = new File(documento.getRutaArchivo());
+                if (!archivoFisico.exists()) {
+                    continue; // si el archivo ya no está en el disco, lo salteamos sin romper el ZIP entero
+                }
+
+                String nombreOriginal = documento.getNombreArchivo() != null
+                        ? new File(documento.getNombreArchivo()).getName()
+                        : ("documento_" + documento.getIdDs() + ".pdf");
+                nombreOriginal = sanitizarNombreArchivo(nombreOriginal, documento.getIdDs());
+
+                zos.putNextEntry(new ZipEntry(nombreOriginal));
+                Files.copy(archivoFisico.toPath(), zos);
+                zos.closeEntry();
             }
         }
     }
