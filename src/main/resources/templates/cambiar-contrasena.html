@@ -31,6 +31,7 @@
     </header>
     <main class="auth-main">
         <div class="panel auth-card">
+            <p class="eyebrow">Seguridad de la cuenta</p>
             <h2 class="auth-titulo">Cambiar Contraseña</h2>
 
             <p th:if="${param.error}" class="mensaje-error">
@@ -48,12 +49,20 @@
 
             <form th:action="@{cambiar-contrasena}" method="post" class="auth-form"> <!--th:action="@{/cambiarCon} es la manera de Thymeleaf de armar URLs de manera segura-->
                 <div>                                       <!--@{...} es sintaxis de URL expression, con esto Thymeleaf lo que hace es ajustar automaticamente la ruta completa-->
-                    <label>Contraseña actual:</label>
-                    <input type="password" name="actual" required>
+                    <label for="actual">Contraseña actual:</label>
+                    <div class="campo-password">
+                        <input id="actual" type="password" name="actual" required>
+                        <button type="button" class="toggle-password" data-target="actual"
+                                aria-label="Mostrar contraseña">Mostrar</button>
+                    </div>
                 </div>
                 <div>
-                    <label>Contraseña nueva:</label>
-                    <input type="password" name="nueva" required>
+                    <label for="nueva">Contraseña nueva:</label>
+                    <div class="campo-password">
+                        <input id="nueva" type="password" name="nueva" required>
+                        <button type="button" class="toggle-password" data-target="nueva"
+                                aria-label="Mostrar contraseña">Mostrar</button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-primary">Cambiar</button>
             </form>

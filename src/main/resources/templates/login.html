@@ -44,12 +44,16 @@
                     <input type="text" name="username" th:value="${email}" readonly>
                 </div>
                 <div>
-                    <label>Contraseña:</label>
-                    <input type="password" name="password" required autofocus>
+                    <label for="password">Contraseña:</label>
+                    <div class="campo-password">
+                        <input id="password" type="password" name="password" required autofocus>
+                        <button type="button" class="toggle-password" data-target="password"
+                                aria-label="Mostrar contraseña">Mostrar</button>
+                    </div>
                 </div>
                 <div class="auth-checkbox">
                     <label>
-                        <input type="checkbox" name="remember-me"> Recordarme mas tarde
+                        <input type="checkbox" name="remember-me"> Recordarme más tarde
                     </label>
                 </div>
                 <button type="submit" class="btn-primary">Ingresar</button>
