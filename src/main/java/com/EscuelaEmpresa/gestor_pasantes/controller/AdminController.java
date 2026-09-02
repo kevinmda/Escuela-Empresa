@@ -3,9 +3,6 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -22,9 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoCumplimientoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoFiltradoDTO;
-import com.EscuelaEmpresa.gestor_pasantes.dto.CumplimientoSemanaDTO;
 import com.EscuelaEmpresa.gestor_pasantes.dto.DocumentoSubidoAdminDTO;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
@@ -38,7 +33,6 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EmpresaRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EspecialidadRepository;
-import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.SupervisorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
@@ -54,7 +48,6 @@ public class AdminController {
     private final AdministradorRepository administradorRepository;
     private final EspecialidadRepository especialidadRepository;
     private final AlumnoRepository alumnoRepository;
-    private final PlanillaSemanalRepository planillaSemanalRepository;
     private final SupervisorRepository supervisorRepository;
     private final EmpresaRepository empresaRepository;
     private final DocumentoSubidoRepository documentoSubidoRepository;
@@ -64,7 +57,6 @@ public class AdminController {
                             AdministradorRepository administradorRepository,
                             EspecialidadRepository especialidadRepository,
                             AlumnoRepository alumnoRepository,
-                            PlanillaSemanalRepository planillaSemanalRepository,
                             SupervisorRepository supervisorRepository,
                             EmpresaRepository empresaRepository,
                             DocumentoSubidoRepository documentoSubidoRepository,
@@ -73,7 +65,6 @@ public class AdminController {
         this.administradorRepository = administradorRepository;
         this.especialidadRepository = especialidadRepository;
         this.alumnoRepository = alumnoRepository;
-        this.planillaSemanalRepository = planillaSemanalRepository;
         this.supervisorRepository = supervisorRepository;
         this.empresaRepository = empresaRepository;
         this.documentoSubidoRepository = documentoSubidoRepository;
@@ -157,33 +148,6 @@ public class AdminController {
                 .toList();
     }
 
-    @GetMapping("/admin/api/buscar-cumplimiento")
-    @ResponseBody
-    public CumplimientoSemanaDTO buscarCumplimiento(@RequestParam String texto,
-                                                     @RequestParam(defaultValue = "0") int offset,
-                                                     Authentication authentication) {
-        Administrador admin = obtenerAdminAutenticado(authentication);
-        List<Integer> idsEspPermitidos = obtenerIdsEspecialidadPermitidos(admin);
-
-        LocalDate lunesSemanaActual = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate semanaDesde = lunesSemanaActual.plusWeeks(offset);
-        LocalDate semanaHasta = semanaDesde.plusDays(5); // lunes a sábado
-
-        List<Alumno> alumnos = alumnoRepository.buscarPorNombreApellidoOCi(idsEspPermitidos, texto);
-
-        List<AlumnoCumplimientoDTO> resultado = alumnos.stream()
-                .map(alumno -> {
-                    boolean entrego = planillaSemanalRepository
-                            .existsByAlumno_IdAlAndFechaDesdeLessThanEqualAndFechaHastaGreaterThanEqual(
-                                    alumno.getIdAl(), semanaHasta, semanaDesde);
-                    return new AlumnoCumplimientoDTO(alumno.getIdAl(), alumno.getNombres(),
-                            alumno.getApellidos(), alumno.getCi(), entrego);
-                })
-                .toList();
-
-        return new CumplimientoSemanaDTO(semanaDesde, semanaHasta, resultado);
-    }
-
     // Devuelve los ids de especialidad dentro de los que este admin puede buscar/operar:
     // todas, si es administrativo; solo la propia, si es coordinador
     private List<Integer> obtenerIdsEspecialidadPermitidos(Administrador admin) {
@@ -205,39 +169,6 @@ public class AdminController {
         if (!obtenerIdsEspecialidadPermitidos(admin).contains(idEsp)) {
             throw new AccessDeniedException("No podés consultar otra especialidad");
         }
-    }
-
-    // --- Reporte de cumplimiento semanal ---
-
-    @GetMapping("/admin/api/cumplimiento")
-    @ResponseBody
-    public CumplimientoSemanaDTO cumplimiento(@RequestParam Integer idEsp,
-                                               @RequestParam String curso,
-                                               @RequestParam String seccion,
-                                               @RequestParam(defaultValue = "0") int offset,
-                                               Authentication authentication) {
-        verificarEspecialidadPermitida(idEsp, authentication);
-
-        // 1. Calcular el lunes y el sábado de la semana consultada (offset 0 = semana actual,
-        // -1 = semana anterior, +1 = semana siguiente, etc.)
-        LocalDate lunesSemanaActual = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate semanaDesde = lunesSemanaActual.plusWeeks(offset);
-        LocalDate semanaHasta = semanaDesde.plusDays(5); // lunes a sábado
-
-        // 2. Traer los alumnos del filtro y chequear, uno por uno, si entregaron esa semana
-        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEspAndCursoAndSeccion(idEsp, curso, seccion);
-
-        List<AlumnoCumplimientoDTO> resultado = alumnos.stream()
-                .map(alumno -> {
-                    boolean entrego = planillaSemanalRepository
-                            .existsByAlumno_IdAlAndFechaDesdeLessThanEqualAndFechaHastaGreaterThanEqual(
-                                    alumno.getIdAl(), semanaHasta, semanaDesde);
-                    return new AlumnoCumplimientoDTO(alumno.getIdAl(), alumno.getNombres(),
-                            alumno.getApellidos(), alumno.getCi(), entrego);
-                })
-                .toList();
-
-        return new CumplimientoSemanaDTO(semanaDesde, semanaHasta, resultado);
     }
 
     @GetMapping("/admin/api/alumnos/{idAl}/documentos")
