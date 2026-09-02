@@ -47,10 +47,10 @@
                 <label for="tipo-documento">Tipo de documento *</label>
                 <select id="tipo-documento" name="tipoDocumento" required>
                     <option value="">-- Seleccioná un tipo --</option>
-                    <option th:each="tipo : ${tiposDocumento}" 
-                            th:value="${tipo.name()}" 
+                    <option th:each="tipo : ${tiposDocumento}"
+                            th:value="${tipo.name()}"
                             th:text="${tipo.descripcion}"
-                            th:attr="data-limite=${__#{limite_${tipo.name()}}},data-subidos=${__#{subidos_${tipo.name()}}}"></option>
+                            th:attr="data-limite=${limites[tipo.name()]},data-subidos=${subidosPorTipo[tipo.name()]}"></option>
                 </select>
                 <div id="estado-limite" class="info-limite" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--ink-soft);"></div>
 

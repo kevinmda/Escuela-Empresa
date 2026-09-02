@@ -6,7 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -72,14 +74,18 @@ public class SubirController {
         
         // Pasar los tipos de documento disponibles al modelo
         model.addAttribute("tiposDocumento", TipoDocumento.values());
-        
-        // Pasar información de límites para cada tipo
+
+        // Pasar información de límites para cada tipo, como mapas indexados por
+        // el nombre del enum (tipo.name()), para poder leerlos en el template
+        // con ${limites[tipo.name()]} sin depender de nombres de atributo dinámicos
+        Map<String, Integer> limites = new HashMap<>();
+        Map<String, Long> subidosPorTipo = new HashMap<>();
         for (TipoDocumento tipo : TipoDocumento.values()) {
-            long subidos = limitesDocumentoService.contarDocumentosSubidos(alumno.getIdAl(), tipo);
-            int limite = limitesDocumentoService.obtenerLimitePorTipo(tipo);
-            model.addAttribute("limite_" + tipo.name(), limite);
-            model.addAttribute("subidos_" + tipo.name(), subidos);
+            subidosPorTipo.put(tipo.name(), limitesDocumentoService.contarDocumentosSubidos(alumno.getIdAl(), tipo));
+            limites.put(tipo.name(), limitesDocumentoService.obtenerLimitePorTipo(tipo));
         }
+        model.addAttribute("limites", limites);
+        model.addAttribute("subidosPorTipo", subidosPorTipo);
 
         return "alumno/subir";
     }
