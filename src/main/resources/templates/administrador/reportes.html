@@ -39,7 +39,8 @@
     </nav>
 
     <main id="main-content">
-        <h2>Reporte de Cumplimiento Semanal</h2>
+        <h2>Reporte de Entregas</h2>
+        <p class="subtitulo-pagina">Contador de entregas por alumno: Plantilla Semanal admite hasta 6 subidas, el resto de los documentos hasta 1.</p>
 
         <div id="busqueda-container" class="toolbar">
             <input type="text" id="input-busqueda" placeholder="Buscar por nombre, apellido o CI...">
@@ -89,8 +90,7 @@
                     <th>Nombres</th>
                     <th>Apellidos</th>
                     <th>CI</th>
-                    <th>Entregó esta semana</th>
-                    <th>Documentos</th>
+                    <th>Entregas</th>
                 </tr>
             </thead>
             <tbody id="tabla-cumplimiento-body"></tbody>
@@ -136,7 +136,7 @@
                 return;
             }
 
-            fetch(`/admin/api/cumplimiento?idEsp=${idEsp}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccion)}`)
+            fetch(`/admin/api/alumnos-filtrados?idEsp=${idEsp}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccion)}`)
                 .then(res => res.json())
                 .then(renderizarCumplimiento);
         }
@@ -145,13 +145,13 @@
             const texto = inputBusqueda.value.trim();
             if (!texto) return;
 
-            fetch(`/admin/api/buscar-cumplimiento?texto=${encodeURIComponent(texto)}`)
+            fetch(`/admin/api/buscar-alumnos?texto=${encodeURIComponent(texto)}`)
                 .then(res => res.json())
                 .then(renderizarCumplimiento);
         }
 
-        function renderizarCumplimiento(data) {
-            if (data.alumnos.length === 0) {
+        function renderizarCumplimiento(alumnos) {
+            if (alumnos.length === 0) {
                 tabla.style.display = 'none';
                 mensajeVacio.textContent = modoBusqueda
                     ? 'No se encontró ningún alumno con ese criterio.'
@@ -162,23 +162,18 @@
 
             mensajeVacio.style.display = 'none';
             tablaBody.innerHTML = '';
-            data.alumnos.forEach(a => {
+            alumnos.forEach(a => {
                 const fila = document.createElement('tr');
                 agregarCelda(fila, a.nombres);
                 agregarCelda(fila, a.apellidos);
                 agregarCelda(fila, a.ci);
 
-                const estado = document.createElement('span');
-                estado.className = `badge ${a.entrego ? 'badge-success' : 'badge-danger'}`;
-                estado.textContent = a.entrego ? 'Sí' : 'No';
-                agregarCelda(fila, estado);
-
                 const menu = document.createElement('details');
                 menu.className = 'documentos-menu';
                 const resumen = document.createElement('summary');
-                resumen.textContent = 'Ver documentos';
+                resumen.textContent = 'Ver entregas';
                 const lista = document.createElement('div');
-                lista.className = 'documentos-lista';
+                lista.className = 'documentos-lista documentos-lista-ancha';
                 const cargando = document.createElement('span');
                 cargando.className = 'documentos-cargando';
                 cargando.textContent = 'Cargando...';
@@ -186,7 +181,7 @@
                 menu.append(resumen, lista);
                 agregarCelda(fila, menu);
                 menu.addEventListener('toggle', () => {
-                    if (menu.open) cargarDocumentos(menu, a.idAl);
+                    if (menu.open) cargarResumenDocumentos(menu, a.idAl);
                 });
                 tablaBody.appendChild(fila);
             });
@@ -209,30 +204,72 @@
             mensajeVacio.style.display = 'none';
         }
 
-        function cargarDocumentos(menu, idAl) {
+        // Formatea una fecha ISO igual que subir.html: dd/MM/yyyy HH:mm
+        function formatearFecha(fechaIso) {
+            const fecha = new Date(fechaIso);
+            const dos = n => String(n).padStart(2, '0');
+            return `${dos(fecha.getDate())}/${dos(fecha.getMonth() + 1)}/${fecha.getFullYear()} `
+                 + `${dos(fecha.getHours())}:${dos(fecha.getMinutes())}`;
+        }
+
+        // Trae el contador (x/total) y la fecha exacta de entrega de cada tipo de
+        // documento para este alumno, y arma una mini tabla dentro del desplegable
+        function cargarResumenDocumentos(menu, idAl) {
             if (menu.dataset.cargado === 'true') return;
 
             const lista = menu.querySelector('.documentos-lista');
-            fetch(`/admin/api/alumnos/${idAl}/documentos`)
+            fetch(`/admin/api/alumnos/${idAl}/resumen-documentos`)
                 .then(res => {
-                    if (!res.ok) throw new Error('No se pudieron cargar los documentos.');
+                    if (!res.ok) throw new Error('No se pudieron cargar las entregas.');
                     return res.json();
                 })
-                .then(documentos => {
+                .then(tipos => {
                     lista.innerHTML = '';
-                    if (documentos.length === 0) {
-                        lista.textContent = 'No hay documentos subidos.';
-                        return;
-                    }
 
-                    documentos.forEach(documento => {
-                        const enlace = document.createElement('a');
-                        enlace.href = documento.url;
-                        enlace.target = '_blank';
-                        enlace.rel = 'noopener';
-                        enlace.textContent = documento.nombreArchivo || `Documento ${documento.idDs}`;
-                        lista.appendChild(enlace);
+                    const tablaResumen = document.createElement('table');
+                    tablaResumen.className = 'tabla-resumen-documentos';
+
+                    const thead = document.createElement('thead');
+                    thead.innerHTML = '<tr><th>Tipo</th><th>Entregas</th><th>Fecha exacta</th></tr>';
+                    tablaResumen.appendChild(thead);
+
+                    const tbody = document.createElement('tbody');
+                    tipos.forEach(tipo => {
+                        const fila = document.createElement('tr');
+
+                        const celdaTipo = document.createElement('td');
+                        celdaTipo.textContent = tipo.descripcion;
+                        fila.appendChild(celdaTipo);
+
+                        const celdaContador = document.createElement('td');
+                        const contador = document.createElement('span');
+                        contador.className = `badge ${tipo.subidos >= tipo.limite ? 'badge-success' : 'badge-danger'}`;
+                        contador.textContent = `${tipo.subidos}/${tipo.limite}`;
+                        celdaContador.appendChild(contador);
+                        fila.appendChild(celdaContador);
+
+                        const celdaFechas = document.createElement('td');
+                        if (tipo.documentos.length === 0) {
+                            celdaFechas.textContent = '—';
+                        } else {
+                            tipo.documentos.forEach(documento => {
+                                const enlace = document.createElement('a');
+                                enlace.href = documento.url;
+                                enlace.target = '_blank';
+                                enlace.rel = 'noopener';
+                                enlace.textContent = formatearFecha(documento.fechaSubida);
+                                enlace.title = documento.nombreArchivo || '';
+                                celdaFechas.appendChild(enlace);
+                                celdaFechas.appendChild(document.createElement('br'));
+                            });
+                        }
+                        fila.appendChild(celdaFechas);
+
+                        tbody.appendChild(fila);
                     });
+                    tablaResumen.appendChild(tbody);
+
+                    lista.appendChild(tablaResumen);
                     menu.dataset.cargado = 'true';
                 })
                 .catch(error => {

@@ -507,6 +507,33 @@ main h3 {
     animation: entrada 0.2s ease both;
 }
 
+/* Variante ancha del desplegable de documentos, para el menú de "Ver entregas"
+   de Reportes, que aloja una mini tabla en vez de una simple lista de enlaces */
+.documentos-lista-ancha {
+    min-width: 380px;
+    padding: 0.5rem;
+}
+
+.tabla-resumen-documentos {
+    box-shadow: none;
+    font-size: 0.8rem;
+}
+
+.tabla-resumen-documentos thead th {
+    font-size: 0.65rem;
+    padding: 0.5rem 0.65rem;
+}
+
+.tabla-resumen-documentos tbody td {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.78rem;
+}
+
+.tabla-resumen-documentos tbody td a {
+    color: var(--accent-ink);
+    display: inline-block;
+}
+
 .bienvenida {
     max-width: 640px;
     margin: 0 auto;
