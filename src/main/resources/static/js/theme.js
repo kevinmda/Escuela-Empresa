@@ -54,6 +54,26 @@
         });
     }
 
+    // Botón "Mostrar/Ocultar" para campos de contraseña. Se activa con
+    // data-target apuntando al id del <input>, ej:
+    // <div class="campo-password">
+    //   <input type="password" id="password" ...>
+    //   <button type="button" class="toggle-password" data-target="password">Mostrar</button>
+    // </div>
+    function inicializarTogglesPassword() {
+        document.querySelectorAll('.toggle-password').forEach(function (boton) {
+            boton.addEventListener('click', function () {
+                const campo = document.getElementById(boton.dataset.target);
+                if (!campo) return;
+
+                const seVaAMostrar = campo.type === 'password';
+                campo.type = seVaAMostrar ? 'text' : 'password';
+                boton.textContent = seVaAMostrar ? 'Ocultar' : 'Mostrar';
+                boton.setAttribute('aria-label', seVaAMostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            });
+        });
+    }
+
     function actualizarBoton() {
         const button = document.getElementById('theme-toggle');
         if (!button) return;
@@ -67,6 +87,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         actualizarIndicadorCarga();
         document.querySelectorAll('form').forEach(prepararValidacion);
+        inicializarTogglesPassword();
         actualizarBoton();
         const button = document.getElementById('theme-toggle');
         if (!button) return;
