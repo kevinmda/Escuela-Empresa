@@ -1552,6 +1552,83 @@ td input[type="email"] {
     }
 }
 
+/* ---------------- El cuadro de alumnos ---------------- */
+
+/* Acá es donde el color de la especialidad hace su trabajo. El lomo de la
+   izquierda tiñe todo el cuadro, así que en cualquier momento sabés de qué
+   especialidad son los alumnos que estás mirando sin releer el filtro.
+   No lleva las escuadras de esquina de .panel: el lomo ya es la marca, y
+   dos señales compitiendo se anulan. */
+.alumnos-panel {
+    position: relative;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--esp);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 2px 10px -4px rgba(var(--shadow-tint), 0.12);
+    overflow: hidden;
+    margin: 1.5rem 0;
+}
+
+.alumnos-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+}
+
+/* El nombre de la especialidad va sobre su propio color, nunca escrito en
+   su color: cuatro de los ocho son ilegibles como texto sobre la superficie
+   (el casi blanco directamente no se ve). Relleno + --esp-ink siempre pasa. */
+.esp-etiqueta {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--esp);
+    color: var(--esp-ink);
+    border: 1px solid var(--esp-edge);
+    border-radius: var(--radius-btn);
+    padding: 0.35rem 0.9rem;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.alumnos-meta {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+}
+
+.alumnos-panel-barra {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+    background-color: var(--esp-tenue);
+}
+
+/* Aparece cuando elegís sección: es un cambio de estado, no decoración. */
+@media (prefers-reduced-motion: no-preference) {
+    .alumnos-panel {
+        transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @starting-style {
+        .alumnos-panel {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+    }
+}
+
 /* ---------------- Responsive ---------------- */
 
 @media (max-width: 720px) {
