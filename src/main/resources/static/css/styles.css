@@ -1736,6 +1736,62 @@ td input[type="email"] {
     white-space: nowrap;
 }
 
+/* ---------------- Carga y estados vacíos ---------------- */
+
+/* Esqueleto con la forma de las filas reales, no un spinner: la página no
+   salta de alto cuando llegan los datos. El pulso es de opacidad y no un
+   degradado que barre, que en una tabla larga repinta sin parar. */
+.esqueleto-celda {
+    display: block;
+    height: 0.8rem;
+    border-radius: 4px;
+    background-color: var(--line);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .esqueleto-fila {
+        animation: esqueleto-pulso 1.4s ease-in-out infinite;
+    }
+
+    .esqueleto-fila:nth-child(2) { animation-delay: 0.12s; }
+    .esqueleto-fila:nth-child(3) { animation-delay: 0.24s; }
+    .esqueleto-fila:nth-child(4) { animation-delay: 0.36s; }
+    .esqueleto-fila:nth-child(5) { animation-delay: 0.48s; }
+}
+
+@keyframes esqueleto-pulso {
+    50% { opacity: 0.45; }
+}
+
+/* Los tres estados sin datos dicen cosas distintas y por eso no comparten
+   texto: "todavía no filtraste", "filtraste y no hay nadie", "se cayó la
+   consulta". Un solo mensaje genérico para los tres deja al usuario sin
+   saber si tiene que hacer algo o esperar. */
+.estado-vacio {
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+.estado-vacio-titulo {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 0.4rem;
+}
+
+.estado-vacio-nota {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin: 0 auto;
+    max-width: 42ch;
+    line-height: 1.5;
+}
+
+.estado-vacio--error .estado-vacio-titulo {
+    color: var(--danger);
+}
+
 /* ---------------- Responsive ---------------- */
 
 @media (max-width: 720px) {
