@@ -46,10 +46,17 @@ public class CambiarContrasenaController {
             return "redirect:/cambiar-contrasena?errorMismaContrasena";
         }
 
+        boolean veniaForzado = Boolean.TRUE.equals(usuario.getContrasenaPorDefecto());
+
         usuario.setContrasena(passwordEncoder.encode(nueva));
         usuario.setContrasenaPorDefecto(false); // ya cambio la contraseña por una propia, no mostramos mas el aviso
         usuarioRepository.save(usuario);
 
+        // Si el cambio era obligatorio (venía de la contraseña por defecto), lo
+        // llevamos directo a su inicio en vez de dejarlo en esta pantalla.
+        if (veniaForzado) {
+            return "redirect:/home";
+        }
         return "redirect:/cambiar-contrasena?exito";
     }
 }
