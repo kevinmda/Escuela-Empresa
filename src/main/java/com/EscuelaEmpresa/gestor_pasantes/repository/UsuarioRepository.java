@@ -2,6 +2,12 @@ package com.EscuelaEmpresa.gestor_pasantes.repository;
 
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 //se tiene que crear una interfaz (en este caso "UsuarioRepository") que extiende de JpaRepository<T, ID>
@@ -13,4 +19,23 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> { //J
 
     // para cuando el alumno hace click en el link del correo
     Optional<Usuario> findByTokenActivacion(String tokenActivacion);
+
+    // --- Contador de intentos de login, actualizado de forma atómica ---
+    // Antes se hacía leer-modificar-guardar en Java, y dos intentos fallidos
+    // simultáneos sobre la misma cuenta perdían un incremento (más intentos de los
+    // permitidos antes del bloqueo). Estas dos sentencias lo hacen en la base.
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE Usuario u SET u.intentosLogin = u.intentosLogin + 1 "
+            + "WHERE u.email = :email AND u.activo = true")
+    void incrementarIntentosLogin(@Param("email") String email);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE Usuario u SET u.bloqueadoHasta = :hasta, u.intentosLogin = 0 "
+            + "WHERE u.email = :email AND u.intentosLogin >= :umbral")
+    void bloquearSiSuperaIntentos(@Param("email") String email,
+                                  @Param("hasta") LocalDateTime hasta,
+                                  @Param("umbral") int umbral);
 }
