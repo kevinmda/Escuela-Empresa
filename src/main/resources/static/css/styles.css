@@ -1484,10 +1484,10 @@ td input[type="email"] {
 
 [data-esp="1"] { --esp: #7B1E3B; --esp-ink: #ffffff; } /* Informática, bordo profundo */
 [data-esp="2"] { --esp: #A7ADB5; --esp-ink: #101418; } /* Electrónica, plata */
-[data-esp="3"] { --esp: #355E3B; --esp-ink: #ffffff; } /* Mecánica, verde cazador */
 [data-esp="4"] { --esp: #E5DCC8; --esp-ink: #101418; } /* Construcciones Civiles, beige cálido */
 [data-esp="5"] { --esp: #38BDF8; --esp-ink: #101418; } /* Electricidad, celeste luminoso */
 [data-esp="6"] { --esp: #2563EB; --esp-ink: #ffffff; } /* Electromecánica, azul técnico */
+[data-esp="7"] { --esp: #355E3B; --esp-ink: #ffffff; } /* Mecánica General (la Industrial), verde cazador */
 [data-esp="8"] { --esp: #123B66; --esp-ink: #ffffff; } /* Mecánica Automotriz, azul profundo */
 [data-esp="9"] { --esp: #F9FAFB; --esp-ink: #101418; } /* Química Industrial, casi blanco */
 
@@ -1497,7 +1497,7 @@ td input[type="email"] {
    siendo bordo, sigue siendo verde cazador. El texto blanco aguanta en los
    tres. Electromecánica no entra acá: su azul ya separa bien del fondo. */
 :root[data-theme="dark"] [data-esp="1"] { --esp: #B8455F; }
-:root[data-theme="dark"] [data-esp="3"] { --esp: #4A8052; }
+:root[data-theme="dark"] [data-esp="7"] { --esp: #4A8052; }
 :root[data-theme="dark"] [data-esp="8"] { --esp: #2F6FB0; }
 
 /* ---------------- Cabecera de la página de alumnos ---------------- */
@@ -1587,8 +1587,8 @@ td input[type="email"] {
    relleno la haría pasar por una especialidad con color asignado y encima
    colisionaría con otra distinta en cada modo. Hueco se lee como lo que
    es: todavía sin asignar. */
-.esp-chip:not([data-esp="1"], [data-esp="2"], [data-esp="3"], [data-esp="4"],
-              [data-esp="5"], [data-esp="6"], [data-esp="8"], [data-esp="9"])::before {
+.esp-chip:not([data-esp="1"], [data-esp="2"], [data-esp="4"], [data-esp="5"],
+              [data-esp="6"], [data-esp="7"], [data-esp="8"], [data-esp="9"])::before {
     background-color: transparent;
     border-style: dashed;
     border-color: var(--ink-soft);
