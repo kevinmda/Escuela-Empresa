@@ -1,7 +1,5 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
-import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
-import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -10,16 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Optional;
-
 @Controller //le dice a Spring que esta clase maneja peticiones HTTP y devuelve vistas (HTML) para renderizar
 public class LoginController {
-
-    private final UsuarioRepository usuarioRepository;
-
-    public LoginController(UsuarioRepository usuarioRepository) {
-        this.usuarioRepository = usuarioRepository;
-    }
 
     // "email" es opcional: sin el, mostramos el primer paso (pedir el email).
     // con el (viene de un redirect de LoginFailureHandler, por ejemplo tras un error),
@@ -61,19 +51,15 @@ public class LoginController {
         return resolverVistaLogin(email, model);
     }
 
-    // cuenta activa (o no existe) -> login normal (con Recordarme y olvide-contrasena)
-    // cuenta inactiva -> login-primera-vez (sin esas opciones, con explicacion)
-    // no distinguimos "no existe" de "esta activo" para no revelar si un email esta registrado
+    // Siempre la misma pantalla, exista o no la cuenta y este activa o no. Antes
+    // se devolvia "login-primera-vez" solo para cuentas inactivas, lo que permitia
+    // enumerar desde afuera cuales cuentas nunca ingresaron (justo las que siguen
+    // con la contraseña compartida). La explicacion de "primer ingreso" ahora
+    // aparece recien en /verificar-codigo, despues de un intento con la contraseña
+    // correcta, cuando ya no revela nada que el atacante no supiera.
     private String resolverVistaLogin(String email, Model model) {
         model.addAttribute("email", email);
-
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-
-        if (usuarioOpt.isEmpty() || Boolean.TRUE.equals(usuarioOpt.get().getActivo())) {
-            return "login";
-        }
-
-        return "login-primera-vez";
+        return "login";
     }
 }
 //HTTP tiene varios verbos (o metodos) que indican la intencion de la peticion:
