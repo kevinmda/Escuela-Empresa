@@ -541,8 +541,12 @@ main h3 {
 
 /* ---------------- Utilidades ---------------- */
 
+/* !important a propósito: es una utilidad de ocultar, y compite con reglas
+   que definen display más abajo en el archivo con la misma especificidad
+   (por ejemplo .tabla-alumnos pasa a display:block dentro del media query
+   de móvil). Sin esto, la tabla oculta reaparece al achicar la ventana. */
 .oculto {
-    display: none;
+    display: none !important;
 }
 
 .toolbar {
