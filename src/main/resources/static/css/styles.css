@@ -419,6 +419,14 @@ main {
     }
 }
 
+/* Fundido de solo opacidad. Reemplaza a "entrada" y a los efectos con movimiento
+   bajo prefers-reduced-motion: se conserva lo que ayuda a entender que algo
+   apareció, se quita el desplazamiento. */
+@keyframes aparecer {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 main > * {
     animation: entrada 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -432,10 +440,12 @@ main > *:nth-child(6) { animation-delay: 0.15s; }
 main > *:nth-child(n+7) { animation-delay: 0.15s; }
 
 @media (prefers-reduced-motion: reduce) {
+    /* Se mantiene el fundido de opacidad (ayuda a entender que algo apareció),
+       se quita el desplazamiento. "aparecer" está definido más abajo. */
     main > *,
     .documentos-lista,
     .documentos-cargando {
-        animation: none;
+        animation: aparecer 0.2s ease both;
     }
 
     /* La barra de carga es la única animación infinita del proyecto, o sea el caso
@@ -711,6 +721,13 @@ main h3 {
     min-height: 100dvh;
     background-color: var(--bg);
     overflow: hidden;
+    /* Tope al ancho: en pantallas muy anchas el formulario (44% + margin-left:auto)
+       flotaba lejos del centro óptico de su mitad y la tarjeta quedaba perdida en
+       un vacío grande. Contenida y centrada, la composición se mantiene. Hasta
+       1760px no cambia nada (cubre casi todos los portátiles y 1920@125%). Por
+       encima quedan franjas finas de --bg a los lados. */
+    max-width: 1760px;
+    margin-inline: auto;
 }
 
 /* La ilustración vive en una capa propia sobre el MISMO --bg que el formulario:
@@ -877,16 +894,27 @@ main h3 {
 
 /* Respuesta física al presionar (Apple §1): el botón cede bajo el dedo. Se dispara
    en pointer-down (:active), instantáneo, y usa scale en vez del translateY global
-   porque en un botón grande "hundirse" se lee mejor que "bajar 1px". */
-.auth-panel .auth-form button[type="submit"]:active {
+   porque en un botón grande "hundirse" se lee mejor que "bajar 1px".
+   Sin el prefijo .auth-panel: así también alcanza a cambiar-contrasena, que va en
+   .auth-main y si no caía en el :active global que lo deja sin feedback. */
+.auth-form button[type="submit"]:active {
     transform: scale(0.985);
     transition-duration: 0.08s;
 }
 
-.auth-panel .input-codigo {
-    font-size: 1.7rem;
-    padding-top: 0.85rem;
-    padding-bottom: 0.85rem;
+@media (prefers-reduced-motion: reduce) {
+    .auth-form button[type="submit"]:active {
+        transform: scale(0.994);
+    }
+}
+
+/* Selector con .auth-form: sin él, .auth-panel .auth-form input (más elementos)
+   le gana y el input de código heredaba tamaño chico y padding simétrico, con lo
+   que el letter-spacing final (0.5em) empujaba los 6 dígitos a la derecha. Acá se
+   fija el tamaño y se compensa: padding derecho = izquierdo menos medio hueco. */
+.auth-panel .auth-form .input-codigo {
+    font-size: 1.5rem;
+    padding: 0.9rem calc(1.1rem - 0.5em) 0.9rem 1.1rem;
 }
 
 .auth-form {
@@ -994,13 +1022,15 @@ main h3 {
     100% { transform: translateX(0); }
 }
 
+/* 0.36s: el fundido son ~144ms (0-40%) y el temblor ~216ms (40-100%). A 0.5s el
+   temblor se hacía largo y pasaba el presupuesto de UI. */
 .auth-card .mensaje-error {
-    animation: auth-error-entrada 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: auth-error-entrada 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
     .auth-card .mensaje-error {
-        animation: none;
+        animation: aparecer 0.2s ease both;
     }
 }
 
@@ -1090,10 +1120,15 @@ textarea:focus,
 select:focus {
     /* --focus y no --accent: el dorado sobre blanco da 2.44:1 y el mínimo para
        un indicador de foco es 3:1. Con --focus son 15.6:1 en claro y 8.1:1 en
-       oscuro. El halo dorado queda como refuerzo de marca, no como el indicador.
-       Importa sobre todo para el foco con mouse o touch, donde :focus-visible
-       no dispara y este borde es lo único que marca el campo activo. */
+       oscuro. El borde marca el campo activo en cualquier tipo de foco. */
     border-color: var(--focus);
+}
+
+/* El halo dorado solo para foco con mouse o touch. Con teclado ya está el outline
+   de :focus-visible (navy, a +3px): sumarle el halo daban tres anillos concéntricos. */
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
     box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
@@ -1129,7 +1164,10 @@ button,
     border: 1px solid transparent;
     text-decoration: none;
     display: inline-block;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+    /* opacity en la transición: el paso a [disabled] ("Enviando...") ya no pega
+       el salto de opacidad, se funde en 120ms sin retrasar la señal de ocupado. */
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+                transform 0.1s ease, opacity 0.12s ease;
     white-space: nowrap;
 }
 
@@ -1143,10 +1181,16 @@ button:active,
 .icono-guardar::before { content: "\1F4BE  "; }
 .icono-eliminar::before { content: "\1F5D1  "; }
 
-button[type="submit"]:hover,
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px -4px rgba(var(--shadow-tint), 0.35);
+/* El único :hover con MOVIMIENTO del proyecto. En táctil, tocar el botón dispara
+   :hover y lo dejaría levantado y con sombra hasta la próxima interacción; el gate
+   lo limita a punteros reales. El cambio de color de fondo (más abajo) queda sin
+   gate porque es color, no movimiento. */
+@media (hover: hover) and (pointer: fine) {
+    button[type="submit"]:hover,
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px -4px rgba(var(--shadow-tint), 0.35);
+    }
 }
 
 button[type="submit"]:active,
@@ -1289,9 +1333,10 @@ td input[type="email"] {
 
 /* Momento de éxito de primera vez (activación de cuenta, contraseña restablecida):
    pasa una sola vez por cuenta, es el único punto del flujo que merece un acento.
-   El banner aterriza un instante después de la tarjeta con un fundido y un 4% de
-   escala. Presupuesto "delight" (tier raro): 300ms permitido. NO se aplica al
-   mensaje de logout, que es corriente. */
+   El banner aterriza un instante después de la tarjeta con un fundido y un
+   deslizamiento corto. translateY y no scale: scale también encoge el texto del
+   banner y deja un tembleque de tamaño de fuente al asentar. Presupuesto "delight"
+   (tier raro): 300ms permitido. NO se aplica al mensaje de logout, que es corriente. */
 .mensaje-exito--hito {
     transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                 transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1301,7 +1346,7 @@ td input[type="email"] {
 @starting-style {
     .mensaje-exito--hito {
         opacity: 0;
-        transform: scale(0.96);
+        transform: translateY(8px);
     }
 }
 
