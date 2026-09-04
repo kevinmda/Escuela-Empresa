@@ -35,6 +35,10 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
     private static final int MAX_INTENTOS_LOGIN = 5;
     private static final int MINUTOS_BLOQUEO = 15;
 
+    // clave de sesion donde se guarda el email de la cuenta que se esta activando,
+    // para que /verificar-codigo no lo tome de un parametro manipulable
+    public static final String ATRIBUTO_SESION_EMAIL_ACTIVACION = "email_activacion";
+
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
@@ -99,31 +103,24 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
             return;
         }
 
-        response.sendRedirect("/verificar-codigo?email=" + codificar(email));
+        // El email va a la sesion del servidor, no como parametro de la URL: asi la
+        // pantalla de verificacion no puede ser apuntada a la cuenta de otro (mismo
+        // criterio que el flujo de recuperacion de contraseña).
+        request.getSession().setAttribute(ATRIBUTO_SESION_EMAIL_ACTIVACION, email);
+        response.sendRedirect("/verificar-codigo");
     }
 
     private void registrarIntentoFallido(String email) {
         if (email == null) return;
 
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
-        if (usuarioOpt.isEmpty()) return;
-
-        Usuario usuario = usuarioOpt.get();
-
-        // solo aplica el conteo a cuentas activas (las inactivas se manejan aparte, arriba)
-        if (!Boolean.TRUE.equals(usuario.getActivo())) return;
-
-        int intentos = usuario.getIntentosLogin() == null ? 0 : usuario.getIntentosLogin();
-        intentos++;
-
-        if (intentos >= MAX_INTENTOS_LOGIN) {
-            usuario.setBloqueadoHasta(LocalDateTime.now().plusMinutes(MINUTOS_BLOQUEO));
-            usuario.setIntentosLogin(0); // reinicia el contador para el proximo ciclo
-        } else {
-            usuario.setIntentosLogin(intentos);
-        }
-
-        usuarioRepository.save(usuario);
+        // dos sentencias atómicas: sube el contador (solo si la cuenta está activa)
+        // y, si con eso llegó al máximo, la bloquea y reinicia el contador. Sin
+        // leer-modificar-guardar, así intentos simultáneos no pierden incrementos.
+        usuarioRepository.incrementarIntentosLogin(email);
+        usuarioRepository.bloquearSiSuperaIntentos(
+                email,
+                LocalDateTime.now().plusMinutes(MINUTOS_BLOQUEO),
+                MAX_INTENTOS_LOGIN);
     }
 
     private String urlLogin(String parametro, String email) {
