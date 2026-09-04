@@ -1689,6 +1689,53 @@ td input[type="email"] {
     }
 }
 
+/* ---------------- Tabla de alumnos ---------------- */
+
+/* El scroll vive acá adentro y no en la página, así la cabecera se puede
+   fijar contra este contenedor en vez de contra el viewport. Fijarla contra
+   el viewport obligaría a un tercer número mágico apilado sobre el header
+   (96px) y el nav, y ese número se rompe solo. Con pocas filas no aparece
+   ninguna barra: max-height no fuerza alto, solo lo limita. */
+.tabla-scroll {
+    max-height: 65vh;
+    overflow: auto;
+}
+
+/* Va dentro del cuadro, que ya pone borde, radio y sombra. */
+.tabla-alumnos {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+}
+
+.tabla-alumnos thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--esp);
+    color: var(--esp-ink);
+    border-bottom: 1px solid var(--esp-edge);
+}
+
+.tabla-alumnos tbody tr:hover {
+    background-color: var(--esp-tenue);
+}
+
+/* Nombre y apellido son lo que se busca a simple vista, el resto es dato
+   de apoyo. Mono para CI y email, que se leen carácter por carácter. */
+.tabla-alumnos td.celda-nombre {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.tabla-alumnos td.celda-acciones {
+    text-align: right;
+    white-space: nowrap;
+}
+
 /* ---------------- Responsive ---------------- */
 
 @media (max-width: 720px) {
