@@ -25,6 +25,11 @@
         <div class="panel auth-card">
             <h2 class="auth-titulo">Cambiar contraseña</h2>
 
+            <p th:if="${param.forzar}" class="auth-nota">
+                Estás usando la contraseña que te asignaron. Elegí una propia para
+                poder seguir usando el sistema.
+            </p>
+
             <p th:if="${param.error}" class="mensaje-error" role="alert">
                 La contraseña actual es incorrecta.
             </p>
