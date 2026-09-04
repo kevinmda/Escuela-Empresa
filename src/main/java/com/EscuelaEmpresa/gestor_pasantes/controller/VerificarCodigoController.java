@@ -1,8 +1,10 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
+import com.EscuelaEmpresa.gestor_pasantes.config.LoginFailureHandler;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -17,6 +19,9 @@ import java.util.Optional;
 @Controller
 public class VerificarCodigoController {
 
+    private static final int MAX_INTENTOS_CODIGO = 5;
+    private static final String ATRIBUTO_SESION_EMAIL = LoginFailureHandler.ATRIBUTO_SESION_EMAIL_ACTIVACION;
+
     private final UsuarioRepository usuarioRepository;
 
     public VerificarCodigoController(UsuarioRepository usuarioRepository) {
@@ -24,7 +29,7 @@ public class VerificarCodigoController {
     }
 
     @GetMapping("/verificar-codigo")
-    public String mostrarFormulario(@RequestParam String email, Model model) {
+    public String mostrarFormulario(HttpSession session, Model model) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -36,16 +41,27 @@ public class VerificarCodigoController {
             return "redirect:/home";
         }
 
+        String email = (String) session.getAttribute(ATRIBUTO_SESION_EMAIL);
+
+        // sin un pedido de activacion pendiente en esta sesion, no hay nada que verificar
+        if (email == null) {
+            return "redirect:/login";
+        }
+
         model.addAttribute("email", email);
         return "verificar-codigo";
     }
 
-    private static final int MAX_INTENTOS_CODIGO = 5;
-
     @PostMapping("/verificar-codigo")
-    public String verificarCodigo(@RequestParam String email,
-                                   @RequestParam String codigo,
+    public String verificarCodigo(@RequestParam String codigo,
+                                   HttpSession session,
                                    Model model) {
+
+        String email = (String) session.getAttribute(ATRIBUTO_SESION_EMAIL);
+
+        if (email == null) {
+            return "redirect:/login";
+        }
 
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
 
@@ -83,6 +99,8 @@ public class VerificarCodigoController {
         usuario.setTokenExpiracion(null);
         usuario.setIntentosCodigo(0);
         usuarioRepository.save(usuario);
+
+        session.removeAttribute(ATRIBUTO_SESION_EMAIL); // ya cumplio su proposito
 
         return "redirect:/login?activado";
     }

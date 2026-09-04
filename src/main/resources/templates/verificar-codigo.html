@@ -20,7 +20,6 @@
                 <p th:if="${error}" class="mensaje-error" role="alert" th:text="${error}"></p>
 
                 <form th:action="@{/verificar-codigo}" method="post" class="auth-form">
-                    <input type="hidden" name="email" th:value="${email}">
                     <div>
                         <label for="codigo">Código de verificación</label>
                         <input id="codigo" class="input-codigo" type="text" name="codigo" inputmode="numeric"
