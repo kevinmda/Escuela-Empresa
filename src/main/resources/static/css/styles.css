@@ -1581,6 +1581,19 @@ td input[type="email"] {
     flex-shrink: 0;
 }
 
+/* Especialidad sin color propio: punto hueco y punteado. El fallback usa
+   --ink, que en claro es azul marino (igual que Mecánica Automotriz) y en
+   oscuro es casi blanco (igual que Química Industrial), así que un punto
+   relleno la haría pasar por una especialidad con color asignado y encima
+   colisionaría con otra distinta en cada modo. Hueco se lee como lo que
+   es: todavía sin asignar. */
+.esp-chip:not([data-esp="1"], [data-esp="2"], [data-esp="3"], [data-esp="4"],
+              [data-esp="5"], [data-esp="6"], [data-esp="8"], [data-esp="9"])::before {
+    background-color: transparent;
+    border-style: dashed;
+    border-color: var(--ink-soft);
+}
+
 @media (hover: hover) and (pointer: fine) {
     .esp-chip:hover {
         border-color: var(--esp-edge);
