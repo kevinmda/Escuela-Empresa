@@ -1,70 +1,77 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cambiar Contraseña</title>
-
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <script th:src="@{/js/theme.js}" defer></script>
-
-</head>
+<head th:replace="~{fragments/auth :: head('Cambiar contraseña')}"></head>
 <body>
+    <!-- Esta pantalla conserva el header con su nav: el usuario ya está autenticado y
+         necesita poder volver o cerrar sesión. Por eso usa tarjeta centrada en vez del
+         split de las pantallas de acceso, con los mismos tokens y componentes. -->
     <header>
         <div class="h-titulo">
-            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
+            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="">
             <h1>Colegio Técnico Nacional de Asunción</h1>
         </div>
         <div class="h-links">
             <a th:href="@{/home}">Inicio</a>
             <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
             <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
-            <form th:action="@{/logout}" method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro que quieres cerrar sesión?');">
+            <form th:action="@{/logout}" method="post" style="display: inline;"
+                  onsubmit="return confirm('¿Estás seguro que quieres cerrar sesión?');">
                 <button type="submit" class="h-links-logout">Cerrar sesión</button>
             </form>
         </div>
     </header>
+
     <main class="auth-main">
         <div class="panel auth-card">
-            <p class="eyebrow">Seguridad de la cuenta</p>
-            <h2 class="auth-titulo">Cambiar Contraseña</h2>
+            <h2 class="auth-titulo">Cambiar contraseña</h2>
 
-            <p th:if="${param.error}" class="mensaje-error">
-                La Contraseña Actual es Incorrecta
+            <p th:if="${param.error}" class="mensaje-error" role="alert">
+                La contraseña actual es incorrecta.
             </p>
-            <p th:if="${param.errorContrasena}" class="mensaje-error">
-                La nueva contraseña debe tener al menos 6 caracteres.
+            <p th:if="${param.errorContrasena}" class="mensaje-error" role="alert">
+                La contraseña nueva debe tener al menos 6 caracteres.
             </p>
-            <p th:if="${param.errorMismaContrasena}" class="mensaje-error">
-                La nueva contraseña no puede ser igual a la actual.
+            <p th:if="${param.errorMismaContrasena}" class="mensaje-error" role="alert">
+                La contraseña nueva no puede ser igual a la actual.
             </p>
             <p th:if="${param.exito}" class="mensaje-exito">
-                Contraseña Actualizada correctamente
+                Contraseña actualizada correctamente.
             </p>
 
-            <form th:action="@{cambiar-contrasena}" method="post" class="auth-form"> <!--th:action="@{/cambiarCon} es la manera de Thymeleaf de armar URLs de manera segura-->
-                <div>                                       <!--@{...} es sintaxis de URL expression, con esto Thymeleaf lo que hace es ajustar automaticamente la ruta completa-->
-                    <label for="actual">Contraseña actual:</label>
+            <form th:action="@{/cambiar-contrasena}" method="post" class="auth-form">
+                <div>
+                    <label for="actual">Contraseña actual</label>
                     <div class="campo-password">
-                        <input id="actual" type="password" name="actual" required>
+                        <input id="actual" type="password" name="actual"
+                               autocomplete="current-password" required autofocus>
                         <button type="button" class="toggle-password" data-target="actual"
-                                aria-label="Mostrar contraseña">Mostrar</button>
+                                aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
                     </div>
                 </div>
                 <div>
-                    <label for="nueva">Contraseña nueva:</label>
+                    <label for="nueva">Contraseña nueva</label>
                     <div class="campo-password">
-                        <input id="nueva" type="password" name="nueva" required>
+                        <input id="nueva" type="password" name="nueva"
+                               autocomplete="new-password" minlength="6" required>
                         <button type="button" class="toggle-password" data-target="nueva"
-                                aria-label="Mostrar contraseña">Mostrar</button>
+                                aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+                    </div>
+                    <span class="campo-ayuda">Al menos 6 caracteres.</span>
+                </div>
+                <div>
+                    <label for="confirmarNueva">Confirmar contraseña nueva</label>
+                    <div class="campo-password">
+                        <!-- data-confirma lo lee theme.js para comparar contra el campo
+                             indicado. El controlador no recibe este campo: la validación
+                             es solo de conveniencia en el navegador. -->
+                        <input id="confirmarNueva" type="password" name="confirmarNueva"
+                               autocomplete="new-password" minlength="6" required
+                               data-confirma="nueva">
+                        <button type="button" class="toggle-password" data-target="confirmarNueva"
+                                aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
                     </div>
                 </div>
-                <button type="submit" class="btn-primary">Cambiar</button>
+                <button type="submit" class="btn-primary">Guardar contraseña</button>
             </form>
         </div>
     </main>

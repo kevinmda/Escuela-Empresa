@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+    Fragmentos compartidos por las 7 pantallas del flujo de acceso.
+
+    Antes cada plantilla repetía su propio <head> y su propio <header>, así que la
+    consistencia entre ellas dependía de copiar y pegar bien: bastaba tocar una sola
+    para que se desalineara del resto. Acá viven una única vez.
+
+    Uso desde una plantilla:
+        <html lang="es" xmlns:th="http://www.thymeleaf.org">
+        <head th:replace="~{fragments/auth :: head('Iniciar sesión')}"></head>
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo}">Acceso</title>
+    <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+    <!-- La ilustración es el elemento LCP en escritorio, pero se aplica como
+         background en CSS y los backgrounds no reciben prioridad de carga: el
+         preload se la devuelve.
+         El media es imprescindible, no un detalle: sin él el preload descarga la
+         imagen SIEMPRE, incluso en móvil, donde no se muestra. El breakpoint
+         acompaña al de .auth-split en styles.css. -->
+    <link rel="preload" as="image" media="(min-width: 900px)"
+          th:href="@{/img/auth-ilustracion.webp}">
+
+    <script th:src="@{/js/theme.js}" defer></script>
+</head>
+
+<body>
+
+<!-- Logo del colegio, centrado arriba de la tarjeta (como en la referencia).
+     La ilustración de fondo la pone .auth-split en CSS; no hay panel de marca. -->
+<img th:fragment="logoTarjeta" class="auth-card-logo" th:src="@{/img/ctnLogoDef.png}"
+     alt="Colegio Técnico Nacional de Asunción">
+
+</body>
+</html>

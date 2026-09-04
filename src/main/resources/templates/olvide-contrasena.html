@@ -1,48 +1,33 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recuperar contraseña</title>
-
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <script th:src="@{/js/theme.js}" defer></script>
-
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/auth :: head('Recuperar contraseña')}"></head>
 <body>
-    <header>
-        <div class="h-titulo">
-            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
-            <h1>Colegio Técnico Nacional de Asunción</h1>
-        </div>
-        <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
-    </header>
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
 
-    <main class="auth-main">
-        <div class="panel auth-card">
-            <p class="eyebrow">Recuperar acceso</p>
-            <h2 class="auth-titulo">¿Olvidaste tu contraseña?</h2>
+    <div class="auth-split">
 
-            <p class="auth-nota">
-                Te vamos a mandar un código de 6 dígitos a <strong th:text="${email}"></strong>
-                para que puedas elegir una contraseña nueva. El código vale por 5 minutos.
-            </p>
+        <main class="auth-panel">
+            <div class="auth-card">
+                <img th:replace="~{fragments/auth :: logoTarjeta}">
 
-            <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+                <h1 class="auth-titulo">Recuperá tu contraseña</h1>
 
-            <form th:action="@{/olvide-contrasena}" method="post" class="auth-form">
-                <button type="submit" class="btn-primary">Enviar código</button>
-            </form>
+                <p class="auth-nota">
+                    Te vamos a mandar un código de 6 dígitos a <strong th:text="${email}"></strong>
+                    para que puedas elegir una contraseña nueva. El código vale por 5 minutos.
+                </p>
 
-            <div class="auth-links">
-                <a th:href="@{/login(email=${email})}">← Volver al login</a>
+                <p th:if="${error}" class="mensaje-error" role="alert" th:text="${error}"></p>
+
+                <form th:action="@{/olvide-contrasena}" method="post" class="auth-form">
+                    <button type="submit" class="btn-primary">Enviar código</button>
+                </form>
+
+                <div class="auth-links">
+                    <a th:href="@{/login(email=${email})}">← Volver al login</a>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 </body>
 </html>

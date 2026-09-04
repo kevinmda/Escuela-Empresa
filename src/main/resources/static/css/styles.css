@@ -3,41 +3,68 @@
    @import, lo cual obligaba al navegador a esperar este CSS completo antes de
    siquiera empezar a pedir las fuentes, sumando delay real en cada navegación. */
 
+/* La paleta sale de los tres colores del logo del colegio (img/ctnLogoDef.png):
+   el navy del rayo, el dorado del engranaje y el rojo del círculo. Cada uno cae
+   sobre un rol que ya existía, así que es una sustitución 1:1 y el resto de la app
+   la hereda sin tocar sus plantillas:
+     navy   -> --ink      (texto y acción primaria)
+     dorado -> --accent   (realces y detalles)
+     rojo   -> --danger   (SOLO errores: si el rojo decora, el error pierde su señal) */
 :root {
-    --bg: #f6f5f2;
+    --bg: #f4f2ec;
     --surface: #ffffff;
-    --ink: #1e2a33;
-    --ink-soft: #55636b;
-    --accent: #e38b29;
-    --accent-ink: #7a4a12;
-    --accent-soft: #fbe6cc;
-    --line: #dcd7cc;
+    --ink: #16233d;
+    --ink-soft: #55637a;
+    --accent: #d99a1f;
+    --accent-ink: #8a5d0a;
+    --accent-soft: #fbeecd;
+    --line: #dcd6c8;
     --success: #2f7a4d;
     --success-soft: #e3f2e8;
-    --danger: #b23a2e;
-    --danger-soft: #fbe8e5;
+    --danger: #c1272d;
+    --danger-soft: #fae7e5;
     --text-on-ink: #ffffff;
+
+    /* El anillo de foco no puede ser --accent: dorado sobre blanco da ~2.2:1 y el
+       mínimo para elementos no textuales es 3:1. Cada modo usa el que contrasta. */
+    --focus: #16233d;
+
+    --grid-line: rgba(22, 35, 61, 0.04);
+    --shadow-tint: 22, 35, 61;
+
     color-scheme: light;
 
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', Arial, sans-serif;
     --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+    /* Escala de radios. La referencia usa pastilla completa; se adopta solo en
+       botones, porque inputs en pastilla se ven mal en las tablas densas de
+       alumnos.html. Dos valores, aplicados igual en toda la app. */
+    --radius-btn: 999px;
+    --radius-field: 12px;
+    --radius-panel: 6px;
 }
 
 :root[data-theme="dark"] {
-    --bg: #171a1d;
-    --surface: #22272b;
-    --ink: #edf1f2;
-    --ink-soft: #aeb9bd;
-    --accent: #f0a246;
-    --accent-ink: #ffd091;
-    --accent-soft: #49341f;
-    --line: #3d474c;
+    --bg: #14171c;
+    --surface: #1d222a;
+    --ink: #eaeef5;
+    --ink-soft: #a4b0c2;
+    --accent: #e5b04d;
+    --accent-ink: #f5cf85;
+    --accent-soft: #3d2f18;
+    --line: #333d4c;
     --success: #72c491;
     --success-soft: #203d2c;
     --danger: #f08a7d;
     --danger-soft: #4a2927;
-    --text-on-ink: #171a1d;
+    --text-on-ink: #14171c;
+
+    --focus: #e5b04d;
+
+    --grid-line: rgba(234, 238, 245, 0.035);
+    --shadow-tint: 0, 0, 0;
     color-scheme: dark;
 }
 
@@ -52,7 +79,7 @@
 }
 
 :focus-visible {
-    outline: 3px solid var(--accent);
+    outline: 3px solid var(--focus);
     outline-offset: 3px;
 }
 
@@ -83,8 +110,41 @@
 
 .campo-error {
     display: block;
-    margin-top: 0.3rem;
+    margin-top: 0.35rem;
     color: var(--danger);
+    font-size: 0.78rem;
+    /* theme.js inserta este <span> al fallar la validación; sin transición el
+       texto aparece de golpe y empuja los campos de abajo. Entra con un fundido
+       corto (@starting-style, sin tocar el JS). Curva y duración del sistema. */
+    transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@starting-style {
+    .campo-error {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .campo-error {
+        transition: opacity 0.12s ease;
+    }
+
+    @starting-style {
+        .campo-error {
+            transform: none;
+        }
+    }
+}
+
+/* Texto de apoyo bajo un campo (ej: el mínimo de caracteres de una contraseña).
+   Se muestra siempre, no solo cuando ya falló: la regla se conoce antes de escribir. */
+.campo-ayuda {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--ink-soft);
     font-size: 0.78rem;
 }
 
@@ -123,17 +183,11 @@ body {
     color: var(--ink);
     background-color: var(--bg);
     background-image:
-        linear-gradient(rgba(30, 42, 51, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(30, 42, 51, 0.035) 1px, transparent 1px);
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 24px 24px;
-    min-height: 100vh;
+    min-height: 100dvh;
     transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-:root[data-theme="dark"] body {
-    background-image:
-        linear-gradient(rgba(237, 241, 242, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(237, 241, 242, 0.035) 1px, transparent 1px);
 }
 
 img {
@@ -142,16 +196,31 @@ img {
 
 /* ---------------- Header / Nav ---------------- */
 
+/* Chrome flotante como capa translúcida (Apple §12): el contenido pasa por debajo
+   del header en vez de que este se coma una franja opaca fija. El blur mantiene
+   legible el título aunque debajo pase texto o una tabla. */
 header {
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: var(--surface);
+    background-color: color-mix(in srgb, var(--surface) 72%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
     position: sticky;
     top: 0;
     z-index: 20;
+}
+
+/* Sin translucidez: el header vuelve a ser sólido (mismo alto, misma posición). */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    header {
+        background-color: var(--surface);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border-bottom-color: var(--line);
+    }
 }
 
 .h-titulo {
@@ -191,7 +260,7 @@ header {
 
 .h-links-help {
     border: 1px solid var(--accent);
-    border-radius: 4px;
+    border-radius: var(--radius-btn);
     padding: 0.35rem 0.7rem;
     color: var(--accent-ink) !important;
     background-color: var(--accent-soft);
@@ -217,10 +286,42 @@ header {
     border-color: var(--accent);
 }
 
+/* En las pantallas de acceso no hay header donde alojar el toggle, así que flota
+   sobre la ilustración. Siguiendo el uso de materiales de Apple, no es una ficha
+   opaca sino una capa translúcida: deja ver el color que tiene detrás, con blur
+   para mantener el texto legible y un borde superior claro que simula la luz
+   pegando en el material. Fixed y no absolute para que no se desplace si el
+   contenido llega a desbordar. */
 .theme-toggle-standalone {
-    position: absolute;
+    position: fixed;
     top: 1rem;
     right: 1rem;
+    z-index: 30;
+    background-color: color-mix(in srgb, var(--surface) 65%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+    border-color: color-mix(in srgb, var(--ink) 12%, transparent);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent),
+        0 6px 20px -8px rgba(var(--shadow-tint), 0.28);
+}
+
+/* Sin translucidez disponible o pedida: material sólido, mismo sitio. */
+@media (prefers-reduced-transparency: reduce) {
+    .theme-toggle-standalone {
+        background-color: var(--surface);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .theme-toggle-standalone {
+        background-color: var(--surface);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border-color: var(--ink);
+    }
 }
 
 .h-links-logout {
@@ -256,7 +357,7 @@ nav {
     position: sticky;
     top: 96px; /* alto aproximado del header (logo + padding + borde) */
     z-index: 19;
-    box-shadow: 0 4px 8px -6px rgba(30, 42, 51, 0.15);
+    box-shadow: 0 4px 8px -6px rgba(var(--shadow-tint), 0.15);
 }
 
 .nav-links {
@@ -331,8 +432,43 @@ main > *:nth-child(6) { animation-delay: 0.15s; }
 main > *:nth-child(n+7) { animation-delay: 0.15s; }
 
 @media (prefers-reduced-motion: reduce) {
-    main > * {
+    main > *,
+    .documentos-lista,
+    .documentos-cargando {
         animation: none;
+    }
+
+    /* La barra de carga es la única animación infinita del proyecto, o sea el caso
+       que más molesta con reduced-motion. No se apaga sin más: quedaría en
+       scaleX(0), invisible, y el usuario perdería el aviso de "estoy cargando".
+       Se convierte en una barra fija. */
+    #indicador-carga.activo {
+        animation: none;
+        transform: scaleX(1);
+    }
+
+    /* Las transiciones de navegación entre pantallas quedan en corte seco
+       (los navegadores ya lo hacen casi siempre; esto lo garantiza). */
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+
+/* Cambio de tema: durante los 250ms que theme.js mantiene [data-theme-changing],
+   los colores de todas las superficies viran juntos en vez de repintarse a saltos.
+   Se limita a esa ventana deliberada, así que fuera de un toggle de tema ningún
+   otro cambio de color anima. !important porque muchos elementos ya declaran su
+   propia transition; sobreescribirla 250ms es inofensivo. Solo cuando hay
+   presupuesto de movimiento: con reduced-motion el tema cambia al instante. */
+@media (prefers-reduced-motion: no-preference) {
+    :root[data-theme-changing] *,
+    :root[data-theme-changing] *::before,
+    :root[data-theme-changing] *::after {
+        transition: background-color 0.2s ease,
+                    border-color 0.2s ease,
+                    color 0.2s ease !important;
     }
 }
 
@@ -364,9 +500,9 @@ main h3 {
     position: relative;
     background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 4px;
+    border-radius: var(--radius-panel);
     padding: 1.5rem 2rem;
-    box-shadow: 0 2px 10px -4px rgba(30, 42, 51, 0.12);
+    box-shadow: 0 2px 10px -4px rgba(var(--shadow-tint), 0.12);
 }
 
 .panel::before,
@@ -490,8 +626,8 @@ main h3 {
     margin-top: 0.5rem;
     background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 4px;
-    box-shadow: 0 2px 8px -4px rgba(30, 42, 51, 0.35);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 2px 8px -4px rgba(var(--shadow-tint), 0.35);
     animation: entrada 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -561,17 +697,106 @@ main h3 {
 
 /* ---------------- Autenticación (login, cambiar contraseña) ---------------- */
 
+/* Dos composiciones sobre el mismo sistema:
+   - Las 6 pantallas sin autenticar usan .auth-split: UNA sola superficie (el
+     mismo --bg que el resto), con la ilustración sangrando desde el borde
+     izquierdo y el formulario a la derecha. No hay panel ni divisor.
+   - cambiar-contrasena conserva el header con su nav, porque el usuario ya está
+     adentro y necesita poder salir. Usa .auth-main con la tarjeta centrada.
+   Comparten tokens, inputs, botones, mensajes y escala de radios. */
+
+.auth-split {
+    position: relative;
+    display: flex;
+    min-height: 100dvh;
+    background-color: var(--bg);
+    overflow: hidden;
+}
+
+/* La ilustración vive en una capa propia sobre el MISMO --bg que el formulario:
+   una sola superficie, sin panel ni divisor. El WebP ya es transparente en su lado
+   derecho, así que las cintas se disuelven solas en el fondo por el propio dibujo
+   (sin máscara CSS ni desenfoque). La capa llega hasta donde el WebP ya es
+   transparente, así el recorte cae sobre nada y no se ve. Mismo archivo en claro
+   y oscuro: las cintas navy/rojo/dorado/crema se leen sobre crema y sobre carbón. */
+.auth-split::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Alto FIJO a la ventana, no a .auth-split. Si se ata al contenedor (inset:0),
+       .auth-split crece cuando el formulario es más alto que la pantalla (el paso
+       2 del login, con más campos) y, como background-size es "auto 100%", la
+       imagen crece de alto y por lo tanto de ancho: se "expande" al pasar de
+       login-email a login. Con height fijo la ilustración mide igual en todas
+       las pantallas del flujo. */
+    height: 100dvh;
+    /* Ancho generoso a propósito: el recorte cae dentro de la zona ya transparente
+       del WebP, no sobre las cintas, así que no se ve ninguna línea recta. El
+       degradado lo da el propio dibujo, no una máscara CSS. El solape con el
+       formulario es sobre píxeles transparentes: no pinta nada encima. */
+    width: 76%;
+    background: url("../img/auth-ilustracion.webp") left center / auto 100% no-repeat;
+    pointer-events: none;
+}
+
+/* --- Columna del formulario (empujada a la derecha sobre la misma superficie) --- */
+
+.auth-panel {
+    width: 44%;
+    /* margin explícito: la regla base de <main> trae "margin: 0 auto" y con solo
+       margin-left:auto el "auto" de la derecha sobrevive y el panel queda centrado
+       en vez de pegado a la derecha. */
+    margin: 0 0 0 auto;
+    display: flex;
+    /* El centrado va con margin:auto en la tarjeta, no con align-items:center.
+       Con align-items:center, un formulario más alto que el viewport desborda
+       hacia ARRIBA y esa parte queda inalcanzable al scrollear (pasa en pantallas
+       chicas con el formulario de contraseña nueva). Los márgenes auto centran
+       igual, pero se colapsan a 0 cuando no hay espacio. */
+    align-items: flex-start;
+    justify-content: center;
+    /* pisa el max-width: 1100px y el padding de <main> */
+    max-width: none;
+    padding: 3rem 2.5rem;
+}
+
+.auth-panel > .auth-card {
+    margin: auto;
+}
+
 .auth-main {
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 96px);
+    /* Mismo motivo que en .auth-panel: con align-items:center, cambiar-contrasena
+       (3 campos + header) desborda hacia arriba en pantallas bajas y ese tramo
+       queda inalcanzable. Los márgenes auto centran sin ese efecto. */
+    align-items: flex-start;
+    min-height: calc(100dvh - 96px);
     padding: 3rem 2rem;
+}
+
+.auth-main > .auth-card {
+    margin: auto;
 }
 
 .auth-card {
     width: 100%;
-    max-width: 380px;
+    max-width: 400px;
+}
+
+/* Logo del colegio arriba de la tarjeta, centrado, como en la referencia. */
+.auth-card-logo {
+    display: block;
+    width: 72px;
+    height: auto;
+    margin: 0 auto 1.25rem;
+    /* Consistencia espacial (Apple §7): al pasar de un paso al siguiente
+       (login-email -> login -> verificar-codigo) el logo es el mismo elemento y
+       se mantiene anclado mientras el resto del formulario hace cross-fade, en vez
+       de que toda la pantalla se reemplace. El navegador lo empareja entre páginas
+       por este nombre. */
+    view-transition-name: auth-logo;
 }
 
 .auth-card .mensaje-error,
@@ -580,9 +805,88 @@ main h3 {
 }
 
 .auth-titulo {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    /* Tracking según tamaño (Apple §15): el texto de display grande quiere
+       tracking negativo y leading apretado; el cuerpo, lo contrario. */
+    line-height: 1.1;
+    letter-spacing: -0.02em;
     border-left: none;
-    padding-left: 0;
+    padding: 0;
     margin-bottom: 1.25rem;
+}
+
+/* En las pantallas de acceso (no en cambiar-contrasena, que va dentro de .auth-main
+   con su header) el logo y el título se centran, siguiendo la referencia. Las
+   etiquetas de los campos siguen alineadas a la izquierda: es lo esperable en un
+   formulario y es también lo que hace la referencia. */
+.auth-panel .auth-titulo {
+    text-align: center;
+}
+
+/* --- Escala grande de las pantallas de acceso, para igualar la referencia ---
+   Todo va bajo .auth-panel para no agrandar los formularios del resto de la app
+   (tablas, planilla, cambiar-contrasena) que necesitan la escala normal. */
+
+.auth-panel .auth-card {
+    max-width: 460px;
+}
+
+.auth-panel .auth-card-logo {
+    width: 100px;
+    margin-bottom: 1.75rem;
+}
+
+.auth-panel .auth-titulo {
+    font-size: 2.15rem;
+    /* Más grande todavía -> tracking un punto más apretado. */
+    letter-spacing: -0.025em;
+    margin-bottom: 1.75rem;
+}
+
+.auth-panel .auth-form {
+    gap: 1.35rem;
+}
+
+.auth-panel .auth-form label {
+    font-size: 0.95rem;
+    margin-bottom: 0.45rem;
+}
+
+.auth-panel .auth-form input {
+    font-size: 1.05rem;
+    padding: 0.95rem 1.1rem;
+}
+
+/* Los campos de contraseña llevan el botón "Mostrar" superpuesto: más reserva a la
+   derecha ahora que el input es más alto y el texto más grande. */
+.auth-panel .auth-form .campo-password input {
+    padding-right: 4.75rem;
+}
+
+.auth-panel .toggle-password {
+    font-size: 0.8rem;
+}
+
+.auth-panel .auth-form button[type="submit"] {
+    padding: 1rem 1.4rem;
+    font-size: 1.05rem;
+    margin-top: 0.75rem;
+}
+
+/* Respuesta física al presionar (Apple §1): el botón cede bajo el dedo. Se dispara
+   en pointer-down (:active), instantáneo, y usa scale en vez del translateY global
+   porque en un botón grande "hundirse" se lee mejor que "bajar 1px". */
+.auth-panel .auth-form button[type="submit"]:active {
+    transform: scale(0.985);
+    transition-duration: 0.08s;
+}
+
+.auth-panel .input-codigo {
+    font-size: 1.7rem;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
 }
 
 .auth-form {
@@ -591,8 +895,21 @@ main h3 {
     gap: 1rem;
 }
 
-.auth-form button {
+.auth-form input {
+    width: 100%;
+}
+
+.auth-form button[type="submit"] {
     margin-top: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    font-size: 0.9rem;
+}
+
+.auth-form button[type="submit"][disabled] {
+    opacity: 0.65;
+    cursor: progress;
+    transform: none;
+    box-shadow: none;
 }
 
 .auth-checkbox label {
@@ -602,6 +919,11 @@ main h3 {
     font-size: 0.85rem;
     color: var(--ink-soft);
     font-weight: 400;
+}
+
+.auth-checkbox input[type="checkbox"] {
+    accent-color: var(--ink);
+    width: auto;
 }
 
 .auth-links {
@@ -615,6 +937,7 @@ main h3 {
 .auth-links a {
     color: var(--ink-soft);
     text-decoration: none;
+    align-self: flex-start;
 }
 
 .auth-links a:hover {
@@ -624,12 +947,38 @@ main h3 {
 
 .auth-nota {
     font-size: 0.85rem;
-    color: var(--ink-soft);
+    color: var(--ink);
     background-color: var(--accent-soft);
-    border-radius: 4px;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-panel) var(--radius-panel) 0;
     padding: 0.75rem 1rem;
     margin-bottom: 1.25rem;
     line-height: 1.5;
+}
+
+/* --- Colapso móvil: la ilustración se retira (una franja vertical angosta no le
+   hace justicia y encima pesa), el formulario toma todo el ancho. El preload de
+   la imagen lleva el mismo media query, así que en móvil ni se descarga. --- */
+
+@media (max-width: 900px) {
+    .auth-split::before {
+        display: none;
+    }
+
+    .auth-panel {
+        width: 100%;
+        margin-left: 0;
+        padding: 2.5rem 1rem;
+        min-height: 100dvh;
+    }
+
+    .auth-card-logo {
+        width: 60px;
+    }
+
+    .auth-titulo {
+        font-size: 1.5rem;
+    }
 }
 
 /* Entrada del mensaje de error (fade + slide, igual que "entrada") seguida de
@@ -668,11 +1017,13 @@ main h3 {
 .toggle-password {
     position: absolute;
     top: 50%;
-    right: 0.4rem;
+    right: 0.5rem;
     transform: translateY(-50%);
-    background: none;
+    /* --surface (no --bg) para que tape el texto del input sin leerse como una
+       ficha aparte: comparte el color del campo y solo se ve la palabra. */
+    background: var(--surface);
     border: none;
-    padding: 0.3rem 0.5rem;
+    padding: 0.3rem 0.6rem;
     font-family: var(--font-mono);
     font-size: 0.72rem;
     font-weight: 500;
@@ -684,8 +1035,17 @@ main h3 {
     color: var(--accent-ink);
 }
 
+/* Feedback de pulsación: antes este :active solo cancelaba el translateY(1px)
+   global y no daba ninguna señal de "te escuché". Un apretón mínimo lo resuelve,
+   conservando el centrado vertical. Hereda transform 0.1s ease del <button>. */
 .toggle-password:active {
-    transform: translateY(-50%); /* pisa el translateY(1px) global de .btn/button:active */
+    transform: translateY(-50%) scale(0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toggle-password:active {
+        transform: translateY(-50%) scale(0.96);
+    }
 }
 
 /* Input para códigos numéricos de 6 dígitos (verificación / recuperación) */
@@ -720,15 +1080,33 @@ select {
     color: var(--ink);
     background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 0.55rem 0.75rem;
-    transition: border-color 0.15s ease;
+    border-radius: var(--radius-field);
+    padding: 0.6rem 0.85rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-    border-color: var(--accent);
+    /* --focus y no --accent: el dorado sobre blanco da 2.44:1 y el mínimo para
+       un indicador de foco es 3:1. Con --focus son 15.6:1 en claro y 8.1:1 en
+       oscuro. El halo dorado queda como refuerzo de marca, no como el indicador.
+       Importa sobre todo para el foco con mouse o touch, donde :focus-visible
+       no dispara y este borde es lo único que marca el campo activo. */
+    border-color: var(--focus);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+input[aria-invalid="true"],
+input[aria-invalid="true"]:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px var(--danger-soft);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--ink-soft);
+    opacity: 0.75;
 }
 
 .aviso-limite {
@@ -746,7 +1124,7 @@ button,
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: var(--radius-btn);
     padding: 0.55rem 1.1rem;
     border: 1px solid transparent;
     text-decoration: none;
@@ -768,7 +1146,7 @@ button:active,
 button[type="submit"]:hover,
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px -4px rgba(30, 42, 51, 0.35);
+    box-shadow: 0 4px 12px -4px rgba(var(--shadow-tint), 0.35);
 }
 
 button[type="submit"]:active,
@@ -823,10 +1201,10 @@ table {
     border-collapse: collapse;
     background-color: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 4px;
+    border-radius: var(--radius-panel);
     overflow: hidden;
     font-size: 0.9rem;
-    box-shadow: 0 2px 10px -4px rgba(30, 42, 51, 0.12);
+    box-shadow: 0 2px 10px -4px rgba(var(--shadow-tint), 0.12);
 }
 
 thead {
@@ -900,13 +1278,44 @@ td input[type="email"] {
     font-size: 0.9rem;
     font-weight: 500;
     padding: 0.6rem 1rem;
-    border-radius: 4px;
+    border-radius: var(--radius-panel);
     margin-bottom: 1rem;
 }
 
 .mensaje-exito {
     background-color: var(--success-soft);
     color: var(--success);
+}
+
+/* Momento de éxito de primera vez (activación de cuenta, contraseña restablecida):
+   pasa una sola vez por cuenta, es el único punto del flujo que merece un acento.
+   El banner aterriza un instante después de la tarjeta con un fundido y un 4% de
+   escala. Presupuesto "delight" (tier raro): 300ms permitido. NO se aplica al
+   mensaje de logout, que es corriente. */
+.mensaje-exito--hito {
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: 0.12s;
+}
+
+@starting-style {
+    .mensaje-exito--hito {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mensaje-exito--hito {
+        transition: opacity 0.18s ease;
+        transition-delay: 0;
+    }
+
+    @starting-style {
+        .mensaje-exito--hito {
+            transform: none;
+        }
+    }
 }
 
 .mensaje-error {
@@ -1214,7 +1623,7 @@ button:disabled,
     text-align: center;
     padding: 2.75rem 1.5rem;
     border: 1.5px dashed var(--line);
-    border-radius: 4px;
+    border-radius: var(--radius-panel);
     cursor: pointer;
     transition: border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -1272,7 +1681,7 @@ button:disabled,
     color: var(--text-on-ink);
     padding: 0.75rem 1.25rem;
     z-index: 200;
-    border-radius: 0 0 4px 0;
+    border-radius: 0 0 var(--radius-panel) 0;
     font-family: var(--font-display);
     font-weight: 600;
     text-decoration: none;

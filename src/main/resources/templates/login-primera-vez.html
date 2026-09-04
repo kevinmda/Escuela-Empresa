@@ -1,62 +1,52 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar sesión - Primera vez</title>
-
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <script th:src="@{/js/theme.js}" defer></script>
-
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/auth :: head('Activar cuenta')}"></head>
 <body>
-    <header>
-        <div class="h-titulo">
-            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
-            <h1>Colegio Técnico Nacional de Asunción</h1>
-        </div>
-        <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
-    </header>
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
 
-    <main class="auth-main">
-        <div class="panel auth-card">
-            <p class="eyebrow">Primer ingreso</p>
-            <h2 class="auth-titulo">Iniciar sesión</h2>
+    <div class="auth-split">
 
-            <p th:if="${param.error}" class="mensaje-error">
-                Email o contraseña incorrectos.
-            </p>
-            <p th:if="${param.errorCorreo}" class="mensaje-error">
-                No pudimos enviarte el correo. Intentá iniciar sesión de nuevo en unos minutos.
-            </p>
+        <main class="auth-panel">
+            <div class="auth-card">
+                <img th:replace="~{fragments/auth :: logoTarjeta}">
 
-            <p class="auth-nota">Esta es tu primera vez ingresando. Después de poner tu contraseña, te vamos a mandar un código de activación por correo.</p>
+                <h1 class="auth-titulo">Activá tu cuenta</h1>
 
-            <form th:action="@{/login}" method="post" class="auth-form">
-                <div>
-                    <label>Email:</label>
-                    <input type="text" name="username" th:value="${email}" readonly>
-                </div>
-                <div>
-                    <label for="password">Contraseña:</label>
-                    <div class="campo-password">
-                        <input id="password" type="password" name="password" required autofocus>
-                        <button type="button" class="toggle-password" data-target="password"
-                                aria-label="Mostrar contraseña">Mostrar</button>
+                <p class="auth-nota">
+                    Es tu primer ingreso. Poné la contraseña que te asignaron y te enviamos
+                    un código de activación por correo.
+                </p>
+
+                <p th:if="${param.error}" class="mensaje-error" role="alert">
+                    Email o contraseña incorrectos.
+                </p>
+                <p th:if="${param.errorCorreo}" class="mensaje-error" role="alert">
+                    No pudimos enviarte el correo. Intentá de nuevo en unos minutos.
+                </p>
+
+                <form th:action="@{/login}" method="post" class="auth-form">
+                    <div>
+                        <label for="username">Email</label>
+                        <input id="username" type="text" name="username" th:value="${email}"
+                               autocomplete="username" readonly>
                     </div>
-                </div>
-                <button type="submit" class="btn-primary">Ingresar</button>
-            </form>
+                    <div>
+                        <label for="password">Contraseña</label>
+                        <div class="campo-password">
+                            <input id="password" type="password" name="password"
+                                   autocomplete="current-password" required autofocus>
+                            <button type="button" class="toggle-password" data-target="password"
+                                    aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Continuar</button>
+                </form>
 
-            <div class="auth-links">
-                <a th:href="@{/login(volver=true, email=${email})}">← Usar otro email</a>
+                <div class="auth-links">
+                    <a th:href="@{/login(volver=true, email=${email})}">← Usar otro email</a>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 </body>
 </html>

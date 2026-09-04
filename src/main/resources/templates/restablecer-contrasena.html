@@ -1,69 +1,58 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restablecer contraseña</title>
-
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <script th:src="@{/js/theme.js}" defer></script>
-
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/auth :: head('Restablecer contraseña')}"></head>
 <body>
-    <header>
-        <div class="h-titulo">
-            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
-            <h1>Colegio Técnico Nacional de Asunción</h1>
-        </div>
-        <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
-    </header>
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
 
-    <main class="auth-main">
-        <div class="panel auth-card">
-            <p class="eyebrow">Recuperar acceso</p>
-            <h2 class="auth-titulo">Elegí tu nueva contraseña</h2>
+    <div class="auth-split">
 
-            <p class="auth-nota">
-                Ingresá el código de 6 dígitos que te llegó a <strong th:text="${email}"></strong>
-                y elegí una contraseña nueva.
-            </p>
+        <main class="auth-panel">
+            <div class="auth-card">
+                <img th:replace="~{fragments/auth :: logoTarjeta}">
 
-            <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+                <h1 class="auth-titulo">Elegí tu nueva contraseña</h1>
 
-            <form th:action="@{/restablecer-contrasena}" method="post" class="auth-form">
-                <div>
-                    <label for="codigo">Código de verificación</label>
-                    <input id="codigo" class="input-codigo" type="text" name="codigo" inputmode="numeric"
-                           autocomplete="one-time-code" maxlength="6" required autofocus>
-                </div>
-                <div>
-                    <label for="nuevaContrasena">Nueva contraseña</label>
-                    <div class="campo-password">
-                        <input id="nuevaContrasena" type="password" name="nuevaContrasena" required>
-                        <button type="button" class="toggle-password" data-target="nuevaContrasena"
-                                aria-label="Mostrar contraseña">Mostrar</button>
+                <p class="auth-nota">
+                    Ingresá el código de 6 dígitos que te llegó a <strong th:text="${email}"></strong>
+                    y elegí una contraseña nueva.
+                </p>
+
+                <p th:if="${error}" class="mensaje-error" role="alert" th:text="${error}"></p>
+
+                <form th:action="@{/restablecer-contrasena}" method="post" class="auth-form">
+                    <div>
+                        <label for="codigo">Código de verificación</label>
+                        <input id="codigo" class="input-codigo" type="text" name="codigo" inputmode="numeric"
+                               autocomplete="one-time-code" maxlength="6" required autofocus>
                     </div>
-                </div>
-                <div>
-                    <label for="confirmarContrasena">Confirmar contraseña</label>
-                    <div class="campo-password">
-                        <input id="confirmarContrasena" type="password" name="confirmarContrasena" required>
-                        <button type="button" class="toggle-password" data-target="confirmarContrasena"
-                                aria-label="Mostrar contraseña">Mostrar</button>
+                    <div>
+                        <label for="nuevaContrasena">Contraseña nueva</label>
+                        <div class="campo-password">
+                            <input id="nuevaContrasena" type="password" name="nuevaContrasena"
+                                   autocomplete="new-password" minlength="6" required>
+                            <button type="button" class="toggle-password" data-target="nuevaContrasena"
+                                    aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+                        </div>
+                        <span class="campo-ayuda">Al menos 6 caracteres.</span>
                     </div>
-                </div>
-                <button type="submit" class="btn-primary">Restablecer contraseña</button>
-            </form>
+                    <div>
+                        <label for="confirmarContrasena">Confirmar contraseña nueva</label>
+                        <div class="campo-password">
+                            <input id="confirmarContrasena" type="password" name="confirmarContrasena"
+                                   autocomplete="new-password" minlength="6" required
+                                   data-confirma="nuevaContrasena">
+                            <button type="button" class="toggle-password" data-target="confirmarContrasena"
+                                    aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar contraseña</button>
+                </form>
 
-            <div class="auth-links">
-                <a th:href="@{/olvide-contrasena}">← Pedir un código nuevo</a>
+                <div class="auth-links">
+                    <a th:href="@{/olvide-contrasena}">← Pedir un código nuevo</a>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 </body>
 </html>

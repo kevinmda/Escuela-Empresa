@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gestor-pasantes",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "C:\\Users\\Facundo\\Desktop\\Escuela-Empresa\\mvnw.cmd", "spring-boot:run"],
+      "port": 8080
+    }
+  ]
+}
