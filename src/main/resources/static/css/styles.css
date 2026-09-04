@@ -1460,9 +1460,14 @@ td input[type="email"] {
    justamente lo que hace falta para que Química Industrial (#F9FAFB) no
    desaparezca sobre una superficie blanca. */
 
+/* El fallback (especialidad sin color asignado) usa el par --ink /
+   --text-on-ink en vez de --ink-soft + blanco fijo. --ink-soft se invierte
+   entre modos: en claro es gris azulado oscuro y el blanco encima da 6:1,
+   pero en oscuro se aclara y el mismo blanco cae a 2.19:1. --ink y
+   --text-on-ink ya están definidos como par y se dan vuelta juntos. */
 [data-esp] {
-    --esp: var(--ink-soft);
-    --esp-ink: #ffffff;
+    --esp: var(--ink);
+    --esp-ink: var(--text-on-ink);
     --esp-edge: color-mix(in srgb, var(--esp) 72%, var(--ink));
     --esp-tenue: color-mix(in srgb, var(--esp) 12%, transparent);
 }
