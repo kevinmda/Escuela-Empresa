@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTN Pasantias ad</title>
+    <title>Alumnos | CTN Pasantías</title>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,224 +39,335 @@
     </nav>
 
     <main id="main-content">
-        <h2>Gestión de Alumnos</h2>
-
-        <div id="busqueda-container" class="toolbar">
-            <input type="text" id="input-busqueda" placeholder="Buscar por nombre, apellido o CI...">
-            <button id="btn-buscar" type="button" class="btn-primary icono-buscar" aria-label="Buscar alumnos">Buscar</button>
-            <button id="btn-limpiar-busqueda" type="button" class="btn-secondary oculto">Limpiar</button>
-        </div>
-
-        <div id="filtro-container" class="toolbar panel">
-
-            <!-- Si es administrativo, elige la especialidad. Si es coordinador, ya viene fija. -->
-            <div th:if="${esAdministrativo}">
-                <label for="select-especialidad">Especialidad</label>
-                <select id="select-especialidad">
-                    <option value="">-- Elegí una especialidad --</option>
-                    <option th:each="esp : ${especialidades}"
-                            th:value="${esp.idEsp}"
-                            th:text="${esp.nombre}"></option>
-                </select>
-            </div>
-
-            <div th:unless="${esAdministrativo}">
-                <label>Especialidad</label>
-                <span class="valor-fijo" th:text="${especialidadFija.nombre}"></span>
-                <input type="hidden" id="idEspFijo" th:value="${especialidadFija.idEsp}">
-            </div>
-
-            <div>
-                <label>Curso</label>
-                <span class="valor-fijo">3ro</span>
-                <input type="hidden" id="cursoFijo" value="3ro">
-            </div>
-
-            <div>
-                <label for="select-seccion">Sección</label>
-                <select id="select-seccion" disabled>
-                    <option value="">-- Elegí una sección --</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                </select>
+        <div class="alumnos-cabecera">
+            <h2>Gestión de Alumnos</h2>
+            <div class="busqueda">
+                <label class="oculto" for="input-busqueda">Buscar alumno</label>
+                <input type="search" id="input-busqueda" placeholder="Nombre, apellido o CI">
+                <button id="btn-buscar" type="button" class="btn-primary icono-buscar">Buscar</button>
+                <button id="btn-limpiar-busqueda" type="button" class="btn-secondary oculto">Limpiar</button>
             </div>
         </div>
 
-        <table id="tabla-alumnos" class="oculto">
-            <thead>
-                <tr>
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
-                    <th>CI</th>
-                    <th>Email</th>
-                    <th>Curso</th>
-                    <th>Sección</th>
-                    <th>Documentos</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="tabla-alumnos-body"></tbody>
-        </table>
+        <section id="filtro-especialidad" aria-labelledby="titulo-especialidad">
+            <h3 id="titulo-especialidad">Especialidad</h3>
 
-        <div id="zip-container" class="oculto zip-container">
-            <button id="btn-descargar-zip" type="button" class="btn-primary icono-descargar">Descargar documentos (ZIP)</button>
+            <!-- El administrativo elige entre todas; el coordinador ya la tiene fija. -->
+            <div th:if="${esAdministrativo}" class="esp-picker" role="group" aria-labelledby="titulo-especialidad">
+                <button th:each="esp : ${especialidades}"
+                        type="button"
+                        class="esp-chip"
+                        aria-pressed="false"
+                        th:attr="data-esp=${esp.idEsp},data-nombre=${esp.nombre}"
+                        th:text="${esp.nombre}"></button>
+            </div>
+
+            <div th:unless="${esAdministrativo}" class="esp-picker" th:attr="data-esp=${especialidadFija.idEsp}">
+                <span class="esp-etiqueta" th:text="${especialidadFija.nombre}"></span>
+                <input type="hidden" id="idEspFijo"
+                       th:value="${especialidadFija.idEsp}"
+                       th:attr="data-nombre=${especialidadFija.nombre}">
+            </div>
+        </section>
+
+        <div id="alumnos-panel" class="alumnos-panel oculto" data-esp="">
+            <div class="alumnos-panel-head">
+                <span class="esp-etiqueta" id="panel-especialidad">Especialidad</span>
+                <span class="alumnos-meta" id="panel-meta"></span>
+            </div>
+
+            <div class="alumnos-panel-barra" id="panel-barra">
+                <div>
+                    <span class="seccion-etiqueta" id="etiqueta-seccion">Sección</span>
+                    <span class="seccion-grupo" role="group" aria-labelledby="etiqueta-seccion">
+                        <button type="button" class="seccion-btn" data-seccion="A" aria-pressed="false">A</button>
+                        <button type="button" class="seccion-btn" data-seccion="B" aria-pressed="false">B</button>
+                        <button type="button" class="seccion-btn" data-seccion="C" aria-pressed="false">C</button>
+                    </span>
+                </div>
+                <button id="btn-descargar-zip" type="button" class="btn-secondary icono-descargar oculto">Descargar sección (ZIP)</button>
+            </div>
+
+            <div class="tabla-scroll">
+                <table id="tabla-alumnos" class="tabla-alumnos oculto" role="table">
+                    <thead role="rowgroup">
+                        <tr role="row">
+                            <th role="columnheader" scope="col">Nombres</th>
+                            <th role="columnheader" scope="col">Apellidos</th>
+                            <th role="columnheader" scope="col">CI</th>
+                            <th role="columnheader" scope="col">Email</th>
+                            <th role="columnheader" scope="col">Curso</th>
+                            <th role="columnheader" scope="col">Sección</th>
+                            <th role="columnheader" scope="col">Documentos</th>
+                            <th role="columnheader" scope="col">Descarga</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-alumnos-body" role="rowgroup"></tbody>
+                </table>
+            </div>
+
+            <div id="estado-vacio" class="estado-vacio" role="status" aria-live="polite"></div>
         </div>
-
-        <p id="mensaje-vacio" class="oculto mensaje-vacio">No hay alumnos que coincidan con ese filtro.</p>
     </main>
 
     <script th:inline="javascript">
         const esAdministrativo = /*[[${esAdministrativo}]]*/ false;
 
-        const selectEspecialidad = document.getElementById('select-especialidad');
-        const idEspFijoInput = document.getElementById('idEspFijo');
-        const selectSeccion = document.getElementById('select-seccion');
+        const CURSO_FIJO = '3ro'; // las pasantías son siempre en 3er año
+        const COLUMNAS = ['Nombres', 'Apellidos', 'CI', 'Email', 'Curso', 'Sección', 'Documentos', 'Descarga'];
+
+        const panel = document.getElementById('alumnos-panel');
+        const panelEspecialidad = document.getElementById('panel-especialidad');
+        const panelMeta = document.getElementById('panel-meta');
+        const panelBarra = document.getElementById('panel-barra');
+        const filtroEspecialidad = document.getElementById('filtro-especialidad');
         const tabla = document.getElementById('tabla-alumnos');
         const tablaBody = document.getElementById('tabla-alumnos-body');
-        const mensajeVacio = document.getElementById('mensaje-vacio');
-        const zipContainer = document.getElementById('zip-container');
+        const estadoVacio = document.getElementById('estado-vacio');
         const btnDescargarZip = document.getElementById('btn-descargar-zip');
         const inputBusqueda = document.getElementById('input-busqueda');
         const btnBuscar = document.getElementById('btn-buscar');
         const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
-        const filtroContainer = document.getElementById('filtro-container');
+        const idEspFijoInput = document.getElementById('idEspFijo');
+        const chips = Array.from(document.querySelectorAll('.esp-chip'));
+        const botonesSeccion = Array.from(document.querySelectorAll('.seccion-btn'));
 
-        const CURSO_FIJO = '3ro'; // las pasantías son siempre en 3er año
+        // Estado del filtro. Vive acá y no leído del DOM en cada consulta para que
+        // la busqueda (que no tiene especialidad) no lo pise sin querer.
+        let idEspActual = esAdministrativo ? '' : idEspFijoInput.value;
+        let nombreEspActual = esAdministrativo ? '' : idEspFijoInput.dataset.nombre;
+        let seccionActual = '';
 
-        function idEspSeleccionado() {
-            return esAdministrativo ? selectEspecialidad.value : idEspFijoInput.value;
+        // --- Pintado del panel ---
+
+        function mostrarPanel(idEsp, nombre) {
+            panel.dataset.esp = idEsp || '';
+            panelEspecialidad.textContent = nombre || 'Resultados de búsqueda';
+            panel.classList.remove('oculto');
         }
 
-        function habilitarSeccion() {
-            selectSeccion.value = '';
-            ocultarTabla();
+        function actualizarMeta(cantidad) {
+            if (cantidad == null) {
+                panelMeta.textContent = '';
+                return;
+            }
+            const sufijo = cantidad === 1 ? '1 alumno' : `${cantidad} alumnos`;
+            panelMeta.textContent = seccionActual
+                ? `${CURSO_FIJO} · Sección ${seccionActual} · ${sufijo}`
+                : sufijo;
+        }
 
-            const idEsp = idEspSeleccionado();
-            selectSeccion.disabled = !idEsp;
+        // --- Estados sin filas ---
+
+        function mostrarEstado(titulo, nota, esError) {
+            tabla.classList.add('oculto');
+            tablaBody.innerHTML = '';
+            estadoVacio.className = esError ? 'estado-vacio estado-vacio--error' : 'estado-vacio';
+            estadoVacio.innerHTML = '';
+
+            const h = document.createElement('p');
+            h.className = 'estado-vacio-titulo';
+            h.textContent = titulo;
+
+            const p = document.createElement('p');
+            p.className = 'estado-vacio-nota';
+            p.textContent = nota;
+
+            estadoVacio.append(h, p);
+            estadoVacio.classList.remove('oculto');
+        }
+
+        function ocultarEstado() {
+            estadoVacio.classList.add('oculto');
+            estadoVacio.innerHTML = '';
+        }
+
+        // Esqueleto con la misma cantidad de columnas que la tabla real, para que
+        // el ancho no salte cuando llegan los datos.
+        function mostrarCargando() {
+            ocultarEstado();
+            tablaBody.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const fila = document.createElement('tr');
+                fila.className = 'esqueleto-fila';
+                fila.setAttribute('role', 'row');
+                COLUMNAS.forEach(() => {
+                    const celda = document.createElement('td');
+                    celda.setAttribute('role', 'cell');
+                    const barra = document.createElement('span');
+                    barra.className = 'esqueleto-celda';
+                    celda.appendChild(barra);
+                    fila.appendChild(celda);
+                });
+                tablaBody.appendChild(fila);
+            }
+            tabla.classList.remove('oculto');
+        }
+
+        // --- Filas ---
+
+        function agregarCelda(fila, contenido, etiqueta, clase) {
+            const celda = document.createElement('td');
+            celda.setAttribute('role', 'cell');
+            celda.dataset.label = etiqueta; // lo lee el ::before en la vista móvil
+            if (clase) celda.className = clase;
+            if (contenido instanceof Node) {
+                celda.appendChild(contenido);
+            } else {
+                celda.textContent = contenido ?? '';
+            }
+            fila.appendChild(celda);
+        }
+
+        // Arma la fila de un alumno con sus datos básicos, un desplegable con los
+        // documentos que subió, y un botón para descargar todos esos documentos
+        // en un ZIP individual (a diferencia del ZIP de la barra, que baja los de
+        // toda la sección filtrada)
+        function crearFilaAlumno(a) {
+            const fila = document.createElement('tr');
+            fila.setAttribute('role', 'row');
+
+            agregarCelda(fila, a.nombres, 'Nombres', 'celda-nombre');
+            agregarCelda(fila, a.apellidos, 'Apellidos', 'celda-nombre');
+            agregarCelda(fila, a.ci, 'CI');
+            agregarCelda(fila, a.email, 'Email');
+            agregarCelda(fila, a.curso, 'Curso');
+            agregarCelda(fila, a.seccion, 'Sección');
+
+            const menu = document.createElement('details');
+            menu.className = 'documentos-menu';
+            const resumen = document.createElement('summary');
+            resumen.textContent = 'Ver documentos';
+            const lista = document.createElement('div');
+            lista.className = 'documentos-lista';
+            const cargando = document.createElement('span');
+            cargando.className = 'documentos-cargando';
+            cargando.textContent = 'Cargando...';
+            lista.appendChild(cargando);
+            menu.append(resumen, lista);
+            agregarCelda(fila, menu, 'Documentos');
+            menu.addEventListener('toggle', () => {
+                if (menu.open) cargarDocumentosDeAlumno(menu, a.idAl);
+            });
+
+            const btnDescargarUno = document.createElement('a');
+            btnDescargarUno.href = `/admin/alumnos/${a.idAl}/documentos/zip`;
+            btnDescargarUno.className = 'btn btn-secondary icono-descargar';
+            btnDescargarUno.textContent = 'ZIP';
+            agregarCelda(fila, btnDescargarUno, 'Descarga', 'celda-acciones');
+
+            return fila;
+        }
+
+        function pintarAlumnos(alumnos) {
+            tablaBody.innerHTML = '';
+            alumnos.forEach(a => tablaBody.appendChild(crearFilaAlumno(a)));
+            tabla.classList.remove('oculto');
+            ocultarEstado();
+            actualizarMeta(alumnos.length);
+        }
+
+        function cargarDocumentosDeAlumno(menu, idAl) {
+            if (menu.dataset.cargado === 'true') return;
+
+            const lista = menu.querySelector('.documentos-lista');
+            fetch(`/admin/api/alumnos/${idAl}/documentos`)
+                .then(res => {
+                    if (!res.ok) throw new Error('No se pudieron cargar los documentos.');
+                    return res.json();
+                })
+                .then(documentos => {
+                    lista.innerHTML = '';
+                    if (documentos.length === 0) {
+                        lista.textContent = 'No hay documentos subidos.';
+                        return;
+                    }
+
+                    documentos.forEach(documento => {
+                        const enlace = document.createElement('a');
+                        enlace.href = documento.url;
+                        enlace.target = '_blank';
+                        enlace.rel = 'noopener';
+                        enlace.textContent = documento.nombreArchivo || `Documento ${documento.idDs}`;
+                        lista.appendChild(enlace);
+                    });
+                    menu.dataset.cargado = 'true';
+                })
+                .catch(error => {
+                    lista.textContent = error.message;
+                });
+        }
+
+        // --- Filtro por especialidad y sección ---
+
+        function elegirEspecialidad(idEsp, nombre) {
+            idEspActual = idEsp;
+            nombreEspActual = nombre;
+            seccionActual = '';
+
+            chips.forEach(c => c.setAttribute('aria-pressed', String(c.dataset.esp === idEsp)));
+            botonesSeccion.forEach(b => b.setAttribute('aria-pressed', 'false'));
+
+            mostrarPanel(idEsp, nombre);
+            panelBarra.classList.remove('oculto');
+            btnDescargarZip.classList.add('oculto');
+            actualizarMeta(null);
+            mostrarEstado('Elegí una sección',
+                'Las pasantías son de 3er año, así que solo falta indicar la sección.', false);
+        }
+
+        function elegirSeccion(seccion) {
+            seccionActual = seccion;
+            botonesSeccion.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.seccion === seccion)));
+            cargarAlumnos();
         }
 
         function cargarAlumnos() {
-            ocultarTabla();
+            if (!idEspActual || !seccionActual) return;
 
-            const idEsp = idEspSeleccionado();
-            const seccion = selectSeccion.value;
-            if (!idEsp || !seccion) return;
+            mostrarCargando();
+            btnDescargarZip.classList.add('oculto');
 
-            fetch(`/admin/api/alumnos-filtrados?idEsp=${idEsp}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccion)}`)
-                .then(res => res.json())
+            fetch(`/admin/api/alumnos-filtrados?idEsp=${idEspActual}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccionActual)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('respuesta ' + res.status);
+                    return res.json();
+                })
                 .then(alumnos => {
                     if (alumnos.length === 0) {
-                        mensajeVacio.style.display = 'block';
+                        actualizarMeta(0);
+                        mostrarEstado('No hay alumnos en esta sección',
+                            `Ningún alumno de ${nombreEspActual} figura en ${CURSO_FIJO} sección ${seccionActual}.`, false);
                         return;
                     }
-                    tablaBody.innerHTML = '';
-                    alumnos.forEach(a => tablaBody.appendChild(crearFilaAlumno(a)));
-                    tabla.style.display = 'table';
-                    zipContainer.style.display = 'block';
+                    pintarAlumnos(alumnos);
+                    btnDescargarZip.classList.remove('oculto');
+                })
+                .catch(() => {
+                    actualizarMeta(null);
+                    mostrarEstado('No se pudo cargar la lista',
+                        'Revisá tu conexión y probá de nuevo. Si sigue igual, avisá al administrador.', true);
                 });
         }
 
-            function agregarCelda(fila, contenido) {
-                const celda = document.createElement('td');
-                if (contenido instanceof Node) {
-                    celda.appendChild(contenido);
-                } else {
-                    celda.textContent = contenido ?? '';
-                }
-                fila.appendChild(celda);
-            }
-
-            // Arma la fila de un alumno con sus datos básicos, un desplegable con los
-            // documentos que subió, y un botón para descargar todos esos documentos
-            // en un ZIP individual (a diferencia del ZIP del toolbar, que baja los de
-            // toda la sección filtrada)
-            function crearFilaAlumno(a) {
-                const fila = document.createElement('tr');
-                [a.nombres, a.apellidos, a.ci, a.email, a.curso, a.seccion]
-                    .forEach(valor => agregarCelda(fila, valor));
-
-                const menu = document.createElement('details');
-                menu.className = 'documentos-menu';
-                const resumen = document.createElement('summary');
-                resumen.textContent = 'Ver documentos';
-                const lista = document.createElement('div');
-                lista.className = 'documentos-lista';
-                const cargando = document.createElement('span');
-                cargando.className = 'documentos-cargando';
-                cargando.textContent = 'Cargando...';
-                lista.appendChild(cargando);
-                menu.append(resumen, lista);
-                agregarCelda(fila, menu);
-                menu.addEventListener('toggle', () => {
-                    if (menu.open) cargarDocumentosDeAlumno(menu, a.idAl);
-                });
-
-                const celdaDescarga = document.createElement('td');
-                const btnDescargarUno = document.createElement('a');
-                btnDescargarUno.href = `/admin/alumnos/${a.idAl}/documentos/zip`;
-                btnDescargarUno.className = 'btn btn-secondary icono-descargar';
-                btnDescargarUno.textContent = 'Descargar (ZIP)';
-                celdaDescarga.appendChild(btnDescargarUno);
-                fila.appendChild(celdaDescarga);
-
-                return fila;
-            }
-
-            function cargarDocumentosDeAlumno(menu, idAl) {
-                if (menu.dataset.cargado === 'true') return;
-
-                const lista = menu.querySelector('.documentos-lista');
-                fetch(`/admin/api/alumnos/${idAl}/documentos`)
-                    .then(res => {
-                        if (!res.ok) throw new Error('No se pudieron cargar los documentos.');
-                        return res.json();
-                    })
-                    .then(documentos => {
-                        lista.innerHTML = '';
-                        if (documentos.length === 0) {
-                            lista.textContent = 'No hay documentos subidos.';
-                            return;
-                        }
-
-                        documentos.forEach(documento => {
-                            const enlace = document.createElement('a');
-                            enlace.href = documento.url;
-                            enlace.target = '_blank';
-                            enlace.rel = 'noopener';
-                            enlace.textContent = documento.nombreArchivo || `Documento ${documento.idDs}`;
-                            lista.appendChild(enlace);
-                        });
-                        menu.dataset.cargado = 'true';
-                    })
-                    .catch(error => {
-                        lista.textContent = error.message;
-                    });
-            }
-
-        function ocultarTabla() {
-            tabla.style.display = 'none';
-            tablaBody.innerHTML = '';
-            mensajeVacio.style.display = 'none';
-            zipContainer.style.display = 'none';
-        }
-
-        btnDescargarZip.addEventListener('click', () => {
-            const idEsp = idEspSeleccionado();
-            const seccion = selectSeccion.value;
-            if (!idEsp || !seccion) return;
-
-            window.location.href = `/admin/alumnos/zip?idEsp=${idEsp}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccion)}`;
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => elegirEspecialidad(chip.dataset.esp, chip.dataset.nombre));
         });
 
-        if (esAdministrativo) {
-            selectEspecialidad.addEventListener('change', habilitarSeccion);
-        } else {
-            // El coordinador ya tiene especialidad fija: habilitamos Sección apenas entra a la página
-            habilitarSeccion();
-        }
+        botonesSeccion.forEach(boton => {
+            boton.addEventListener('click', () => elegirSeccion(boton.dataset.seccion));
+        });
 
-        selectSeccion.addEventListener('change', cargarAlumnos);
+        btnDescargarZip.addEventListener('click', () => {
+            if (!idEspActual || !seccionActual) return;
+            window.location.href = `/admin/alumnos/zip?idEsp=${idEspActual}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccionActual)}`;
+        });
+
+        // El coordinador entra con la especialidad ya resuelta: le mostramos el
+        // panel de una, sin hacerle elegir lo único que puede elegir.
+        if (!esAdministrativo) {
+            elegirEspecialidad(idEspActual, nombreEspActual);
+        }
 
         // --- Búsqueda por nombre, apellido o CI ---
 
@@ -264,33 +375,49 @@
             const texto = inputBusqueda.value.trim();
             if (!texto) return;
 
-            // El ZIP requiere especialidad/curso/sección puntuales, así que no aplica
-            // sobre resultados de búsqueda (que pueden mezclar cursos y secciones distintas)
-            filtroContainer.style.display = 'none';
-            zipContainer.style.display = 'none';
-            btnLimpiarBusqueda.style.display = 'inline-block';
+            // El ZIP de sección necesita especialidad/curso/sección puntuales, y un
+            // resultado de búsqueda puede mezclar las tres, así que no aplica.
+            filtroEspecialidad.classList.add('oculto');
+            panelBarra.classList.add('oculto');
+            btnDescargarZip.classList.add('oculto');
+            btnLimpiarBusqueda.classList.remove('oculto');
+
+            seccionActual = '';
+            mostrarPanel('', null); // sin color: los resultados pueden ser de varias especialidades
+            mostrarCargando();
 
             fetch(`/admin/api/buscar-alumnos?texto=${encodeURIComponent(texto)}`)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error('respuesta ' + res.status);
+                    return res.json();
+                })
                 .then(alumnos => {
                     if (alumnos.length === 0) {
-                        tabla.style.display = 'none';
-                        mensajeVacio.textContent = 'No se encontró ningún alumno con ese criterio.';
-                        mensajeVacio.style.display = 'block';
+                        actualizarMeta(0);
+                        mostrarEstado('Sin resultados',
+                            `Ningún alumno coincide con "${texto}". Probá con el apellido o el número de CI.`, false);
                         return;
                     }
-                    mensajeVacio.style.display = 'none';
-                    tablaBody.innerHTML = '';
-                    alumnos.forEach(a => tablaBody.appendChild(crearFilaAlumno(a)));
-                    tabla.style.display = 'table';
+                    pintarAlumnos(alumnos);
+                })
+                .catch(() => {
+                    actualizarMeta(null);
+                    mostrarEstado('No se pudo completar la búsqueda',
+                        'Revisá tu conexión y probá de nuevo.', true);
                 });
         }
 
         function limpiarBusqueda() {
             inputBusqueda.value = '';
-            btnLimpiarBusqueda.style.display = 'none';
-            filtroContainer.style.display = 'flex';
-            ocultarTabla();
+            btnLimpiarBusqueda.classList.add('oculto');
+            filtroEspecialidad.classList.remove('oculto');
+            panel.classList.add('oculto');
+            tabla.classList.add('oculto');
+            tablaBody.innerHTML = '';
+            ocultarEstado();
+
+            // Volvemos al estado en que estaba el filtro antes de buscar.
+            if (idEspActual) elegirEspecialidad(idEspActual, nombreEspActual);
         }
 
         btnBuscar.addEventListener('click', ejecutarBusqueda);
