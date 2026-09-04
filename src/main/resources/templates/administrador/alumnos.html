@@ -397,9 +397,8 @@
             chip.addEventListener('click', () => elegirEspecialidad(chip.dataset.esp, chip.dataset.nombre));
         });
 
-        botonesSeccion.forEach(boton => {
-            boton.addEventListener('click', () => elegirSeccion(boton.dataset.seccion));
-        });
+        // Los botones de sección se crean en cargarSecciones() y cada uno se
+        // suscribe ahí mismo, así que acá no hay nada que enganchar.
 
         btnDescargarZip.addEventListener('click', () => {
             if (!idEspActual || !seccionActual) return;
