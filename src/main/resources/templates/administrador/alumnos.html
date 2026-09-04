@@ -79,11 +79,9 @@
             <div class="alumnos-panel-barra" id="panel-barra">
                 <div>
                     <span class="seccion-etiqueta" id="etiqueta-seccion">Sección</span>
-                    <span class="seccion-grupo" role="group" aria-labelledby="etiqueta-seccion">
-                        <button type="button" class="seccion-btn" data-seccion="A" aria-pressed="false">A</button>
-                        <button type="button" class="seccion-btn" data-seccion="B" aria-pressed="false">B</button>
-                        <button type="button" class="seccion-btn" data-seccion="C" aria-pressed="false">C</button>
-                    </span>
+                    <!-- Se llena desde /admin/api/secciones: las secciones reales de la
+                         especialidad, no una lista fija A/B/C. -->
+                    <span class="seccion-grupo" id="grupo-seccion" role="group" aria-labelledby="etiqueta-seccion"></span>
                 </div>
                 <button id="btn-descargar-zip" type="button" class="btn-secondary icono-descargar oculto">Descargar sección (ZIP)</button>
             </div>
@@ -130,7 +128,7 @@
         const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
         const idEspFijoInput = document.getElementById('idEspFijo');
         const chips = Array.from(document.querySelectorAll('.esp-chip'));
-        const botonesSeccion = Array.from(document.querySelectorAll('.seccion-btn'));
+        const grupoSeccion = document.getElementById('grupo-seccion');
 
         // Estado del filtro. Vive acá y no leído del DOM en cada consulta para que
         // la busqueda (que no tiene especialidad) no lo pise sin querer.
@@ -306,19 +304,64 @@
             seccionActual = '';
 
             chips.forEach(c => c.setAttribute('aria-pressed', String(c.dataset.esp === idEsp)));
-            botonesSeccion.forEach(b => b.setAttribute('aria-pressed', 'false'));
 
             mostrarPanel(idEsp, nombre);
             panelBarra.classList.remove('oculto');
             btnDescargarZip.classList.add('oculto');
             actualizarMeta(null);
-            mostrarEstado('Elegí una sección',
-                'Las pasantías son de 3er año, así que solo falta indicar la sección.', false);
+            cargarSecciones();
+        }
+
+        // Las secciones salen de la base, no de una lista fija A/B/C: hay alumnos
+        // cargados en secciones como "1ra" que con la lista fija quedaban
+        // inalcanzables desde el filtro. El endpoint ya existía sin usarse.
+        function cargarSecciones() {
+            grupoSeccion.innerHTML = '';
+            mostrarEstado('Buscando secciones', `Viendo qué secciones de ${CURSO_FIJO} tiene ${nombreEspActual}.`, false);
+
+            fetch(`/admin/api/secciones?idEsp=${idEspActual}&curso=${encodeURIComponent(CURSO_FIJO)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('respuesta ' + res.status);
+                    return res.json();
+                })
+                .then(secciones => {
+                    if (secciones.length === 0) {
+                        panelBarra.classList.add('oculto');
+                        mostrarEstado('Sin alumnos cargados',
+                            `${nombreEspActual} no tiene ningún alumno en ${CURSO_FIJO}.`, false);
+                        return;
+                    }
+
+                    secciones.forEach(seccion => {
+                        const boton = document.createElement('button');
+                        boton.type = 'button';
+                        boton.className = 'seccion-btn';
+                        boton.dataset.seccion = seccion;
+                        boton.setAttribute('aria-pressed', 'false');
+                        boton.textContent = seccion;
+                        boton.addEventListener('click', () => elegirSeccion(seccion));
+                        grupoSeccion.appendChild(boton);
+                    });
+
+                    // Con una sola sección no hay nada que elegir: la abrimos directo.
+                    if (secciones.length === 1) {
+                        elegirSeccion(secciones[0]);
+                        return;
+                    }
+
+                    mostrarEstado('Elegí una sección',
+                        'Las pasantías son de 3er año, así que solo falta indicar la sección.', false);
+                })
+                .catch(() => {
+                    mostrarEstado('No se pudieron cargar las secciones',
+                        'Revisá tu conexión y probá de nuevo.', true);
+                });
         }
 
         function elegirSeccion(seccion) {
             seccionActual = seccion;
-            botonesSeccion.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.seccion === seccion)));
+            grupoSeccion.querySelectorAll('.seccion-btn').forEach(
+                b => b.setAttribute('aria-pressed', String(b.dataset.seccion === seccion)));
             cargarAlumnos();
         }
 
