@@ -1844,6 +1844,78 @@ td input[type="email"] {
     .dias-grid {
         grid-template-columns: 1fr;
     }
+
+    /* Ocho columnas no entran en un teléfono, y el scroll horizontal que
+       tenía antes obliga a arrastrar de ida y vuelta para leer una fila.
+       Cada alumno pasa a ser una tarjeta con sus campos etiquetados.
+
+       Al pasar a display:block el navegador tira los roles implícitos de
+       tabla, así que el marcado los repone a mano (role="table"/"row"/
+       "cell"); si no, un lector de pantalla deja de anunciar la relación
+       entre el dato y su columna. */
+    .tabla-scroll {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .tabla-alumnos {
+        display: block;
+        white-space: normal;
+        overflow: visible;
+    }
+
+    .tabla-alumnos thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+
+    .tabla-alumnos tbody,
+    .tabla-alumnos tr,
+    .tabla-alumnos td {
+        display: block;
+    }
+
+    .tabla-alumnos tr {
+        padding: 0.9rem 1.1rem;
+        border-top: 1px solid var(--line);
+    }
+
+    /* El rayado cebra ordena filas de una tabla; entre tarjetas separadas
+       por borde no ordena nada y solo ensucia. */
+    .tabla-alumnos tbody tr:nth-child(even) {
+        background-color: transparent;
+    }
+
+    .tabla-alumnos td {
+        display: grid;
+        grid-template-columns: 7rem 1fr;
+        align-items: baseline;
+        gap: 0.75rem;
+        border: none;
+        padding: 0.25rem 0;
+    }
+
+    .tabla-alumnos td::before {
+        content: attr(data-label);
+        font-family: var(--font-display);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+    }
+
+    .tabla-alumnos td.celda-acciones {
+        text-align: left;
+        padding-top: 0.6rem;
+    }
+
+    .esp-chip {
+        flex: 1 1 auto;
+    }
 }
 
 /* ---------------- Planilla Semanal (alumno) ---------------- */
