@@ -1481,6 +1481,46 @@ td input[type="email"] {
 :root[data-theme="dark"] [data-esp="3"] { --esp: #4A8052; }
 :root[data-theme="dark"] [data-esp="8"] { --esp: #2F6FB0; }
 
+/* ---------------- Cabecera de la página de alumnos ---------------- */
+
+/* Título y búsqueda comparten renglón: la búsqueda es la vía rápida
+   (ya sé a quién busco) y el filtro de abajo es la vía de recorrido
+   (quiero ver una sección entera). Ponerlas en la misma línea deja claro
+   que son dos caminos al mismo dato y no dos pasos del mismo camino. */
+.alumnos-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.alumnos-cabecera h2 {
+    margin: 0;
+}
+
+.busqueda {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.busqueda input[type="search"] {
+    width: min(20rem, 45vw);
+}
+
+@media (max-width: 720px) {
+    .alumnos-cabecera {
+        align-items: stretch;
+    }
+
+    .busqueda input[type="search"] {
+        width: auto;
+        flex: 1;
+    }
+}
+
 /* ---------------- Selector de especialidad ---------------- */
 
 /* Reemplaza al <select>. Nueve especialidades entran de una en pantalla, y
