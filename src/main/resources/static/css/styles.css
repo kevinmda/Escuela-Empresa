@@ -1481,6 +1481,77 @@ td input[type="email"] {
 :root[data-theme="dark"] [data-esp="3"] { --esp: #4A8052; }
 :root[data-theme="dark"] [data-esp="8"] { --esp: #2F6FB0; }
 
+/* ---------------- Selector de especialidad ---------------- */
+
+/* Reemplaza al <select>. Nueve especialidades entran de una en pantalla, y
+   con el color puesto el ojo la encuentra antes que leyendo una lista. */
+.esp-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.esp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.5rem 1rem 0.5rem 0.75rem;
+    border-radius: var(--radius-btn);
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+/* El punto lleva borde propio para que los colores casi blancos
+   (Química Industrial) sigan leyéndose como punto y no como hueco. */
+.esp-chip::before {
+    content: "";
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background-color: var(--esp);
+    border: 1px solid var(--esp-edge);
+    flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .esp-chip:hover {
+        border-color: var(--esp-edge);
+        background-color: var(--esp-tenue);
+    }
+}
+
+.esp-chip:active {
+    transform: scale(0.97);
+    transition-duration: 0.08s;
+}
+
+/* Seleccionada: el chip se llena con su color y el punto sobra. */
+.esp-chip[aria-pressed="true"] {
+    background-color: var(--esp);
+    border-color: var(--esp-edge);
+    color: var(--esp-ink);
+    font-weight: 600;
+}
+
+.esp-chip[aria-pressed="true"]::before {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .esp-chip:active {
+        transform: scale(0.994);
+    }
+}
+
 /* ---------------- Responsive ---------------- */
 
 @media (max-width: 720px) {
