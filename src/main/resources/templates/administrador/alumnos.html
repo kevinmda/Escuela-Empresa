@@ -43,14 +43,19 @@
             <h2>Gestión de Alumnos</h2>
             <div class="busqueda">
                 <label class="oculto" for="input-busqueda">Buscar alumno</label>
-                <input type="search" id="input-busqueda" placeholder="Nombre, apellido o CI">
-                <button id="btn-buscar" type="button" class="btn-primary icono-buscar">Buscar</button>
+                <span class="busqueda-campo">
+                    <input type="search" id="input-busqueda" placeholder="Buscar por nombre, apellido o CI">
+                </span>
+                <button id="btn-buscar" type="button" class="btn-primary">Buscar</button>
                 <button id="btn-limpiar-busqueda" type="button" class="btn-secondary oculto">Limpiar</button>
             </div>
         </div>
 
-        <section id="filtro-especialidad" aria-labelledby="titulo-especialidad">
-            <h3 id="titulo-especialidad">Especialidad</h3>
+        <section id="filtro-especialidad" class="filtro-panel" aria-labelledby="titulo-especialidad">
+            <div class="filtro-panel-encabezado">
+                <h3 id="titulo-especialidad">Especialidad</h3>
+                <p class="filtro-hint">Elegí una para ver sus alumnos por sección.</p>
+            </div>
 
             <!-- El administrativo elige entre todas; el coordinador ya la tiene fija. -->
             <div th:if="${esAdministrativo}" class="esp-picker" role="group" aria-labelledby="titulo-especialidad">
@@ -58,8 +63,9 @@
                         type="button"
                         class="esp-chip"
                         aria-pressed="false"
-                        th:attr="data-esp=${esp.idEsp},data-nombre=${esp.nombre}"
-                        th:text="${esp.nombre}"></button>
+                        th:attr="data-esp=${esp.idEsp},data-nombre=${esp.nombre}">
+                    <span class="esp-chip-label" th:text="${esp.nombre}"></span>
+                </button>
             </div>
 
             <div th:unless="${esAdministrativo}" class="esp-picker" th:attr="data-esp=${especialidadFija.idEsp}">

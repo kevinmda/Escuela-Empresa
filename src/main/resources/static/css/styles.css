@@ -1502,62 +1502,147 @@ td input[type="email"] {
 
 /* ---------------- Cabecera de la página de alumnos ---------------- */
 
-/* Título y búsqueda comparten renglón: la búsqueda es la vía rápida
-   (ya sé a quién busco) y el filtro de abajo es la vía de recorrido
-   (quiero ver una sección entera). Ponerlas en la misma línea deja claro
-   que son dos caminos al mismo dato y no dos pasos del mismo camino. */
+/* Título a la izquierda, búsqueda a la derecha, mismo renglón. La búsqueda
+   es la vía rápida (ya sé a quién busco); el filtro por especialidad de
+   abajo es la vía de recorrido. En pantalla angosta la búsqueda pasa
+   debajo del título ocupando todo el ancho. */
 .alumnos-cabecera {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .alumnos-cabecera h2 {
     margin: 0;
 }
 
+/* --- Campo de búsqueda: ícono adentro, borde del sistema, un solo control --- */
 .busqueda {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex: 1 1 22rem;
+    min-width: 0;
+    max-width: 30rem;
+}
+
+.busqueda-campo {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Lupa dentro del campo. Emoji para no meter otra familia de íconos: el
+   resto de la app ya usa este set (descargar, guardar, eliminar). */
+.busqueda-campo::before {
+    content: "\1F50D";
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    opacity: 0.55;
+    pointer-events: none;
 }
 
 .busqueda input[type="search"] {
-    width: min(20rem, 45vw);
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--ink);
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-field);
+    padding: 0.55rem 0.85rem 0.55rem 2.4rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-@media (max-width: 720px) {
-    .alumnos-cabecera {
-        align-items: stretch;
-    }
-
-    .busqueda input[type="search"] {
-        width: auto;
-        flex: 1;
-    }
+.busqueda input[type="search"]:focus {
+    border-color: var(--focus);
 }
 
-/* ---------------- Selector de especialidad ---------------- */
+.busqueda input[type="search"]:focus:not(:focus-visible) {
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
 
-/* Reemplaza al <select>. Nueve especialidades entran de una en pantalla, y
-   con el color puesto el ojo la encuentra antes que leyendo una lista. */
-.esp-picker {
+.busqueda input[type="search"]::placeholder {
+    color: var(--ink-soft);
+    opacity: 0.75;
+}
+
+.busqueda input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    height: 0.8rem;
+    width: 0.8rem;
+    background-color: var(--ink-soft);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 2l8 8M10 2l-8 8' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+    cursor: pointer;
+}
+
+.busqueda .btn-primary,
+.busqueda .btn-secondary {
+    flex-shrink: 0;
+}
+
+/* ---------------- Barra de filtro (especialidad + búsqueda) ---------------- */
+
+/* Un panel liviano que agrupa las dos formas de llegar a un alumno. Más
+   quieto que .alumnos-panel (sin lomo de color, sin escuadras): es un
+   control, no un resultado. */
+.filtro-panel {
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    padding: 1.1rem 1.25rem 1.25rem;
+    box-shadow: 0 1px 4px -2px rgba(var(--shadow-tint), 0.1);
+}
+
+.filtro-panel-encabezado {
     display: flex;
+    align-items: baseline;
+    justify-content: space-between;
     flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 0.9rem;
+}
+
+.filtro-panel-encabezado > h3 {
+    margin: 0;
+}
+
+.filtro-hint {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin: 0;
+}
+
+/* Grilla en vez de flex-wrap: los chips quedan en columnas alineadas y del
+   mismo ancho, no en una fila que se corta desparejo. auto-fill mete tantas
+   columnas como entren y colapsa a una sola en pantallas angostas. */
+.esp-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 0.5rem;
-    margin: 0.75rem 0 0;
+    margin: 0;
     padding: 0;
     list-style: none;
+}
+
+/* El coordinador no elige: su especialidad va como etiqueta, ocupando el ancho. */
+.esp-picker:has(.esp-etiqueta) {
+    grid-template-columns: 1fr;
 }
 
 .esp-chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
-    padding: 0.5rem 1rem 0.5rem 0.75rem;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 2.6rem;
+    padding: 0.5rem 1rem;
     border-radius: var(--radius-btn);
     border: 1px solid var(--line);
     background-color: var(--surface);
@@ -1565,8 +1650,18 @@ td input[type="email"] {
     font-family: var(--font-display);
     font-size: 0.85rem;
     font-weight: 500;
-    line-height: 1.2;
+    line-height: 1.25;
+    text-align: left;
     cursor: pointer;
+}
+
+/* El nombre en su propio span: así el nombre largo ("Construcciones
+   Civiles") se corta con puntos suspensivos en vez de romper la grilla. */
+.esp-chip-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* El punto lleva borde propio para que los colores casi blancos
@@ -1602,16 +1697,18 @@ td input[type="email"] {
 }
 
 .esp-chip:active {
-    transform: scale(0.97);
+    transform: scale(0.98);
     transition-duration: 0.08s;
 }
 
-/* Seleccionada: el chip se llena con su color y el punto sobra. */
+/* Seleccionada: se llena con su color, el punto sobra y un anillo fino la
+   despega del resto de la grilla. */
 .esp-chip[aria-pressed="true"] {
     background-color: var(--esp);
     border-color: var(--esp-edge);
     color: var(--esp-ink);
     font-weight: 600;
+    box-shadow: 0 0 0 1px var(--esp-edge), 0 2px 8px -3px rgba(var(--shadow-tint), 0.28);
 }
 
 .esp-chip[aria-pressed="true"]::before {
@@ -1620,7 +1717,7 @@ td input[type="email"] {
 
 @media (prefers-reduced-motion: reduce) {
     .esp-chip:active {
-        transform: scale(0.994);
+        transform: scale(0.995);
     }
 }
 
@@ -1990,8 +2087,17 @@ td input[type="email"] {
         padding-top: 0.6rem;
     }
 
-    .esp-chip {
-        flex: 1 1 auto;
+    .esp-picker {
+        grid-template-columns: 1fr;
+    }
+
+    .filtro-panel-encabezado {
+        margin-bottom: 0.75rem;
+    }
+
+    .busqueda {
+        max-width: none;
+        flex-basis: auto;
     }
 }
 
