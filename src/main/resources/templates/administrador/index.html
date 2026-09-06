@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTN Pasantias ad</title>
+    <title>Inicio | CTN Pasantías</title>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,33 +35,115 @@
         <a th:href="@{/admin/alumnos}" class="nav-links">Alumnos</a>
         <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
     </nav>
+
     <main id="main-content">
-        <section class="saludo">
-            <div class="avatar-circulo" th:text="${#strings.substring(admin.nombres.trim(), 0, 1)}">A</div>
+
+        <!-- Fila 1: saludo + el dato que cambia semana a semana -->
+        <section class="hub-hero" aria-labelledby="hub-saludo">
             <div>
-                <p class="eyebrow">Panel administrativo</p>
-                <h1 th:text="|Bienvenido, ${admin.nombres.trim().split(' ')[0]}!|">Bienvenido!</h1>
+                <h2 class="hub-saludo" id="hub-saludo">Hola,
+                    <span class="hub-saludo-nombre"
+                          th:text="${admin.nombres.trim().split(' ')[0]}">Admin</span>.</h2>
+                <p class="hub-sub">Resumen de la semana y acceso directo a las dos pantallas de trabajo.</p>
+            </div>
+
+            <!-- --hub-meta lleva el porcentaje real; el CSS lo usa para dibujar el arco -->
+            <div class="hub-anillo" th:style="'--hub-meta:' + ${porcentajeCumplimiento}">
+                <span class="hub-anillo-valor"><span th:text="${porcentajeCumplimiento}"
+                                                     th:attr="data-contar=${porcentajeCumplimiento}">0</span><span class="hub-anillo-pct">%</span></span>
+                <span class="hub-anillo-label">planillas entregadas esta semana</span>
+            </div>
+
+            <!-- Los ocho colores de especialidad del colegio. Identidad, no dato:
+                 por eso queda fuera del árbol de accesibilidad. -->
+            <div class="hub-espectro" aria-hidden="true">
+                <span data-esp="1"></span>
+                <span data-esp="2"></span>
+                <span data-esp="4"></span>
+                <span data-esp="5"></span>
+                <span data-esp="6"></span>
+                <span data-esp="7"></span>
+                <span data-esp="8"></span>
+                <span data-esp="9"></span>
             </div>
         </section>
 
-        <div class="panel bienvenida">
-            <p class="bienvenida-texto">Elegí <strong>Alumnos</strong> para gestionar y descargar la documentación por especialidad, curso y sección, o <strong>Reportes</strong> para revisar el cumplimiento semanal de las planillas.</p>
-        </div>
+        <!-- Fila 2: estado del sistema -->
+        <section class="hub-estado" aria-label="Estado del sistema">
+            <div class="hub-tile">
+                <span class="hub-cifra" th:text="${cantidadAlumnos}"
+                      th:attr="data-contar=${cantidadAlumnos}">0</span>
+                <span class="hub-tile-label">Alumnos registrados</span>
+            </div>
 
-        <section class="estadisticas-inicio" aria-label="Resumen del sistema">
-            <div class="estadistica-inicio">
-                <strong th:text="${cantidadAlumnos}">0</strong>
-                <span>Alumnos registrados</span>
+            <div class="hub-tile" th:classappend="${cantidadSinSupervisor > 0} ? ' hub-tile--atencion'">
+                <span th:if="${cantidadSinSupervisor > 0}">
+                    <span class="hub-cifra" th:text="${cantidadSinSupervisor}"
+                          th:attr="data-contar=${cantidadSinSupervisor}">0</span>
+                    <span class="hub-tile-label">Sin supervisor asignado</span>
+                </span>
+                <span th:unless="${cantidadSinSupervisor > 0}">
+                    <span class="hub-ok">Todos con supervisor</span>
+                    <span class="hub-tile-label">No queda ningún alumno por asignar</span>
+                </span>
             </div>
-            <div class="estadistica-inicio">
-                <strong th:text="|${porcentajeCumplimiento}%|">0%</strong>
-                <span>Cumplimiento esta semana</span>
-            </div>
-            <div class="estadistica-inicio">
-                <strong th:text="${cantidadSinSupervisor}">0</strong>
-                <span>Sin supervisor asignado</span>
-            </div>
+        </section>
+
+        <!-- Fila 3: los dos destinos de trabajo -->
+        <section class="hub-destinos" aria-label="Pantallas de trabajo">
+            <a class="hub-destino" th:href="@{/admin/alumnos}">
+                <span>
+                    <span class="hub-destino-titulo">Alumnos</span>
+                    <span class="hub-destino-desc">Gestionar y descargar la documentación por especialidad y sección.</span>
+                </span>
+                <span class="hub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="hub-destino" th:href="@{/admin/reportes}">
+                <span>
+                    <span class="hub-destino-titulo">Reportes</span>
+                    <span class="hub-destino-desc">Revisar el cumplimiento semanal de las planillas.</span>
+                </span>
+                <span class="hub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
         </section>
     </main>
+
+    <script>
+        // Conteo ascendente de las cifras. El valor final ya viene renderizado en
+        // el DOM, así que sin JS (o con reduced motion) el número igual se lee.
+        // Nada de listeners de scroll: solo requestAnimationFrame.
+        (function () {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            // En una pestaña en segundo plano rAF no corre. Mejor no tocar nada
+            // que dejar la cifra clavada en un valor que no es el real.
+            if (document.hidden) return;
+
+            document.querySelectorAll('[data-contar]').forEach(function (nodo) {
+                var fin = parseInt(nodo.dataset.contar, 10);
+                if (!isFinite(fin) || fin === 0) return;
+
+                var duracion = 900;
+
+                // El 0 se escribe dentro del primer frame, no antes: si rAF nunca
+                // llega a ejecutarse, en pantalla queda el valor real del servidor.
+                requestAnimationFrame(function (inicio) {
+                    nodo.textContent = '0';
+
+                    function paso(ahora) {
+                        var p = Math.min(1, (ahora - inicio) / duracion);
+                        var suave = 1 - Math.pow(1 - p, 3); // ease-out cúbico
+                        nodo.textContent = Math.round(fin * suave);
+                        if (p < 1) {
+                            requestAnimationFrame(paso);
+                        } else {
+                            nodo.textContent = fin;
+                        }
+                    }
+                    requestAnimationFrame(paso);
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
