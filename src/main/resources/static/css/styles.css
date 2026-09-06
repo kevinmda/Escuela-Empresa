@@ -1653,6 +1653,14 @@ td input[type="email"] {
     line-height: 1.25;
     text-align: left;
     cursor: pointer;
+    /* Transición propia (reemplaza la del botón base) para que la sombra del
+       estado seleccionado aparezca junto con el relleno de color y no un
+       frame después (§11: lo que pasa en un mismo cambio se mueve junto).
+       El transform de la presión va aparte, más corto y con salida ease-out:
+       la sensación de "respondió al toque" depende de que arranque ya (§1). */
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+                color 0.15s ease, box-shadow 0.15s ease,
+                transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* El nombre en su propio span: así el nombre largo ("Construcciones
@@ -1701,14 +1709,15 @@ td input[type="email"] {
     transition-duration: 0.08s;
 }
 
-/* Seleccionada: se llena con su color, el punto sobra y un anillo fino la
-   despega del resto de la grilla. */
+/* Seleccionada: se llena con su color y el punto sobra. Un realce apenas
+   perceptible la levanta del resto de la grilla; el anillo de 1px que había
+   antes repetía lo que ya hace el borde, así que se fue. */
 .esp-chip[aria-pressed="true"] {
     background-color: var(--esp);
     border-color: var(--esp-edge);
     color: var(--esp-ink);
     font-weight: 600;
-    box-shadow: 0 0 0 1px var(--esp-edge), 0 2px 8px -3px rgba(var(--shadow-tint), 0.28);
+    box-shadow: 0 1px 5px -2px rgba(var(--shadow-tint), 0.28);
 }
 
 .esp-chip[aria-pressed="true"]::before {
