@@ -79,8 +79,9 @@
             <div class="alumnos-panel-barra" id="panel-barra">
                 <div>
                     <span class="seccion-etiqueta" id="etiqueta-seccion">Sección</span>
-                    <!-- Se llena desde /admin/api/secciones: las secciones reales de la
-                         especialidad, no una lista fija A/B/C. -->
+                    <!-- Se llena desde SECCIONES_POR_ESP en el script: cada especialidad
+                         tiene su juego fijo de secciones (A, B, C...), aparezcan o no
+                         alumnos cargados en ellas. -->
                     <span class="seccion-grupo" id="grupo-seccion" role="group" aria-labelledby="etiqueta-seccion"></span>
                 </div>
                 <button id="btn-descargar-zip" type="button" class="btn-secondary icono-descargar oculto">Descargar sección (ZIP)</button>
@@ -113,6 +114,32 @@
 
         const CURSO_FIJO = '3ro'; // las pasantías son siempre en 3er año
         const COLUMNAS = ['Nombres', 'Apellidos', 'CI', 'Email', 'Curso', 'Sección', 'Documentos', 'Descarga'];
+
+        // Secciones que ofrece cada especialidad. Fijas: se muestran aunque no
+        // haya ningún alumno cargado en esa sección, para que el coordinador vea
+        // que existe y esté vacía. La clave es el id de especialidad (string).
+        const SECCIONES_POR_ESP = {
+            '1': ['A', 'B'],           // Informática
+            '2': ['A', 'B', 'C'],      // Electrónica
+            '4': ['A', 'B', 'C'],      // Construcciones Civiles
+            '5': ['A', 'B'],           // Electricidad
+            '6': ['A', 'B'],           // Electromecánica
+            '7': ['A', 'B'],           // Mecánica Industrial
+            '8': ['A', 'B'],           // Mecánica Automotriz
+            '9': ['A', 'B', 'C'],      // Química Industrial
+        };
+        const SECCIONES_POR_DEFECTO = ['A', 'B', 'C'];
+
+        // "1ra"/"1era"/"1" = A, "2da"/"2" = B, "3ra"/"3ro"/"3" = C. Defensa por si
+        // un alumno viene cargado con el nombre viejo desde otra pantalla.
+        function normalizarSeccion(valor) {
+            if (valor == null) return valor;
+            const v = String(valor).trim().toLowerCase();
+            if (['1ra', '1era', '1ro', '1er', '1', '1°', 'primera'].includes(v)) return 'A';
+            if (['2da', '2do', '2', '2°', 'segunda'].includes(v)) return 'B';
+            if (['3ra', '3ro', '3er', '3', '3°', 'tercera'].includes(v)) return 'C';
+            return String(valor).trim().toUpperCase();
+        }
 
         const panel = document.getElementById('alumnos-panel');
         const panelEspecialidad = document.getElementById('panel-especialidad');
@@ -230,7 +257,7 @@
             agregarCelda(fila, a.ci, 'CI');
             agregarCelda(fila, a.email, 'Email');
             agregarCelda(fila, a.curso, 'Curso');
-            agregarCelda(fila, a.seccion, 'Sección');
+            agregarCelda(fila, normalizarSeccion(a.seccion), 'Sección');
 
             const menu = document.createElement('details');
             menu.className = 'documentos-menu';
@@ -312,50 +339,34 @@
             cargarSecciones();
         }
 
-        // Las secciones salen de la base, no de una lista fija A/B/C: hay alumnos
-        // cargados en secciones como "1ra" que con la lista fija quedaban
-        // inalcanzables desde el filtro. El endpoint ya existía sin usarse.
+        // Cada especialidad tiene su juego fijo de secciones (SECCIONES_POR_ESP).
+        // No se consulta la base: las secciones se muestran existan o no alumnos
+        // en ellas, así el coordinador ve que una sección está vacía en vez de
+        // que directamente no aparezca.
         function cargarSecciones() {
             grupoSeccion.innerHTML = '';
-            mostrarEstado('Buscando secciones', `Viendo qué secciones de ${CURSO_FIJO} tiene ${nombreEspActual}.`, false);
 
-            fetch(`/admin/api/secciones?idEsp=${idEspActual}&curso=${encodeURIComponent(CURSO_FIJO)}`)
-                .then(res => {
-                    if (!res.ok) throw new Error('respuesta ' + res.status);
-                    return res.json();
-                })
-                .then(secciones => {
-                    if (secciones.length === 0) {
-                        panelBarra.classList.add('oculto');
-                        mostrarEstado('Sin alumnos cargados',
-                            `${nombreEspActual} no tiene ningún alumno en ${CURSO_FIJO}.`, false);
-                        return;
-                    }
+            const secciones = SECCIONES_POR_ESP[String(idEspActual)] || SECCIONES_POR_DEFECTO;
 
-                    secciones.forEach(seccion => {
-                        const boton = document.createElement('button');
-                        boton.type = 'button';
-                        boton.className = 'seccion-btn';
-                        boton.dataset.seccion = seccion;
-                        boton.setAttribute('aria-pressed', 'false');
-                        boton.textContent = seccion;
-                        boton.addEventListener('click', () => elegirSeccion(seccion));
-                        grupoSeccion.appendChild(boton);
-                    });
+            secciones.forEach(seccion => {
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'seccion-btn';
+                boton.dataset.seccion = seccion;
+                boton.setAttribute('aria-pressed', 'false');
+                boton.textContent = seccion;
+                boton.addEventListener('click', () => elegirSeccion(seccion));
+                grupoSeccion.appendChild(boton);
+            });
 
-                    // Con una sola sección no hay nada que elegir: la abrimos directo.
-                    if (secciones.length === 1) {
-                        elegirSeccion(secciones[0]);
-                        return;
-                    }
+            // Con una sola sección no hay nada que elegir: la abrimos directo.
+            if (secciones.length === 1) {
+                elegirSeccion(secciones[0]);
+                return;
+            }
 
-                    mostrarEstado('Elegí una sección',
-                        'Las pasantías son de 3er año, así que solo falta indicar la sección.', false);
-                })
-                .catch(() => {
-                    mostrarEstado('No se pudieron cargar las secciones',
-                        'Revisá tu conexión y probá de nuevo.', true);
-                });
+            mostrarEstado('Elegí una sección',
+                'Las pasantías son de 3er año, así que solo falta indicar la sección.', false);
         }
 
         function elegirSeccion(seccion) {
