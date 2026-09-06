@@ -144,6 +144,22 @@
                 });
             });
         })();
+
+        // El relleno de cada destino entra por el borde que cruzó el cursor, no
+        // siempre por la izquierda: el movimiento intermedio apunta a donde va
+        // el gesto. El lado se fija en pointerenter, con el relleno todavía en
+        // scaleX(0), así que cambiar el origen no se ve.
+        // Solo aplica con mouse: el hover en CSS ya está detrás de
+        // (hover: hover) and (pointer: fine).
+        (function () {
+            document.querySelectorAll('.hub-destino').forEach(function (destino) {
+                destino.addEventListener('pointerenter', function (evento) {
+                    var caja = destino.getBoundingClientRect();
+                    var entroPorIzquierda = (evento.clientX - caja.left) < caja.width / 2;
+                    destino.style.setProperty('--hub-origen', entroPorIzquierda ? 'left' : 'right');
+                });
+            });
+        })();
     </script>
 </body>
 </html>

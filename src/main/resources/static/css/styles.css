@@ -2100,6 +2100,9 @@ main > .hub-destinos { animation-delay: 0.18s; }
 .hub-anillo-label {
     font-size: 0.72rem;
     line-height: 1.35;
+    /* tracking apenas positivo: es el texto mas chico de la pagina y a 11px
+       el espaciado cerrado le come legibilidad */
+    letter-spacing: 0.01em;
     color: var(--ink-soft);
     /* ancho pensado sobre el diametro interno del aro para que entre en dos
        lineas y no en tres */
@@ -2232,15 +2235,21 @@ main > .hub-destinos { animation-delay: 0.18s; }
                 transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* El relleno dorado entra desde el borde izquierdo al pasar el cursor. */
+/* El relleno dorado entra por el borde que cruzo el cursor, no siempre por
+   la izquierda: el movimiento intermedio apunta a donde va la cosa. El lado
+   lo fija --hub-origen desde el script, antes de que arranque la transicion.
+
+   Barre con scaleX y no con clip-path: es la misma animacion a la vista pero
+   vive solo en el compositor, y de paso el origen orientable sale gratis. */
 .hub-destino::before {
     content: "";
     position: absolute;
     inset: 0;
     z-index: -1;
     background-color: var(--accent-soft);
-    clip-path: inset(0 100% 0 0);
-    transition: clip-path 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: scaleX(0);
+    transform-origin: var(--hub-origen, left) center;
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hub-destino-titulo {
@@ -2276,7 +2285,7 @@ main > .hub-destinos { animation-delay: 0.18s; }
     }
 
     .hub-destino:hover::before {
-        clip-path: inset(0 0 0 0);
+        transform: scaleX(1);
     }
 
     .hub-destino:hover .hub-destino-flecha {
@@ -2284,8 +2293,11 @@ main > .hub-destinos { animation-delay: 0.18s; }
     }
 }
 
+/* Al apretar cae el levante del hover y encima escala: el "se hundio" tiene
+   que notarse de verdad, 0.995 no se percibe. Sale en 0.08s porque la
+   sensacion de que respondio depende de que arranque ya. */
 .hub-destino:active {
-    transform: translateY(0) scale(0.995);
+    transform: translateY(0) scale(0.985);
     transition-duration: 0.08s;
 }
 
@@ -2296,13 +2308,37 @@ main > .hub-destinos { animation-delay: 0.18s; }
     }
 
     .hub-destino,
-    .hub-destino-flecha,
-    .hub-destino::before {
+    .hub-destino-flecha {
         transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    /* El relleno se funde en lugar de barrer: el cambio de estado se sigue
+       leyendo, el movimiento se va. */
+    .hub-destino::before {
+        transform: scaleX(1);
+        opacity: 0;
+        transition: opacity 0.2s ease;
     }
 
     .hub-destino:active {
         transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .hub-destino:hover::before {
+        opacity: 1;
+    }
+}
+
+/* Con contraste alto los bordes del hub dejan de ser una insinuacion: --line
+   sobre --surface da 1.45:1, que a proposito es discreto, pero cuando el
+   sistema pide contraste las superficies necesitan un borde definido. */
+@media (prefers-contrast: more) {
+    .hub-hero,
+    .hub-tile,
+    .hub-destino {
+        border-color: var(--ink-soft);
     }
 }
 
