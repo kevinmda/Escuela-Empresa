@@ -44,6 +44,14 @@
     --radius-btn: 999px;
     --radius-field: 12px;
     --radius-panel: 6px;
+
+    /* Superficie hundida de los campos. Un campo blanco dentro de una tarjeta
+       blanca no se lee como campo: nada dice "esto se llena". Se mezcla --bg
+       dentro de --surface, y como los dos se dan vuelta entre temas la mezcla
+       se hunde en los dos: en claro queda crema sobre blanco, en oscuro queda
+       mas oscura que la tarjeta. Se define una sola vez porque var() resuelve
+       en el elemento, no aca. */
+    --field: color-mix(in srgb, var(--bg) 55%, var(--surface));
 }
 
 :root[data-theme="dark"] {
@@ -1142,16 +1150,23 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
+input[type="number"],
 textarea,
 select {
     font-family: var(--font-body);
     font-size: 0.95rem;
     color: var(--ink);
-    background-color: var(--surface);
+    /* Hundido: relleno mas bajo que la tarjeta y una sombra interna arriba, que
+       es donde pega la luz en un hueco. Antes era blanco sobre blanco con un
+       borde de 1px, y a eso se le puede pedir cualquier cosa menos que parezca
+       un campo. */
+    background-color: var(--field);
     border: 1px solid var(--line);
     border-radius: var(--radius-field);
-    padding: 0.6rem 0.85rem;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    padding: 0.7rem 0.9rem;
+    box-shadow: inset 0 1px 2px rgba(var(--shadow-tint), 0.07);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease,
+                background-color 0.15s ease;
 }
 
 input:focus,
@@ -1161,6 +1176,10 @@ select:focus {
        un indicador de foco es 3:1. Con --focus son 15.6:1 en claro y 8.1:1 en
        oscuro. El borde marca el campo activo en cualquier tipo de foco. */
     border-color: var(--focus);
+    /* El campo sube al plano de la tarjeta y pierde la sombra interna: pasa de
+       hueco a superficie activa. */
+    background-color: var(--surface);
+    box-shadow: none;
 }
 
 /* El halo dorado solo para foco con mouse o touch. Con teclado ya está el outline
@@ -1169,6 +1188,14 @@ input:focus:not(:focus-visible),
 textarea:focus:not(:focus-visible),
 select:focus:not(:focus-visible) {
     box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    input:hover:not(:focus),
+    textarea:hover:not(:focus),
+    select:hover:not(:focus) {
+        border-color: color-mix(in srgb, var(--ink-soft) 55%, var(--line));
+    }
 }
 
 input[aria-invalid="true"],
@@ -1183,9 +1210,13 @@ textarea::placeholder {
     opacity: 0.75;
 }
 
+/* Llegar al tope de caracteres no es un error, es un limite alcanzado: va en el
+   dorado con el que la casa avisa de algo pendiente, no en el rojo que queda
+   reservado para cuando algo se rompio. Lo inserta planillaSemanal.js debajo de
+   cada campo con maxlength. */
 .aviso-limite {
     display: none;
-    color: var(--danger);
+    color: var(--accent-ink);
     font-size: 0.78rem;
     margin-top: 0.3rem;
 }
@@ -1195,11 +1226,17 @@ textarea::placeholder {
 button,
 .btn {
     font-family: var(--font-display);
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 600;
+    letter-spacing: -0.005em;
     cursor: pointer;
     border-radius: var(--radius-btn);
-    padding: 0.55rem 1.1rem;
+    /* Los botones no heredan el line-height del body (el reset no lo pone y los
+       controles de formulario no lo toman), asi que la caja se arma con el
+       normal del navegador, ~1.2. Con 0.78rem de relleno vertical el boton mide
+       44px, que es el minimo comodo para tocar con el dedo; antes media 40. Los
+       del header y del nav declaran su propio padding y no se mueven. */
+    padding: 0.78rem 1.35rem;
     border: 1px solid transparent;
     text-decoration: none;
     display: inline-block;
@@ -1237,37 +1274,71 @@ button[type="submit"]:active,
     box-shadow: none;
 }
 
+/* El primario tiene volumen: un degradado minimo, el filo de luz arriba y una
+   sombra corta abajo. Las tres cosas se mezclan hacia blanco puro y no hacia
+   --text-on-ink, porque la luz viene de arriba en los dos temas: en claro el
+   boton es navy y el borde superior se aclara, en oscuro el boton es casi
+   blanco y el borde superior se aclara igual. Mezclando hacia --text-on-ink,
+   en oscuro se oscureceria arriba y la luz vendria de abajo. */
 button[type="submit"],
 .btn-primary {
     background-color: var(--ink);
+    background-image: linear-gradient(to bottom,
+        color-mix(in srgb, #ffffff 13%, var(--ink)),
+        var(--ink));
     color: var(--text-on-ink);
+    border-color: color-mix(in srgb, #000000 16%, var(--ink));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.17),
+                0 1px 2px rgba(var(--shadow-tint), 0.3);
 }
 
 button[type="submit"]:hover,
 .btn-primary:hover {
     background-color: var(--accent-ink);
+    background-image: linear-gradient(to bottom,
+        color-mix(in srgb, #ffffff 13%, var(--accent-ink)),
+        var(--accent-ink));
+    border-color: color-mix(in srgb, #000000 16%, var(--accent-ink));
 }
 
+/* El secundario deja de ser transparente: apoyado sobre la superficie y con su
+   propia sombra, se lee como un boton y no como texto con un borde alrededor. */
+/* background-image: none es obligatorio, no decorativo: el primario pinta su
+   volumen con un degradado, y button[type="submit"] (0,1,1) le gana en
+   especificidad a .btn-secondary (0,1,0). Sin resetear la imagen, un boton de
+   envio con esta clase se queda con el degradado del primario encima. */
 .btn-secondary {
-    background-color: transparent;
+    background-color: var(--surface);
+    background-image: none;
+    box-shadow: 0 1px 2px rgba(var(--shadow-tint), 0.12);
     color: var(--ink);
     border-color: var(--line);
+    box-shadow: 0 1px 2px rgba(var(--shadow-tint), 0.12);
 }
 
 .btn-secondary:hover {
-    border-color: var(--ink);
+    background-color: var(--field);
+    background-image: none;
+    border-color: var(--ink-soft);
 }
 
+/* El borde iba en --danger-soft, que contra el blanco da 1.1:1: el contorno del
+   boton era practicamente invisible, y al lado de un secundario que si tiene
+   borde parecia texto suelto. La mezcla al 45% lo hace visible sin gritar. */
 .btn-danger,
 form[action*="eliminar"] button {
-    background-color: transparent;
+    background-color: var(--surface);
+    background-image: none;
     color: var(--danger);
-    border-color: var(--danger-soft);
+    border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+    box-shadow: 0 1px 2px rgba(var(--shadow-tint), 0.12);
 }
 
 .btn-danger:hover,
 form[action*="eliminar"] button:hover {
     background-color: var(--danger-soft);
+    background-image: none;
+    border-color: var(--danger);
 }
 
 .btn-generar-pdf.deshabilitado {
@@ -3648,10 +3719,6 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
         margin-top: 1.5rem;
     }
 
-    .dias-grid {
-        grid-template-columns: 1fr;
-    }
-
     /* Ocho columnas no entran en un teléfono, y el scroll horizontal que
        tenía antes obliga a arrastrar de ida y vuelta para leer una fila.
        Cada alumno pasa a ser una tarjeta con sus campos etiquetados.
@@ -3919,7 +3986,8 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     }
 }
 
-/* ---------------- Planilla Semanal (alumno) ---------------- */
+/* ---------------- Utilidades de pagina compartidas ----------------
+   Definidas aca por historia, pero las usan tambien Imprimir y Subir. */
 
 .subtitulo-pagina {
     color: var(--ink-soft);
@@ -3937,69 +4005,573 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     margin: 1.75rem 0 0.85rem;
 }
 
-.selector-semana {
-    align-items: flex-end;
-    margin-bottom: 1.5rem;
-}
+/* ---------------- Portada de pantalla (area del alumno) ----------------
 
-.selector-semana select {
-    min-width: 260px;
-}
+   Componente compartido por Planilla Semanal y Subir. Se escribio primero para
+   la planilla y despues lo pidio Subir tal cual, asi que vive aca y no en el
+   bloque de una pantalla: duplicarlo era garantizar que las dos se despeguen.
 
-.dias-grid {
+   La pantalla abria con un h2 gris y un parrafo gris sobre el fondo crema, y el
+   contador de semanas era una linea chiquita perdida a la derecha del riel. Todo
+   el color que tenia la pagina eran hairlines.
+
+   Ahora abre con un campo del color de la especialidad del alumno. No es un
+   color nuevo: es el mismo con el que su inicio lo identifica, y esta es su
+   planilla. El alumno de Quimica Industrial ve una pantalla distinta a la del de
+   Informatica, con la misma estructura. */
+
+.portada {
+    position: relative;
+    overflow: hidden;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.5rem 2.5rem;
+    margin-bottom: 1.5rem;
+    padding: 2.1rem 2.25rem;
+    background-color: var(--esp);
+    /* --esp-edge y no --line: con Quimica Industrial o Electronica el relleno
+       casi no separa de --bg y el borde es lo unico que define el campo. */
+    border: 1px solid var(--esp-edge);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 2px 16px -7px rgba(var(--shadow-tint), 0.2);
+    color: var(--esp-ink);
+    background-image:
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--esp-ink) 11%, transparent) 0 1px, transparent 1px 26px),
+        repeating-linear-gradient(90deg, color-mix(in srgb, var(--esp-ink) 11%, transparent) 0 1px, transparent 1px 26px);
 }
 
-.dia-bloque {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1.1rem 1.25rem;
+/* Las escuadras de esquina de .panel, a escala de portada y en --esp-ink. */
+.portada::before,
+.portada::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--esp-ink);
+    opacity: 0.5;
 }
 
-.dia-bloque h3 {
+.portada::before {
+    top: 10px;
+    left: 10px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.portada::after {
+    bottom: 10px;
+    right: 10px;
+    border-left: none;
+    border-top: none;
+}
+
+/* main h2 le pone barra dorada y sangria a todos los h2. Sobre el campo de color
+   la barra dorada no tiene nada que hacer. */
+.portada-titulo {
+    margin: 0;
+    padding: 0;
+    border-left: none;
     font-family: var(--font-display);
-    font-size: 0.95rem;
+    font-size: clamp(1.75rem, 3.6vw, 2.4rem);
     font-weight: 600;
-    color: var(--accent-ink);
-    margin-bottom: 0.25rem;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
 }
 
-.dia-bloque label {
-    margin-top: 0.25rem;
+.portada-sub {
+    margin: 0.8rem 0 0;
+    max-width: 46ch;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--esp-ink) 82%, transparent);
 }
 
-.dia-bloque textarea {
-    min-height: 60px;
-    resize: none;
+/* La cuenta como cifra grande y no como renglon de texto: 3 de 6 es el dato que
+   contesta "cuanto me falta", y merece el tamano que tiene esa pregunta. */
+.portada-cuenta {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    justify-items: start;
+    gap: 0 0.5rem;
+    margin: 0;
+    padding: 0.95rem 1.3rem 0.85rem;
+    border-radius: var(--radius-panel);
+    background-color: color-mix(in srgb, var(--esp-ink) 11%, transparent);
+    /* Dos sombras internas y no un anillo parejo: la chapa esta hundida en el
+       campo de color, y la luz viene de arriba, asi que su borde interno
+       superior queda en sombra. Con el anillo solo, la cifra parecia apoyada
+       sobre el campo en vez de embutida en el. */
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--esp-ink) 18%, transparent),
+                inset 0 2px 3px color-mix(in srgb, var(--esp-ink) 15%, transparent);
 }
 
-.resumen-semana {
+.portada-cifra {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+    font-variant-numeric: tabular-nums;
+}
+
+.portada-total {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: color-mix(in srgb, var(--esp-ink) 80%, transparent);
+}
+
+.portada-label {
+    grid-column: 1 / -1;
+    margin-top: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--esp-ink) 78%, transparent);
+}
+
+@media (max-width: 900px) {
+    /* Apila: el titulo arriba y la cuenta debajo, alineada a la izquierda como
+       todo lo demas. */
+    .portada {
+        grid-template-columns: 1fr;
+        padding: 1.75rem 1.5rem;
+    }
+
+    .portada-cuenta {
+        justify-self: start;
+    }
+}
+
+/* ---------------- Planilla Semanal (alumno) ----------------
+
+   Dos objetos organizan la pantalla, y ninguno de los dos existia antes: las
+   seis semanas de la pasantia, y la semana como una secuencia de dias.
+
+   1. LAS SEIS SEMANAS. El limite es real, el servicio corta en la sexta ("Ya
+      cargaste las 6 semanas de planilla"), pero la pantalla no lo decia en
+      ningun lado: habia un <select> con las semanas ya cargadas y, en otro
+      lugar, un boton "+ Cargar semana nueva". Entre los dos no contestaban ni
+      cuantas van ni cuantas faltan. Ahora son seis casilleros: los cargados son
+      enlaces a su planilla, el siguiente es el boton (mismo id de antes) y los
+      que faltan quedan punteados. Cuatro estados con significados que la casa
+      ya usa: relleno en --ink para el que se esta mirando, superficie solida
+      para los cargados, dorado para el que toca cargar (dorado es pendiente) y
+      punteado para el vacio.
+
+   2. LA SEMANA. Los seis dias eran seis tarjetas iguales en una grilla auto-fit
+      que segun el ancho se reacomodaban en 2, 3, 4 o 5 columnas, con lo cual
+      dejaban de leerse como una semana. Ahora son seis renglones en orden de
+      lunes a sabado, que es la forma que tiene el papel y la que le da al campo
+      de descripcion, el que mas se escribe, todo el ancho disponible.
+
+   Las etiquetas de columna se ven solo en el primer renglon y funcionan como
+   encabezado de la tabla; en los demas siguen en el DOM para el lector de
+   pantalla pero se ocultan a la vista. En movil, donde cada dia se apila solo,
+   vuelven a verse todas. */
+
+/* ---------- Las seis semanas ---------- */
+
+.pl-semanas {
+    margin-bottom: 2.25rem;
+}
+
+.pl-riel {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pl-semana {
+    display: flex;
+}
+
+/* La caja es la misma para los cuatro estados: cambia el relleno, no la forma.
+   Se declara para <a>, <button> y <span> a la vez porque cada estado usa el
+   elemento que le corresponde. */
+.pl-semana-caja {
     display: flex;
     flex-direction: column;
+    gap: 0.2rem;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 4.75rem;
+    padding: 1.05rem 0.85rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    background-color: var(--surface);
+    text-align: left;
+    text-decoration: none;
+    color: inherit;
+    font: inherit;
+    cursor: default;
+    transition: border-color 0.16s ease,
+                background-color 0.16s ease,
+                box-shadow 0.16s ease,
+                transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pl-semana-orden {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.pl-semana-fechas {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+}
+
+/* Cada casillero lleva arriba una barra que dice su estado. En las cargadas es
+   del color de la especialidad, y es lo que le pone color al riel sin inundar
+   seis cajas del mismo relleno. */
+.pl-semana-caja::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: color-mix(in srgb, var(--ink-soft) 22%, transparent);
+}
+
+.pl-semana-caja--cargada {
+    cursor: pointer;
+    box-shadow: 0 1px 4px -2px rgba(var(--shadow-tint), 0.2);
+}
+
+.pl-semana-caja--cargada::before {
+    background-color: var(--esp);
+    box-shadow: inset 0 -1px 0 var(--esp-edge);
+}
+
+/* La que se esta mirando: relleno completo del color de la especialidad, que es
+   el mismo de la portada. El riel entero se lee de una: una llena, unas cuantas
+   con su barra de color, la proxima en dorado, las que faltan punteadas. */
+.pl-semana-caja--activa {
+    background-color: var(--esp);
+    border-color: var(--esp-edge);
+    color: var(--esp-ink);
+    box-shadow: 0 4px 14px -6px rgba(var(--shadow-tint), 0.35);
+}
+
+.pl-semana-caja--activa::before {
+    background-color: color-mix(in srgb, var(--esp-ink) 55%, transparent);
+    box-shadow: none;
+}
+
+.pl-semana-caja--activa .pl-semana-fechas {
+    color: color-mix(in srgb, var(--esp-ink) 80%, transparent);
+}
+
+/* La proxima a cargar: dorado, que en esta casa significa pendiente. Es el
+   unico casillero sobre el que hay algo que hacer. */
+.pl-semana-caja--nueva {
+    cursor: pointer;
+    background-color: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+}
+
+.pl-semana-caja--nueva::before {
+    background-color: var(--accent);
+}
+
+.pl-semana-caja--nueva .pl-semana-fechas {
+    color: inherit;
+}
+
+/* Mientras se completa el formulario el boton queda deshabilitado, y ese estado
+   es justamente "esta es la que estas cargando". Sin esto se lo comeria el
+   opacity 0.5 global de los botones deshabilitados y pareceria apagado. */
+.pl-semana-caja--nueva:disabled {
+    opacity: 1;
+    cursor: default;
+    background-color: var(--esp);
+    border-color: var(--esp-edge);
+    color: var(--esp-ink);
+    box-shadow: 0 4px 14px -6px rgba(var(--shadow-tint), 0.35);
+}
+
+.pl-semana-caja--nueva:disabled::before {
+    background-color: color-mix(in srgb, var(--esp-ink) 55%, transparent);
+}
+
+/* Todavia no le toca: punteada, que es como se dice vacio en toda la app. */
+.pl-semana-caja--vacia {
+    background-color: transparent;
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--ink-soft) 42%, transparent);
+    color: var(--ink-soft);
+}
+
+.pl-semana-caja--vacia::before {
+    background-color: transparent;
+    border-top: 2px dashed color-mix(in srgb, var(--ink-soft) 42%, transparent);
+    height: 0;
+}
+
+.pl-semana-caja--vacia .pl-semana-orden {
+    font-weight: 500;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .pl-semana-caja--cargada:hover,
+    .pl-semana-caja--nueva:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px -8px rgba(var(--shadow-tint), 0.32);
+    }
+
+    .pl-semana-caja--cargada:hover {
+        border-color: var(--ink-soft);
+    }
+}
+
+.pl-semana-caja--cargada:active,
+.pl-semana-caja--nueva:not(:disabled):active {
+    transform: translateY(0) scale(0.985);
+    transition-duration: 0.08s;
+}
+
+.pl-semana-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.85rem;
+}
+
+/* ---------- Los bloques del formulario ---------- */
+
+.pl-bloque {
+    margin-bottom: 1.5rem;
+    padding: 1.9rem 2.1rem;
+}
+
+.pl-bloque-encabezado {
+    margin-bottom: 1.35rem;
+}
+
+.pl-bloque-titulo {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.pl-bloque-nota {
+    margin: 0.45rem 0 0;
+    max-width: 60ch;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+/* ---------- Los seis dias ---------- */
+
+.pl-dias {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.pl-dia {
+    display: grid;
+    grid-template-columns: 7.5rem 9.5rem minmax(0, 1fr) 5.75rem;
+    align-items: end;
+    gap: 0.85rem;
+    /* El margen negativo deja que el relleno del dia cargado llegue mas alla del
+       texto y se lea como un renglon entero. */
+    margin-inline: -0.85rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-panel);
+    transition: background-color 0.22s ease;
+}
+
+/* Un dia cargado se ve cargado. Antes la unica diferencia entre un dia lleno y
+   uno vacio era que los campos tenian texto adentro. */
+.pl-dia:has(.pl-dia-desc:not(:placeholder-shown)) {
+    background-color: var(--esp-tenue);
+}
+
+/* La ficha de dos letras, como la de un calendario. Le da un eje a la tabla y
+   dice el estado del dia sin sumar un renglon de texto. */
+.pl-dia-id {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding-bottom: 0.5rem;
+}
+
+.pl-dia-chip {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: var(--radius-panel);
+    background-color: var(--field);
+    /* Punteada mientras el dia esta vacio y solida cuando se carga. El relleno
+       solo no alcanza: cuatro de las ocho especialidades tienen un --esp tan
+       claro que contra el relleno del campo no se distingue (Quimica Industrial
+       es casi blanca). Punteado contra solido funciona en las ocho. */
+    border: 1px dashed color-mix(in srgb, var(--ink-soft) 45%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+}
+
+.pl-dia:has(.pl-dia-desc:not(:placeholder-shown)) .pl-dia-chip {
+    background-color: var(--esp);
+    border-style: solid;
+    border-color: var(--esp-edge);
+    color: var(--esp-ink);
+}
+
+/* El nombre del dia se afirma cuando el dia tiene algo escrito. Es tipografia y
+   no un punto de color: se ve de un vistazo cuales dias estan cargados sin
+   sumarle otro codigo cromatico a la pantalla. */
+.pl-dia-nombre {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    line-height: 1.25;
+    color: var(--ink-soft);
+    transition: color 0.18s ease;
+}
+
+.pl-dia:has(.pl-dia-desc:not(:placeholder-shown)) .pl-dia-nombre {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+/* El campo es la etiqueta: <label> envolviendo al input, sin depender de un for
+   que apunte al id que genera Thymeleaf. Antes las etiquetas eran <label> sueltos
+   sin asociar a nada. */
+.pl-campo {
+    display: block;
+    margin: 0;
+}
+
+.pl-campo-etiqueta {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.pl-campo input,
+.pl-campo textarea {
+    width: 100%;
+}
+
+.pl-campo--que textarea {
+    min-height: 2.6rem;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+/* Solo el primer renglon muestra las etiquetas de columna: hacen de encabezado
+   de la tabla. En los demas siguen en el DOM, ocultas a la vista, para que cada
+   campo siga teniendo su etiqueta en el lector de pantalla. */
+.pl-dia:not(:first-child) .pl-campo-etiqueta {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+/* El total es el numero que despues sale en el PDF y en el informe. Como
+   renglon de texto al pie no lo miraba nadie; como cifra en su propia chapa,
+   se ve desde el otro lado de la pantalla. */
+.pl-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin: 1.6rem 0 0;
+    padding: 0.9rem 1.25rem;
+    background-color: var(--esp-tenue);
+    border: 1px solid var(--esp-edge);
+    border-radius: var(--radius-panel);
+}
+
+.pl-total-etiqueta {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+}
+
+/* El peor caso de los cinco: 2rem con la interlinea de 1.5 heredada arma una
+   caja de linea de 48px para un glifo de 32, o sea 16px de aire muerto dentro
+   de una chapa que se dimensiona por su contenido. */
+.pl-total-valor {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+}
+
+.pl-total-unidad {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+}
+
+/* ---------- El resumen ---------- */
+
+.pl-resumen {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.1rem;
 }
 
-.resumen-semana textarea {
-    min-height: 70px;
-    resize: none;
+.pl-campo--supervisor {
+    grid-column: 1 / -1;
+    max-width: 32rem;
+}
+
+.pl-resumen textarea {
+    min-height: 5.5rem;
+    resize: vertical;
+    line-height: 1.5;
 }
 
 .acciones-planilla {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
     margin-top: 1.5rem;
 }
 
-#btnNuevo {
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
 .fieldset-planilla {
     border: none;
+    padding: 0;
+    margin: 0;
     transition: opacity 0.2s ease;
 }
 
@@ -4013,28 +4585,207 @@ button:disabled,
     cursor: not-allowed;
 }
 
-.nota-planilla-vacia {
-    margin-top: 2.5rem;
-    max-width: 480px;
+/* ---------- Descargas ---------- */
+
+.pl-descargas {
+    margin-top: 3rem;
 }
 
-.nota-planilla-vacia h3 {
+.pl-descargas-titulo {
+    margin: 0 0 0.85rem;
     font-family: var(--font-display);
-    font-size: 1rem;
-    margin-bottom: 0.4rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
 }
 
-.nota-planilla-vacia p {
+.pl-descarga {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem 2rem;
+    padding: 1.35rem 0;
+}
+
+.pl-descarga + .pl-descarga {
+    border-top: 1px solid var(--line);
+}
+
+.pl-descarga-nombre {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.pl-descarga-desc {
+    margin: 0.3rem 0 0;
+    max-width: 52ch;
+    font-size: 0.87rem;
+    line-height: 1.55;
     color: var(--ink-soft);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
 }
 
-.dia-bloque input,
-.dia-bloque textarea,
-.resumen-semana input,
-.resumen-semana textarea {
-    width: 100%;
+/* Los tres requisitos del informe. Antes eran tres renglones con un caracter
+   ✔ o ✘ escrito como texto plano. */
+.pl-requisitos {
+    margin: 0.85rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.pl-requisito {
+    position: relative;
+    padding-left: 1.35rem;
+    font-size: 0.84rem;
+    line-height: 1.4;
+    color: var(--ink-soft);
+}
+
+/* Falta: cuadro punteado, el vacio de siempre. */
+.pl-requisito::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.28rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 1.5px dashed color-mix(in srgb, var(--ink-soft) 55%, transparent);
+    border-radius: 2px;
+}
+
+/* Cumplido: el cuadro se llena con el verde que la casa ya usa para el estado
+   resuelto en badge-success, y el texto deja de estar apagado. */
+.pl-requisito--listo {
+    color: var(--ink);
+}
+
+.pl-requisito--listo::before {
+    border: 1.5px solid var(--success);
+    background-color: var(--success);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pl-semana-caja {
+        transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .pl-semana-caja--cargada:active,
+    .pl-semana-caja--nueva:not(:disabled):active {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .pl-semana-caja--cargada:hover,
+    .pl-semana-caja--nueva:not(:disabled):hover {
+        transform: none;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .pl-semana-caja,
+    .pl-descarga + .pl-descarga {
+        border-color: var(--ink-soft);
+    }
+
+    .pl-requisito::before {
+        border-color: var(--ink-soft);
+    }
+}
+
+/* El colapso movil de esta pantalla va en su propio @media y no en el compartido
+   de mas arriba: ese bloque esta en la mitad del archivo y estas reglas se
+   declaran despues, asi que con la misma especificidad ganaria el orden de
+   fuente y el media query quedaria sin efecto. */
+@media (max-width: 900px) {
+    /* Seis casilleros no entran a este ancho sin quedar ilegibles: pasan a dos
+       filas de tres, que sigue leyendose como las seis semanas. */
+    .pl-riel {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pl-resumen {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .pl-riel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Cada dia se apila solo, asi que las etiquetas vuelven a verse todas: acá
+       ya no hay columnas que puedan hacer de encabezado. */
+    .pl-dia {
+        grid-template-columns: 1fr 6.5rem;
+        margin-inline: -0.75rem;
+        padding: 0.75rem;
+        align-items: start;
+        gap: 0.6rem 0.75rem;
+        padding-bottom: 0.9rem;
+    }
+
+    .pl-dia + .pl-dia {
+        border-top: 1px solid var(--line);
+        border-radius: 0;
+    }
+
+    /* Las filas van explicitas: sin esto el auto-placement deja a Fecha con
+       media fila vacia al lado y manda Horas a una fila propia, tambien a
+       medias. Fecha y Horas son los dos campos cortos, van juntos. */
+    .pl-dia-id {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        padding-bottom: 0;
+    }
+
+    .pl-dia-nombre {
+        font-size: 1rem;
+    }
+
+    .pl-campo--fecha {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .pl-campo--horas {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .pl-campo--que {
+        grid-column: 1 / -1;
+        grid-row: 3;
+    }
+
+    .pl-dia:not(:first-child) .pl-campo-etiqueta {
+        position: static;
+        width: auto;
+        height: auto;
+        margin: 0 0 0.3rem;
+        overflow: visible;
+        clip-path: none;
+    }
+
+    .pl-descarga {
+        grid-template-columns: 1fr;
+    }
+
+    .pl-descarga-accion .btn {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 /* ---------------- Imprimir (alumno) ----------------
@@ -4105,11 +4856,14 @@ button:disabled,
     color: var(--ink);
 }
 
+/* 1.55 y no 1.5: la interlinea va al reves que el cuerpo, y esta nota es mas
+   chica que la descripcion del documento (0.84rem contra 0.87rem) pero tenia la
+   interlinea mas apretada de las dos. */
 .impr-momento-nota {
     margin: 0.55rem 0 0;
     max-width: 56ch;
     font-size: 0.84rem;
-    line-height: 1.5;
+    line-height: 1.55;
     color: var(--ink-soft);
 }
 
@@ -4215,6 +4969,20 @@ button:disabled,
         transparent 1px 0.45rem);
 }
 
+/* La linea de firma, abajo a la izquierda. La mitad inferior de la hoja quedaba
+   vacia, y ademas es lo que define a estos papeles: son formularios que alguien
+   firma. Un renglon corto ahi abajo equilibra la composicion y hace que la
+   marca se lea como "formulario para firmar" y no como "pagina de texto". */
+.impr-hoja-cara::after {
+    content: "";
+    position: absolute;
+    left: 0.3rem;
+    bottom: 0.7rem;
+    width: 62%;
+    height: 1px;
+    background-color: var(--line);
+}
+
 /* El ultimo renglon corto, como termina cualquier parrafo de verdad. */
 .impr-hoja-renglones::after {
     content: "";
@@ -4227,24 +4995,33 @@ button:disabled,
 }
 
 /* Cuatro hojas se dicen apilando cuatro hojas. Dos capas atras alcanzan para
-   leer "son varias" sin dibujar las cuatro. */
+   leer "son varias" sin dibujar las cuatro.
+
+   Las capas no pueden ser del mismo blanco que la de adelante: tres rectangulos
+   identicos se leen como tres contornos, no como tres hojas. Cada una se hunde
+   un poco hacia --bg y lleva su propia sombra, asi que la de mas atras es la
+   mas apagada. Se mezcla hacia --bg y no hacia --ink porque --bg es mas oscuro
+   que --surface en los dos temas; hacia --ink, en oscuro las capas se
+   aclararian y se adelantarian en vez de hundirse. */
 .impr-hoja--pila::before,
 .impr-hoja--pila::after {
     content: "";
     position: absolute;
     inset: 0;
     z-index: 0;
-    background-color: var(--surface);
     border: 1px solid var(--line);
     border-radius: 2px;
+    box-shadow: 0 1px 2px -1px rgba(var(--shadow-tint), 0.2);
 }
 
 .impr-hoja--pila::before {
     transform: translate(5px, -5px);
+    background-color: color-mix(in srgb, var(--surface) 62%, var(--bg));
 }
 
 .impr-hoja--pila::after {
     transform: translate(2.5px, -2.5px);
+    background-color: color-mix(in srgb, var(--surface) 81%, var(--bg));
 }
 
 .impr-hoja-cuenta {
@@ -4282,6 +5059,9 @@ button:disabled,
     margin: 0.5rem 0 0;
     font-family: var(--font-mono);
     font-size: 0.74rem;
+    /* El texto chico pide un poco de tracking, al reves que el display. Era el
+       unico mono del bloque sin ajustar: la cuenta de hojas ya lleva 0.04em. */
+    letter-spacing: 0.02em;
     line-height: 1.4;
     color: var(--accent-ink);
 }
@@ -4346,8 +5126,8 @@ button:disabled,
    720px) compartido de mas arriba: ese bloque esta en la mitad del archivo y
    las reglas de Imprimir se declaran despues, asi que con la misma
    especificidad gana el orden de fuente y el media query queda sin efecto.
-   Pasa lo mismo con la regla de .dias-grid que quedo alla arriba, solo que ahi
-   no se nota porque su version de escritorio usa auto-fit y colapsa sola. */
+   Planilla Semanal, que se declara mas abajo todavia, tiene el suyo por lo
+   mismo. */
 @media (max-width: 720px) {
     /* La hoja y el titulo comparten el primer renglon, y las acciones bajan
        cruzando las dos columnas y repartiendose el ancho. */
@@ -4371,44 +5151,190 @@ button:disabled,
     }
 }
 
-/* ---------------- Subir (alumno) ---------------- */
+/* ---------------- Subir (alumno) ----------------
 
-.upload-card {
-    max-width: 480px;
-    margin: 0 0 2rem;
-}
+   El expediente son diez comprobantes: seis plantillas semanales y uno de cada
+   uno de los otros cuatro tipos. El limite existe de verdad, LimitesDocumentoService
+   corta ahi, pero la pantalla no lo decia en ningun lado: los cinco tipos vivian
+   en un <select>, y el limite de cada uno mas cuantos llevabas subidos estaban
+   escondidos en atributos data de cada <option>. Habia que elegir un tipo para
+   recien enterarte de que ese ya estaba completo.
 
-.upload-card form {
+   Ahora los cinco son radios con forma de tarjeta y cada uno dice su cuenta.
+   Punteado mientras falta, solido cuando esta completo, relleno del color de la
+   especialidad cuando es el que estas subiendo. Punteado es vacio en toda la
+   app, asi que el completo NO puede ser el punteado. */
+
+.sb-form {
     display: flex;
     flex-direction: column;
-    gap: 1.1rem;
+    gap: 1.6rem;
+    margin-bottom: 2.5rem;
+    padding: 1.9rem 2.1rem;
 }
+
+/* ---------- Los cinco tipos ---------- */
+
+.sb-tipos {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+/* 1.25 y no el 1.5 que hereda del body: ese es el interlineado de un parrafo,
+   y aca es un titulo de una linea. La interlinea va al reves que el cuerpo. */
+.sb-tipos-titulo {
+    margin: 0 0 0.9rem;
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    color: var(--ink);
+}
+
+/* Cinco columnas fijas y no auto-fit: los tipos son exactamente cinco, y con
+   auto-fit el ancho de escritorio daba cuatro columnas, o sea 4 + 1 con la
+   quinta sola al lado de un hueco. Cinco en una fila es la unica reparticion
+   sin sobrante; abajo pasa a 3 + 2, que si es una reparticion deliberada. */
+.sb-tipos-grilla {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+/* Pendiente: punteada, como se dice vacio en el resto de la app. */
+.sb-tipo {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.95rem 1rem;
+    background-color: var(--field);
+    border: 1px dashed color-mix(in srgb, var(--ink-soft) 45%, transparent);
+    border-radius: var(--radius-panel);
+    cursor: pointer;
+    transition: background-color 0.18s ease,
+                border-color 0.18s ease,
+                color 0.18s ease,
+                transform 0.14s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.18s ease;
+}
+
+/* El radio se oculta a la vista pero sigue enfocable y sigue siendo el que
+   manda el valor: el campo se llama tipoDocumento igual que antes. */
+.sb-tipo input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+/* El anillo de foco lo dibuja la tarjeta, porque el radio no se ve. */
+.sb-tipo:has(input:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+}
+
+.sb-tipo-nombre {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+}
+
+.sb-tipo-cuenta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+}
+
+/* Completo: solida y apoyada en la superficie, con la cuenta en el verde que la
+   casa ya usa para el estado resuelto. Viene deshabilitada desde el servidor,
+   que es donde de verdad se corta. */
+.sb-tipo--completo {
+    cursor: default;
+    background-color: var(--surface);
+    border-style: solid;
+    border-color: var(--line);
+    box-shadow: 0 1px 2px rgba(var(--shadow-tint), 0.1);
+}
+
+.sb-tipo--completo .sb-tipo-cuenta {
+    color: var(--success);
+}
+
+/* El que estas subiendo: relleno del color de la especialidad. */
+.sb-tipo:has(input:checked) {
+    background-color: var(--esp);
+    border: 1px solid var(--esp-edge);
+    color: var(--esp-ink);
+    /* El anillo interno no es decoracion: cuatro de las ocho especialidades
+       tienen un --esp tan claro que el relleno solo no alcanza para decir
+       "esta es la elegida", y ahi el contorno es todo lo que queda. Duplicarlo
+       por dentro le da el peso que el relleno no puede dar. */
+    box-shadow: inset 0 0 0 1px var(--esp-edge),
+                0 4px 14px -6px rgba(var(--shadow-tint), 0.35);
+}
+
+.sb-tipo:has(input:checked) .sb-tipo-cuenta {
+    color: color-mix(in srgb, var(--esp-ink) 80%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .sb-tipo:not(.sb-tipo--completo):hover {
+        transform: translateY(-2px);
+        border-color: var(--esp-edge);
+    }
+}
+
+.sb-tipo:not(.sb-tipo--completo):active {
+    transform: translateY(0) scale(0.985);
+    transition-duration: 0.08s;
+}
+
+/* ---------- La zona de arrastre ---------- */
 
 .dropzone {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
     text-align: center;
-    padding: 2.75rem 1.5rem;
-    border: 1.5px dashed var(--line);
+    padding: 3.25rem 1.5rem;
+    background-color: var(--field);
+    border: 2px dashed color-mix(in srgb, var(--ink-soft) 40%, transparent);
     border-radius: var(--radius-panel);
     cursor: pointer;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition: border-color 0.16s ease, background-color 0.16s ease;
 }
 
+/* Pasa al color de la especialidad y no al dorado: el dorado en esta casa
+   significa pendiente, y agarrar el archivo no es un estado pendiente. */
 .dropzone:hover,
 .dropzone-activo {
-    border-color: var(--accent);
-    background-color: var(--accent-soft);
+    border-color: var(--esp-edge);
+    background-color: var(--esp-tenue);
 }
 
+/* Este si parte en varias lineas: cuando hay archivo elegido muestra su nombre,
+   que puede ser largo. Con 1.5 heredado, un nombre de dos lineas se abria mas
+   que el parrafo que tiene debajo. */
 .dropzone-titulo {
     font-family: var(--font-display);
+    font-size: 1.05rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
     color: var(--ink);
-    font-size: 0.95rem;
+    overflow-wrap: anywhere;
 }
 
 .dropzone-subtitulo {
@@ -4419,8 +5345,25 @@ button:disabled,
     color: var(--ink-soft);
 }
 
-.dropzone-con-archivo .dropzone-titulo {
-    color: var(--accent-ink);
+/* El objetivo mas grande de la pantalla no respondia al presionarlo: tenia
+   hover y tenia el estado de arrastre, pero entre que apretabas y que se abria
+   el dialogo del sistema no pasaba nada. Se hunde, y se hunde sin transicion,
+   porque la respuesta a la pulsacion tiene que ser inmediata; la vuelta si se
+   suaviza. La sombra interna es lo que hace legible el hundido en las ocho
+   especialidades: con --esp casi blanco, un relleno mas del mismo color no
+   cambia nada. */
+.dropzone:active {
+    background-color: color-mix(in srgb, var(--esp) 18%, transparent);
+    border-color: var(--esp-edge);
+    box-shadow: inset 0 2px 5px rgba(var(--shadow-tint), 0.12);
+    transition-duration: 0s;
+}
+
+/* Con archivo elegido deja de estar punteada: ya no esta vacia. */
+.dropzone-con-archivo {
+    border-style: solid;
+    border-color: var(--esp-edge);
+    background-color: var(--esp-tenue);
 }
 
 /* Oculta el input nativo visualmente sin perder accesibilidad (el <label for="">
@@ -4432,13 +5375,140 @@ button:disabled,
     padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
     white-space: nowrap;
     border: 0;
 }
 
-.upload-card button[type="submit"] {
-    align-self: flex-start;
+.sb-form-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+/* ---------- Lo que ya subiste ---------- */
+
+.sb-subidos-titulo {
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.sb-columna-acciones {
+    display: block;
+    text-align: right;
+}
+
+.sb-celda-archivo {
+    max-width: 22rem;
+    overflow-wrap: anywhere;
+}
+
+.sb-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+/* Botones de fila: la altura de 44px del boton general no entra en una tabla
+   sin estirar cada renglon casi al doble. Acá el boton se ve chico a proposito
+   y va acompanado de su aria-label con el nombre del archivo. */
+.sb-btn-fila {
+    position: relative;
+    padding: 0.42rem 0.9rem;
+    font-size: 0.78rem;
+}
+
+/* Pero el area que responde al dedo si llega a los 44px. Lo que no entra en la
+   fila es el boton dibujado, no el objetivo tactil: se estira 7px arriba y
+   abajo con una capa transparente, que sobre 30px de boton deja 44. Los 3px
+   laterales entran en el hueco de 6.4px que hay entre los dos botones, asi que
+   no se pisan. */
+.sb-btn-fila::after {
+    content: "";
+    position: absolute;
+    inset: -7px -3px;
+}
+
+/* El vacio deja de ser una linea en italica y dice que hacer. */
+.sb-vacio {
+    margin: 0;
+    padding: 2.25rem 1.5rem;
+    border: 1.5px dashed color-mix(in srgb, var(--ink-soft) 40%, transparent);
+    border-radius: var(--radius-panel);
+    text-align: center;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sb-tipo {
+        transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .sb-tipo:not(.sb-tipo--completo):active {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .sb-tipo:not(.sb-tipo--completo):hover {
+        transform: none;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .sb-tipo,
+    .dropzone,
+    .sb-vacio {
+        border-color: var(--ink-soft);
+    }
+}
+
+/* El colapso movil va en su propio @media y no en el compartido de mas arriba,
+   por lo mismo que Imprimir y Planilla: ese bloque esta en la mitad del archivo
+   y estas reglas se declaran despues, asi que con la misma especificidad
+   ganaria el orden de fuente. */
+@media (max-width: 1000px) {
+    .sb-tipos-grilla {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .sb-form {
+        padding: 1.5rem 1.25rem;
+        gap: 1.35rem;
+    }
+
+    .sb-tipos-grilla {
+        grid-template-columns: 1fr;
+    }
+
+    .dropzone {
+        padding: 2.5rem 1.25rem;
+    }
+
+    .sb-form-acciones .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* La tabla se sale de la pantalla a este ancho: se le da su propio scroll
+       horizontal en vez de empujar el ancho de la pagina entera. */
+    .sb-subidos {
+        overflow-x: auto;
+    }
+
+    .sb-tabla {
+        min-width: 34rem;
+    }
 }
 
 /* ---------------- Accesibilidad: saltar al contenido ---------------- */

@@ -87,6 +87,23 @@ public class SubirController {
         model.addAttribute("limites", limites);
         model.addAttribute("subidosPorTipo", subidosPorTipo);
 
+        // El expediente completo son 10 comprobantes: 6 plantillas semanales y uno
+        // de cada uno de los otros cuatro tipos. La pantalla no lo decia en ningun
+        // lado; los limites vivian escondidos en atributos data del <select>.
+        int totalLimite = 0;
+        long totalSubidos = 0;
+        for (TipoDocumento tipo : TipoDocumento.values()) {
+            totalLimite += limites.get(tipo.name());
+            totalSubidos += subidosPorTipo.get(tipo.name());
+        }
+        model.addAttribute("totalLimite", totalLimite);
+        model.addAttribute("totalSubidos", totalSubidos);
+
+        // El color de la especialidad del alumno, igual que en su inicio y en la
+        // planilla semanal: es su color y este es su expediente.
+        model.addAttribute("idEspecialidad",
+                alumno.getEspecialidad() != null ? alumno.getEspecialidad().getIdEsp() : null);
+
         return "alumno/subir";
     }
 

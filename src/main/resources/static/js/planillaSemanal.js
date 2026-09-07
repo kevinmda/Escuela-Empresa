@@ -6,7 +6,8 @@ const camposTocados = new Set();
 
 function habilitarFormulario() {
     limpiarFormulario();
-    document.getElementById('selectorPlanilla').value = '';
+    // El selector de semanas dejo de ser un <select> y paso a ser el riel de
+    // casilleros, que son enlaces: no hay ningun valor que resetear aca.
     document.getElementById('fieldsetPlanilla').disabled = false;
     document.getElementById('btnNuevo').disabled = true;
 
@@ -27,12 +28,32 @@ function habilitarFormulario() {
     actualizarLimitesFecha();
 }
 
+// Suma las horas de los seis dias mientras el alumno escribe. Es el numero que
+// despues aparece en el PDF y en el informe, y hasta ahora habia que sacarlo de
+// cabeza sumando los seis campos.
+function actualizarTotalHoras() {
+    const salida = document.getElementById('totalHoras');
+    if (!salida) return;
+
+    let total = 0;
+    document.querySelectorAll('.dia-bloque input[type="number"]').forEach(campo => {
+        const valor = parseFloat(campo.value);
+        if (!isNaN(valor) && valor > 0) {
+            total += valor;
+        }
+    });
+
+    // Sin decimales cuando el total da redondo, que es el caso normal.
+    salida.textContent = Number.isInteger(total) ? String(total) : total.toFixed(2);
+}
+
 function limpiarFormulario() {
     const campos = document.querySelectorAll('#fieldsetPlanilla input, #fieldsetPlanilla textarea');
     campos.forEach(campo => campo.value = '');
     document.querySelectorAll('.aviso-limite').forEach(aviso => aviso.style.display = 'none');
     camposTocados.clear();
     actualizarLimitesFecha();
+    actualizarTotalHoras();
 }
 
 // En cuanto el alumno elige/cambia la fecha de un día, calculamos cuál es la única fecha
@@ -117,6 +138,11 @@ function inicializarAvisosLimite() {
 document.addEventListener('DOMContentLoaded', () => {
     actualizarLimitesFecha();
     inicializarAvisosLimite();
+    actualizarTotalHoras();
+
+    document.querySelectorAll('.dia-bloque input[type="number"]').forEach(campo => {
+        campo.addEventListener('input', actualizarTotalHoras);
+    });
 
     const inputsFecha = document.querySelectorAll('.dia-bloque input[type="date"]');
 
