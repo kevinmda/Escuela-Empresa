@@ -4008,9 +4008,8 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 /* ---------------- Portada de pantalla (area del alumno) ----------------
 
    Componente compartido por Planilla Semanal y Subir. Se escribio primero para
-   la planilla y despues lo pidio Subir tal cual, asi que vive aca y no dentro
-   del bloque de una pantalla: duplicarlo era garantizar que las dos se
-   despeguen.
+   la planilla y despues lo pidio Subir tal cual, asi que vive aca y no en el
+   bloque de una pantalla: duplicarlo era garantizar que las dos se despeguen.
 
    La pantalla abria con un h2 gris y un parrafo gris sobre el fondo crema, y el
    contador de semanas era una linea chiquita perdida a la derecha del riel. Todo
@@ -5142,44 +5141,183 @@ button:disabled,
     }
 }
 
-/* ---------------- Subir (alumno) ---------------- */
+/* ---------------- Subir (alumno) ----------------
 
-.upload-card {
-    max-width: 480px;
-    margin: 0 0 2rem;
-}
+   El expediente son diez comprobantes: seis plantillas semanales y uno de cada
+   uno de los otros cuatro tipos. El limite existe de verdad, LimitesDocumentoService
+   corta ahi, pero la pantalla no lo decia en ningun lado: los cinco tipos vivian
+   en un <select>, y el limite de cada uno mas cuantos llevabas subidos estaban
+   escondidos en atributos data de cada <option>. Habia que elegir un tipo para
+   recien enterarte de que ese ya estaba completo.
 
-.upload-card form {
+   Ahora los cinco son radios con forma de tarjeta y cada uno dice su cuenta.
+   Punteado mientras falta, solido cuando esta completo, relleno del color de la
+   especialidad cuando es el que estas subiendo. Punteado es vacio en toda la
+   app, asi que el completo NO puede ser el punteado. */
+
+.sb-form {
     display: flex;
     flex-direction: column;
-    gap: 1.1rem;
+    gap: 1.6rem;
+    margin-bottom: 2.5rem;
+    padding: 1.9rem 2.1rem;
 }
+
+/* ---------- Los cinco tipos ---------- */
+
+.sb-tipos {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.sb-tipos-titulo {
+    margin: 0 0 0.9rem;
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+}
+
+/* Cinco columnas fijas y no auto-fit: los tipos son exactamente cinco, y con
+   auto-fit el ancho de escritorio daba cuatro columnas, o sea 4 + 1 con la
+   quinta sola al lado de un hueco. Cinco en una fila es la unica reparticion
+   sin sobrante; abajo pasa a 3 + 2, que si es una reparticion deliberada. */
+.sb-tipos-grilla {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+/* Pendiente: punteada, como se dice vacio en el resto de la app. */
+.sb-tipo {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.95rem 1rem;
+    background-color: var(--field);
+    border: 1px dashed color-mix(in srgb, var(--ink-soft) 45%, transparent);
+    border-radius: var(--radius-panel);
+    cursor: pointer;
+    transition: background-color 0.18s ease,
+                border-color 0.18s ease,
+                color 0.18s ease,
+                transform 0.14s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.18s ease;
+}
+
+/* El radio se oculta a la vista pero sigue enfocable y sigue siendo el que
+   manda el valor: el campo se llama tipoDocumento igual que antes. */
+.sb-tipo input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+/* El anillo de foco lo dibuja la tarjeta, porque el radio no se ve. */
+.sb-tipo:has(input:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+}
+
+.sb-tipo-nombre {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+}
+
+.sb-tipo-cuenta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+}
+
+/* Completo: solida y apoyada en la superficie, con la cuenta en el verde que la
+   casa ya usa para el estado resuelto. Viene deshabilitada desde el servidor,
+   que es donde de verdad se corta. */
+.sb-tipo--completo {
+    cursor: default;
+    background-color: var(--surface);
+    border-style: solid;
+    border-color: var(--line);
+    box-shadow: 0 1px 2px rgba(var(--shadow-tint), 0.1);
+}
+
+.sb-tipo--completo .sb-tipo-cuenta {
+    color: var(--success);
+}
+
+/* El que estas subiendo: relleno del color de la especialidad. */
+.sb-tipo:has(input:checked) {
+    background-color: var(--esp);
+    border: 1px solid var(--esp-edge);
+    color: var(--esp-ink);
+    /* El anillo interno no es decoracion: cuatro de las ocho especialidades
+       tienen un --esp tan claro que el relleno solo no alcanza para decir
+       "esta es la elegida", y ahi el contorno es todo lo que queda. Duplicarlo
+       por dentro le da el peso que el relleno no puede dar. */
+    box-shadow: inset 0 0 0 1px var(--esp-edge),
+                0 4px 14px -6px rgba(var(--shadow-tint), 0.35);
+}
+
+.sb-tipo:has(input:checked) .sb-tipo-cuenta {
+    color: color-mix(in srgb, var(--esp-ink) 80%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .sb-tipo:not(.sb-tipo--completo):hover {
+        transform: translateY(-2px);
+        border-color: var(--esp-edge);
+    }
+}
+
+.sb-tipo:not(.sb-tipo--completo):active {
+    transform: translateY(0) scale(0.985);
+    transition-duration: 0.08s;
+}
+
+/* ---------- La zona de arrastre ---------- */
 
 .dropzone {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
     text-align: center;
-    padding: 2.75rem 1.5rem;
-    border: 1.5px dashed var(--line);
+    padding: 3.25rem 1.5rem;
+    background-color: var(--field);
+    border: 2px dashed color-mix(in srgb, var(--ink-soft) 40%, transparent);
     border-radius: var(--radius-panel);
     cursor: pointer;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition: border-color 0.16s ease, background-color 0.16s ease;
 }
 
+/* Pasa al color de la especialidad y no al dorado: el dorado en esta casa
+   significa pendiente, y agarrar el archivo no es un estado pendiente. */
 .dropzone:hover,
 .dropzone-activo {
-    border-color: var(--accent);
-    background-color: var(--accent-soft);
+    border-color: var(--esp-edge);
+    background-color: var(--esp-tenue);
 }
 
 .dropzone-titulo {
     font-family: var(--font-display);
+    font-size: 1.05rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--ink);
-    font-size: 0.95rem;
+    overflow-wrap: anywhere;
 }
 
 .dropzone-subtitulo {
@@ -5190,8 +5328,11 @@ button:disabled,
     color: var(--ink-soft);
 }
 
-.dropzone-con-archivo .dropzone-titulo {
-    color: var(--accent-ink);
+/* Con archivo elegido deja de estar punteada: ya no esta vacia. */
+.dropzone-con-archivo {
+    border-style: solid;
+    border-color: var(--esp-edge);
+    background-color: var(--esp-tenue);
 }
 
 /* Oculta el input nativo visualmente sin perder accesibilidad (el <label for="">
@@ -5203,13 +5344,127 @@ button:disabled,
     padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
     white-space: nowrap;
     border: 0;
 }
 
-.upload-card button[type="submit"] {
-    align-self: flex-start;
+.sb-form-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+/* ---------- Lo que ya subiste ---------- */
+
+.sb-subidos-titulo {
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.sb-columna-acciones {
+    display: block;
+    text-align: right;
+}
+
+.sb-celda-archivo {
+    max-width: 22rem;
+    overflow-wrap: anywhere;
+}
+
+.sb-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+/* Botones de fila: la altura de 44px del boton general no entra en una tabla
+   sin estirar cada renglon casi al doble. Acá el objetivo es chico a proposito
+   y va acompanado de su aria-label con el nombre del archivo. */
+.sb-btn-fila {
+    padding: 0.42rem 0.9rem;
+    font-size: 0.78rem;
+}
+
+/* El vacio deja de ser una linea en italica y dice que hacer. */
+.sb-vacio {
+    margin: 0;
+    padding: 2.25rem 1.5rem;
+    border: 1.5px dashed color-mix(in srgb, var(--ink-soft) 40%, transparent);
+    border-radius: var(--radius-panel);
+    text-align: center;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sb-tipo {
+        transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .sb-tipo:not(.sb-tipo--completo):active {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .sb-tipo:not(.sb-tipo--completo):hover {
+        transform: none;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .sb-tipo,
+    .dropzone,
+    .sb-vacio {
+        border-color: var(--ink-soft);
+    }
+}
+
+/* El colapso movil va en su propio @media y no en el compartido de mas arriba,
+   por lo mismo que Imprimir y Planilla: ese bloque esta en la mitad del archivo
+   y estas reglas se declaran despues, asi que con la misma especificidad
+   ganaria el orden de fuente. */
+@media (max-width: 1000px) {
+    .sb-tipos-grilla {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .sb-form {
+        padding: 1.5rem 1.25rem;
+        gap: 1.35rem;
+    }
+
+    .sb-tipos-grilla {
+        grid-template-columns: 1fr;
+    }
+
+    .dropzone {
+        padding: 2.5rem 1.25rem;
+    }
+
+    .sb-form-acciones .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* La tabla se sale de la pantalla a este ancho: se le da su propio scroll
+       horizontal en vez de empujar el ancho de la pagina entera. */
+    .sb-subidos {
+        overflow-x: auto;
+    }
+
+    .sb-tabla {
+        min-width: 34rem;
+    }
 }
 
 /* ---------------- Accesibilidad: saltar al contenido ---------------- */
