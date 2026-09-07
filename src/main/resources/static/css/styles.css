@@ -4105,11 +4105,14 @@ button:disabled,
     color: var(--ink);
 }
 
+/* 1.55 y no 1.5: la interlinea va al reves que el cuerpo, y esta nota es mas
+   chica que la descripcion del documento (0.84rem contra 0.87rem) pero tenia la
+   interlinea mas apretada de las dos. */
 .impr-momento-nota {
     margin: 0.55rem 0 0;
     max-width: 56ch;
     font-size: 0.84rem;
-    line-height: 1.5;
+    line-height: 1.55;
     color: var(--ink-soft);
 }
 
@@ -4305,6 +4308,9 @@ button:disabled,
     margin: 0.5rem 0 0;
     font-family: var(--font-mono);
     font-size: 0.74rem;
+    /* El texto chico pide un poco de tracking, al reves que el display. Era el
+       unico mono del bloque sin ajustar: la cuenta de hojas ya lleva 0.04em. */
+    letter-spacing: 0.02em;
     line-height: 1.4;
     color: var(--accent-ink);
 }
