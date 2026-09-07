@@ -4029,40 +4029,166 @@ button:disabled,
     width: 100%;
 }
 
-/* ---------------- Imprimir (alumno) ---------------- */
+/* ---------------- Imprimir (alumno) ----------------
 
-.documentos-grid {
+   Cuatro documentos oficiales, y cada uno existe en dos versiones: completado
+   con los datos del alumno y en blanco para llenar a mano. La página partía ese
+   par en dos zonas sin relación, una grilla de cuatro tarjetas iguales arriba y
+   una barra de cuatro botones sueltos abajo, así que el mismo documento
+   figuraba dos veces sin que nada dijera que era el mismo. Ahora es una entrada
+   por documento con sus dos versiones al lado.
+
+   Las entradas se agrupan por el momento en que se firman: contrato y
+   autorización antes de arrancar, las dos fichas al terminar. Eso no es un
+   agrupamiento inventado para dar forma, es cuándo se usa cada papel, y la
+   página no lo decía en ningún lado.
+
+   Composición: el título del momento vive en el margen izquierdo y los
+   documentos corren a la derecha, como el encabezado marginal de un formulario
+   impreso. Ninguna otra pantalla de la app usa esta familia (la credencial del
+   inicio, la tabla de alumnos, la grilla de accesos del coordinador).
+
+   El color de especialidad no entra acá a propósito: identifica al alumno en su
+   inicio y filtra en las pantallas del coordinador. En esta no filtra ni
+   identifica nada, así que sería decoración y le gastaría el significado. */
+
+/* El material lo pone .panel, que ya trae superficie, borde, radio, elevación y
+   las escuadras de esquina de la casa. Acá solo se agrega la retícula. */
+.impr-pliego {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.25rem;
-    margin: 1.5rem 0 2rem;
+    grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+    gap: 1rem 2.5rem;
+    margin-bottom: 1.25rem;
 }
 
-.documento-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.documento-card h3 {
-    font-family: var(--font-display);
-    font-size: 1rem;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: normal;
-    color: var(--ink);
+/* main h3 va en versalitas y color apagado, que sirve para un subtítulo suelto
+   dentro de una página. Acá el momento es el encabezado del bloque entero y
+   necesita peso propio. */
+.impr-momento-titulo {
     margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    text-transform: none;
+    color: var(--ink);
 }
 
-.documento-card p {
-    color: var(--ink-soft);
-    font-size: 0.85rem;
+.impr-momento-nota {
+    margin: 0.6rem 0 0;
+    font-size: 0.84rem;
     line-height: 1.5;
-    flex: 1;
+    color: var(--ink-soft);
 }
 
-.documento-card .btn {
-    align-self: flex-start;
+.impr-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.impr-doc {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 1rem 2rem;
+}
+
+/* Una sola línea, y entre documentos: un hairline arriba y otro abajo de cada
+   fila convierte la lista en una tabla, y acá no hay columnas que alinear. */
+.impr-doc + .impr-doc {
+    margin-top: 1.4rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--line);
+}
+
+.impr-doc-titulo {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.impr-doc-desc {
+    margin: 0.35rem 0 0;
+    max-width: 52ch;
+    font-size: 0.87rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+/* Dorado, el color con el que la casa dice "esto está pendiente": es una
+   condición a cumplir antes, no un error de algo que ya pasó. */
+.impr-doc-requisito {
+    margin: 0.5rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    line-height: 1.4;
+    color: var(--accent-ink);
+}
+
+.impr-doc-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* "En blanco" va punteado, el mismo código que ya usan el select de asignación
+   del coordinador, las asignaciones del inicio del alumno y la zona de arrastre
+   de Subir: punteado significa vacío en toda la app.
+
+   El borde no puede ser --line como el de .btn-secondary. En un recuadro grande
+   como la zona de arrastre alcanza, pero en una pastilla chica el contorno es
+   todo lo que delimita el control, y --line contra el blanco queda en el límite
+   de lo visible. Se mezcla hacia --ink-soft, que es el par de gris que la casa
+   ya da vuelta entre claro y oscuro. */
+.btn-vacio {
+    background-color: transparent;
+    color: var(--ink);
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--ink-soft) 55%, transparent);
+}
+
+.btn-vacio:hover {
+    border-color: var(--ink-soft);
+    background-color: color-mix(in srgb, var(--ink-soft) 7%, transparent);
+}
+
+@media (prefers-contrast: more) {
+    .btn-vacio {
+        border-color: var(--ink-soft);
+    }
+}
+
+/* El colapso movil de esta pantalla NO puede vivir en el @media (max-width:
+   720px) compartido de mas arriba: ese bloque esta en la mitad del archivo y
+   las reglas de Imprimir se declaran despues, asi que con la misma
+   especificidad gana el orden de fuente y el media query queda sin efecto.
+   Pasa lo mismo con la regla de .dias-grid que quedo alla arriba, solo que ahi
+   no se nota porque su version de escritorio usa auto-fit y colapsa sola. */
+@media (max-width: 720px) {
+    /* El momento deja el margen y pasa a encabezar el bloque, y las dos
+       acciones de cada documento bajan debajo del texto repartiendose el ancho
+       en vez de quedar apretadas contra el borde derecho. */
+    .impr-pliego {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    .impr-doc {
+        grid-template-columns: 1fr;
+        gap: 0.9rem;
+    }
+
+    .impr-doc-acciones .btn {
+        flex: 1 1 auto;
+        text-align: center;
+    }
 }
 
 /* ---------------- Subir (alumno) ---------------- */

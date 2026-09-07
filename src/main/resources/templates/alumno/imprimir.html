@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTN Pasantias al Imprimir</title>
+    <title>Imprimir | CTN Pasantías</title>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
@@ -15,6 +15,7 @@
 
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
     <header>
         <div class="h-titulo">
             <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
@@ -35,45 +36,106 @@
         <a th:href="@{/alumno/planilla}" class="nav-links">Planilla Semanal</a>
         <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
     </nav>
-    <main>
+    <main id="main-content">
         <h2>Imprimir documentos</h2>
-        <p class="subtitulo-pagina">Generá tus documentos de pasantía ya completados con tus datos, listos para revisar, imprimir o firmar. Los campos de Supervisor y Empresa permanecerán vacios hasta que el/la coordinador/a realice la asignación correspondiente.</p>
+        <p class="subtitulo-pagina">Cada documento se genera con tus datos ya cargados. También podés bajarlo en
+            blanco para completarlo a mano.</p>
 
-        <div class="documentos-grid">
-            <div class="panel documento-card">
-                <h3>Contrato del Alumno</h3>
-                <p>El contrato de pasantía, completado con tus datos personales.</p>
-                <a th:href="@{/alumno/imprimir/Contrato.pdf}" target="_blank" class="btn btn-primary">Generar PDF</a>
+        <!-- Los cuatro documentos vienen de a pares: cada uno existe completado y
+             en blanco. Antes esos dos estados vivían en lugares distintos de la
+             página (una tarjeta arriba con "Generar PDF" y un botón suelto abajo
+             en "Formularios vacíos"), así que el mismo documento aparecía dos
+             veces sin que nada dijera que era el mismo. Ahora es una entrada por
+             documento con sus dos versiones al lado.
+
+             Y se agrupan por el momento en que se firman, que es información real
+             que la página no daba: contrato y autorización van antes de arrancar,
+             las dos fichas al terminar. -->
+        <section class="panel impr-pliego" aria-labelledby="impr-antes">
+            <div class="impr-momento">
+                <h3 class="impr-momento-titulo" id="impr-antes">Antes de empezar</h3>
+                <p class="impr-momento-nota">La empresa aparece en blanco hasta que la coordinación te la asigne.</p>
             </div>
 
-            <div class="panel documento-card">
-                <h3>Autorización del Alumno</h3>
-                <p>La autorización de pasantía, completada con tus datos personales.</p>
-                <a th:href="@{/alumno/imprimir/Autorizacion.pdf}" target="_blank" class="btn btn-primary">Generar PDF</a>
+            <ul class="impr-lista">
+                <li class="impr-doc">
+                    <div class="impr-doc-texto">
+                        <h4 class="impr-doc-titulo">Contrato de pasantía</h4>
+                        <p class="impr-doc-desc">Tu nombre, tu especialidad, la empresa y tu tutor. El supervisor lo
+                            toma de tu última planilla semanal.</p>
+                    </div>
+                    <div class="impr-doc-acciones">
+                        <a class="btn btn-primary" th:href="@{/alumno/imprimir/Contrato.pdf}"
+                           target="_blank" rel="noopener"
+                           aria-label="Contrato de pasantía con mis datos">Con mis datos</a>
+                        <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Contrato_Vacio.pdf}"
+                           target="_blank" rel="noopener"
+                           aria-label="Contrato de pasantía en blanco">En blanco</a>
+                    </div>
+                </li>
+
+                <li class="impr-doc">
+                    <div class="impr-doc-texto">
+                        <h4 class="impr-doc-titulo">Autorización del padre, madre o tutor</h4>
+                        <p class="impr-doc-desc">Lleva tus datos y los de tu tutor, y viene por duplicado en la
+                            misma hoja.</p>
+                    </div>
+                    <div class="impr-doc-acciones">
+                        <a class="btn btn-primary" th:href="@{/alumno/imprimir/Autorizacion.pdf}"
+                           target="_blank" rel="noopener"
+                           aria-label="Autorización del padre, madre o tutor con mis datos">Con mis datos</a>
+                        <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Autorizacion_Vacio.pdf}"
+                           target="_blank" rel="noopener"
+                           aria-label="Autorización del padre, madre o tutor en blanco">En blanco</a>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <section class="panel impr-pliego" aria-labelledby="impr-final">
+            <div class="impr-momento">
+                <h3 class="impr-momento-titulo" id="impr-final">Al terminar</h3>
             </div>
 
-            <div class="panel documento-card">
-                <h3>Ficha Final del Alumno</h3>
-                <p>La ficha final de pasantía, completada con tus datos personales.</p>
-                <a th:href="@{/alumno/imprimir/Ficha_Final_Pel.pdf}" target="_blank" class="btn btn-primary">Generar PDF</a>
-            </div>
+            <ul class="impr-lista">
+                <li class="impr-doc">
+                    <div class="impr-doc-texto">
+                        <h4 class="impr-doc-titulo">Ficha final</h4>
+                        <p class="impr-doc-desc">Tus datos completos y las fechas de inicio y fin de la pasantía,
+                            sacadas de tus planillas.</p>
+                        <!-- Sin ninguna planilla cargada, el servidor no puede calcular esas
+                             fechas y la descarga termina en una pantalla de error. Decirlo
+                             antes cuesta un renglón; toparse con el error, una consulta al
+                             coordinador. -->
+                        <p class="impr-doc-requisito">Necesita al menos una planilla semanal cargada.</p>
+                    </div>
+                    <div class="impr-doc-acciones">
+                        <a class="btn btn-primary" th:href="@{/alumno/imprimir/Ficha_Final_Pel.pdf}"
+                           target="_blank" rel="noopener"
+                           aria-label="Ficha final con mis datos">Con mis datos</a>
+                        <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Ficha_Final_Pel_Vacio.pdf}"
+                           target="_blank" rel="noopener"
+                           aria-label="Ficha final en blanco">En blanco</a>
+                    </div>
+                </li>
 
-            <div class="panel documento-card">
-                <h3>Ficha Final Evaluativa</h3>
-                <p>La ficha final evaluativa, completada con tus datos personales.</p>
-                <a th:href="@{/alumno/imprimir/Ficha_Final_Eval_Pel.pdf}" target="_blank" class="btn btn-primary">Generar PDF</a>
-            </div>
-        </div>
-
-        <h3 class="subseccion-titulo">Formularios vacíos</h3>
-        <p class="subtitulo-pagina">Descargá las versiones en blanco por si necesitás completarlas a mano.</p>
-
-        <div class="toolbar">
-            <a th:href="@{/alumno/imprimir/Contrato_Vacio.pdf}" target="_blank" class="btn btn-secondary">Contrato</a>
-            <a th:href="@{/alumno/imprimir/Autorizacion_Vacio.pdf}" target="_blank" class="btn btn-secondary">Autorización</a>
-            <a th:href="@{/alumno/imprimir/Ficha_Final_Pel_Vacio.pdf}" target="_blank" class="btn btn-secondary">Ficha Final Pel</a>
-            <a th:href="@{/alumno/imprimir/Ficha_Final_Eval_Pel_Vacio.pdf}" target="_blank" class="btn btn-secondary">Ficha Final Evaluativa</a>
-        </div>
+                <li class="impr-doc">
+                    <div class="impr-doc-texto">
+                        <h4 class="impr-doc-titulo">Ficha final evaluativa</h4>
+                        <p class="impr-doc-desc">Solo lleva tu nombre. El resto lo completa la empresa donde
+                            hiciste la pasantía.</p>
+                    </div>
+                    <div class="impr-doc-acciones">
+                        <a class="btn btn-primary" th:href="@{/alumno/imprimir/Ficha_Final_Eval_Pel.pdf}"
+                           target="_blank" rel="noopener"
+                           aria-label="Ficha final evaluativa con mis datos">Con mis datos</a>
+                        <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Ficha_Final_Eval_Pel_Vacio.pdf}"
+                           target="_blank" rel="noopener"
+                           aria-label="Ficha final evaluativa en blanco">En blanco</a>
+                    </div>
+                </li>
+            </ul>
+        </section>
     </main>
 </body>
 </html>
