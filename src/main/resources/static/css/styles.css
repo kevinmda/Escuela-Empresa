@@ -2366,6 +2366,378 @@ main > .hub-destinos { animation-delay: 0.18s; }
     }
 }
 
+/* ================= Inicio del coordinador (placa de especialidad) =================
+
+   El coordinador tiene una sola especialidad fija, así que su inicio no
+   necesita resumir "el sistema" como el del administrativo: necesita decir
+   de qué especialidad es dueño, en el mismo color que ya la identifica en
+   alumnos.html y reportes.html. Por eso el hero va pintado con --esp en vez
+   de --accent, y ese --esp sigue apareciendo en las dos filas siguientes:
+   es la identidad de la página entera, no un detalle suelto en el header.
+
+   [data-esp] vive en el <main> (ver coordinador/index.html): --esp/--esp-ink/
+   --esp-edge/--esp-tenue son variables CSS heredadas, así que fijar el
+   atributo una sola vez alcanza para las tres filas.
+
+   El dorado de --accent NO se reemplaza: sigue significando "pendiente" acá
+   igual que en el badge de Reportes y en el hub-tile--atencion del
+   administrativo, así que "sin supervisor" se queda en dorado a propósito.
+   Dos colores con trabajos distintos: --esp identifica la especialidad,
+   --accent señala qué falta resolver.
+
+   Los tokens --esp-ink/--esp-edge/--esp-tenue quedan reservados para fondos
+   y bordes (su calibración es de 3:1, la de un componente no textual). El
+   texto y los íconos que caen sobre --surface neutro usan --ink/--ink-soft
+   de siempre: ningún elemento nuevo apoya legibilidad en un tono que no fue
+   verificado para eso.
+
+   Tres filas, tres familias de layout, ninguna repetida: placa técnica con
+   regla de progreso, par de fichas de estado, grilla 2x2 de accesos (acá hay
+   cuatro pantallas y no dos, así que la fila 3 es grilla y no pila de barras). */
+
+main[data-esp] > .chub-hero     { animation-delay: 0s; }
+main[data-esp] > .chub-estado   { animation-delay: 0.09s; }
+main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
+
+/* ---------- Fila 1: la placa ---------- */
+
+.chub-hero {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem);
+    align-items: center;
+    gap: 2.5rem;
+    padding: 2.25rem 2.5rem;
+    background-color: var(--esp);
+    /* --esp-edge y no --line: con Química Industrial o Electrónica el relleno
+       casi no separa de --bg, y el borde es lo único que define el cuadro
+       (mismo problema que .alumnos-panel, misma solución). */
+    border: 1px solid var(--esp-edge);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 2px 14px -6px rgba(var(--shadow-tint), 0.16);
+    color: var(--esp-ink);
+    /* Papel cuadriculado, muy tenue: la referencia es el plano técnico y no
+       hace falta que compita con el contraste del texto, así que va por
+       detrás y a una opacidad puramente decorativa. */
+    background-image:
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--esp-ink) 12%, transparent) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(90deg, color-mix(in srgb, var(--esp-ink) 12%, transparent) 0 1px, transparent 1px 28px);
+}
+
+/* Escuadras de esquina: el mismo lenguaje de .panel (marca de plano técnico),
+   a mayor escala y en --esp-ink. No es un motivo nuevo, es el que ya usa el
+   resto de la app llevado al tamaño de un hero. */
+.chub-hero::before,
+.chub-hero::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--esp-ink);
+    opacity: 0.55;
+}
+
+.chub-hero::before {
+    top: 10px;
+    left: 10px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.chub-hero::after {
+    bottom: 10px;
+    right: 10px;
+    border-left: none;
+    border-top: none;
+}
+
+.chub-campo-etiqueta {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.4rem;
+}
+
+.chub-placa-nombre {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 4vw, 2.75rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    margin: 0;
+}
+
+.chub-placa-sub {
+    font-size: 0.98rem;
+    line-height: 1.55;
+    max-width: 42ch;
+    margin: 0.85rem 0 0;
+}
+
+/* ---------- La regla: el cumplimiento de la semana como escala horizontal,
+   no como anillo. Mecanismo distinto al del hub del administrativo a
+   propósito: acá el dato vive adentro de la misma placa, y una barra calza
+   entre los demás campos en vez de competir por espacio con un círculo. --- */
+
+.chub-regla-pista {
+    position: relative;
+    height: 0.6rem;
+    border-radius: 100px;
+    background-color: color-mix(in srgb, var(--esp-ink) 16%, transparent);
+    /* marcas cada 10%: es una regla, no una barra de progreso lisa */
+    background-image: repeating-linear-gradient(90deg,
+        color-mix(in srgb, var(--esp-ink) 35%, transparent) 0 1px,
+        transparent 1px calc(100% / 10));
+}
+
+.chub-regla-relleno {
+    position: relative;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background-color: var(--esp-ink);
+    animation: chub-avance 1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+@keyframes chub-avance {
+    from { width: 0; }
+    to   { width: calc(var(--chub-pct) * 1%); }
+}
+
+/* El puntero queda pegado al borde del relleno: se mueve solo con él, sin
+   recalcular ninguna posición aparte. */
+.chub-regla-relleno::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    background-color: var(--esp-ink);
+    border: 3px solid var(--esp);
+    transform: translate(50%, -50%);
+    box-shadow: 0 1px 4px -1px rgba(var(--shadow-tint), 0.4);
+}
+
+.chub-regla-lectura {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.9rem;
+}
+
+.chub-regla-valor {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.chub-regla-label {
+    font-size: 0.78rem;
+    text-align: right;
+    max-width: 14em;
+}
+
+/* ---------- Fila 2: fichas de estado ---------- */
+
+.chub-estado {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 1rem;
+}
+
+.chub-tile {
+    padding: 1.5rem 1.75rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    /* filo de identidad: el color de la especialidad sigue presente sin
+       repintar la ficha entera, que acá cuenta un dato neutral. Con Química
+       Industrial (#F9FAFB) ese filo por sí solo queda blanco sobre blanco,
+       el mismo problema que ya resolvió .alumnos-panel: una línea de 1px en
+       --esp-edge justo por dentro del lomo de color es lo que de verdad
+       lo separa de la superficie en ese caso. */
+    border-left: 3px solid var(--esp);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 1px 6px -3px rgba(var(--shadow-tint), 0.12),
+                inset 1px 0 0 var(--esp-edge);
+}
+
+.chub-cifra {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 5.5vw, 3.4rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.chub-tile-label {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+}
+
+/* Dorado = pendiente en toda la app (badge-pendiente de Reportes, esta misma
+   ficha en el hub del administrativo). No se reemplaza por --esp: haría que
+   "sin supervisor" dejara de leerse como lo mismo que ya significa en el
+   resto de las pantallas. */
+.chub-tile--atencion {
+    background-color: var(--accent-soft);
+    border-color: var(--accent);
+    border-left-color: var(--accent);
+    /* Sin la línea --esp-edge de .chub-tile: acá el trabajo es del dorado
+       solo, no hace falta (ni conviene) que la identidad de la especialidad
+       se cuele adentro del filo de "atención". */
+    box-shadow: 0 1px 6px -3px rgba(var(--shadow-tint), 0.12);
+}
+
+.chub-tile--atencion .chub-cifra,
+.chub-tile--atencion .chub-tile-label {
+    color: var(--accent-ink);
+}
+
+.chub-ok {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    color: var(--success);
+}
+
+/* ---------- Fila 3: los cuatro accesos, en grilla 2x2 ---------- */
+
+.chub-destinos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+}
+
+.chub-destino {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1.35rem 1.5rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Mismo relleno direccional que .hub-destino: entra por el borde que cruzó
+   el cursor, fijado en pointerenter antes de que arranque la transición. */
+.chub-destino::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--esp-tenue);
+    transform: scaleX(0);
+    transform-origin: var(--chub-origen, left) center;
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chub-destino-titulo {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
+
+.chub-destino-desc {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.chub-destino-flecha {
+    margin-top: auto;
+    align-self: flex-end;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    line-height: 1;
+    color: var(--ink-soft);
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .chub-destino:hover {
+        border-color: var(--esp-edge);
+        box-shadow: 0 6px 18px -8px rgba(var(--shadow-tint), 0.3);
+        transform: translateY(-2px);
+    }
+
+    .chub-destino:hover::before {
+        transform: scaleX(1);
+    }
+
+    .chub-destino:hover .chub-destino-flecha {
+        transform: translateX(4px);
+    }
+}
+
+.chub-destino:active {
+    transform: translateY(0) scale(0.985);
+    transition-duration: 0.08s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chub-regla-relleno {
+        width: calc(var(--chub-pct) * 1%);
+        animation: none;
+    }
+
+    .chub-destino,
+    .chub-destino-flecha {
+        transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .chub-destino::before {
+        transform: scaleX(1);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .chub-destino:active {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .chub-destino:hover::before {
+        opacity: 1;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .chub-hero {
+        border-color: var(--esp-ink);
+    }
+
+    .chub-tile,
+    .chub-destino {
+        border-color: var(--ink-soft);
+    }
+}
+
 /* ---------------- Responsive ---------------- */
 
 @media (max-width: 720px) {
@@ -2525,6 +2897,27 @@ main > .hub-destinos { animation-delay: 0.18s; }
 
     .hub-destino {
         padding: 1.35rem 1.25rem;
+    }
+
+    /* La placa del coordinador apila igual que el hero del administrativo:
+       texto arriba, regla de progreso abajo. Las cuatro fichas de acceso
+       vuelven a una columna, la misma regla de colapso que cualquier bento. */
+    .chub-hero {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 1.75rem 1.5rem;
+    }
+
+    .chub-placa-sub {
+        max-width: none;
+    }
+
+    .chub-estado {
+        grid-template-columns: 1fr;
+    }
+
+    .chub-destinos {
+        grid-template-columns: 1fr;
     }
 
     .filtro-panel-encabezado {
