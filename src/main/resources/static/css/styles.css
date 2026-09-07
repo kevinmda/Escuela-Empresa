@@ -1845,6 +1845,15 @@ td input[type="email"] {
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
+    /* Sin esto, elegir sección era un corte duro: el relleno, el texto y el
+       anillo interior de aria-pressed aparecían de un salto. Misma lógica
+       que ya tiene .esp-chip: el estado cambia junto, no en pasos. El
+       transform de :active queda fuera de esta lista y con su propia
+       duración más corta, por la misma razón que en .esp-chip: la presión
+       tiene que sentirse de inmediato, no arrancar recién cuando termine
+       el resto del cambio. */
+    transition: background-color 0.15s ease, color 0.15s ease,
+                box-shadow 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -2540,6 +2549,9 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
 
 .chub-regla-label {
     font-size: 0.78rem;
+    /* tracking apenas positivo, igual que .hub-anillo-label: es texto chico,
+       y a este tamaño el espaciado cerrado por defecto le come legibilidad. */
+    letter-spacing: 0.01em;
     text-align: right;
     max-width: 14em;
 }
