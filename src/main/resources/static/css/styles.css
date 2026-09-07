@@ -44,6 +44,14 @@
     --radius-btn: 999px;
     --radius-field: 12px;
     --radius-panel: 6px;
+
+    /* Superficie hundida de los campos. Un campo blanco dentro de una tarjeta
+       blanca no se lee como campo: nada dice "esto se llena". Se mezcla --bg
+       dentro de --surface, y como los dos se dan vuelta entre temas la mezcla
+       se hunde en los dos: en claro queda crema sobre blanco, en oscuro queda
+       mas oscura que la tarjeta. Se define una sola vez porque var() resuelve
+       en el elemento, no aca. */
+    --field: color-mix(in srgb, var(--bg) 55%, var(--surface));
 }
 
 :root[data-theme="dark"] {
@@ -1148,11 +1156,17 @@ select {
     font-family: var(--font-body);
     font-size: 0.95rem;
     color: var(--ink);
-    background-color: var(--surface);
+    /* Hundido: relleno mas bajo que la tarjeta y una sombra interna arriba, que
+       es donde pega la luz en un hueco. Antes era blanco sobre blanco con un
+       borde de 1px, y a eso se le puede pedir cualquier cosa menos que parezca
+       un campo. */
+    background-color: var(--field);
     border: 1px solid var(--line);
     border-radius: var(--radius-field);
-    padding: 0.6rem 0.85rem;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    padding: 0.7rem 0.9rem;
+    box-shadow: inset 0 1px 2px rgba(var(--shadow-tint), 0.07);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease,
+                background-color 0.15s ease;
 }
 
 input:focus,
@@ -1162,6 +1176,10 @@ select:focus {
        un indicador de foco es 3:1. Con --focus son 15.6:1 en claro y 8.1:1 en
        oscuro. El borde marca el campo activo en cualquier tipo de foco. */
     border-color: var(--focus);
+    /* El campo sube al plano de la tarjeta y pierde la sombra interna: pasa de
+       hueco a superficie activa. */
+    background-color: var(--surface);
+    box-shadow: none;
 }
 
 /* El halo dorado solo para foco con mouse o touch. Con teclado ya está el outline
@@ -1170,6 +1188,14 @@ input:focus:not(:focus-visible),
 textarea:focus:not(:focus-visible),
 select:focus:not(:focus-visible) {
     box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    input:hover:not(:focus),
+    textarea:hover:not(:focus),
+    select:hover:not(:focus) {
+        border-color: color-mix(in srgb, var(--ink-soft) 55%, var(--line));
+    }
 }
 
 input[aria-invalid="true"],
@@ -1200,11 +1226,17 @@ textarea::placeholder {
 button,
 .btn {
     font-family: var(--font-display);
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 600;
+    letter-spacing: -0.005em;
     cursor: pointer;
     border-radius: var(--radius-btn);
-    padding: 0.55rem 1.1rem;
+    /* Los botones no heredan el line-height del body (el reset no lo pone y los
+       controles de formulario no lo toman), asi que la caja se arma con el
+       normal del navegador, ~1.2. Con 0.78rem de relleno vertical el boton mide
+       44px, que es el minimo comodo para tocar con el dedo; antes media 40. Los
+       del header y del nav declaran su propio padding y no se mueven. */
+    padding: 0.78rem 1.35rem;
     border: 1px solid transparent;
     text-decoration: none;
     display: inline-block;
@@ -1242,37 +1274,71 @@ button[type="submit"]:active,
     box-shadow: none;
 }
 
+/* El primario tiene volumen: un degradado minimo, el filo de luz arriba y una
+   sombra corta abajo. Las tres cosas se mezclan hacia blanco puro y no hacia
+   --text-on-ink, porque la luz viene de arriba en los dos temas: en claro el
+   boton es navy y el borde superior se aclara, en oscuro el boton es casi
+   blanco y el borde superior se aclara igual. Mezclando hacia --text-on-ink,
+   en oscuro se oscureceria arriba y la luz vendria de abajo. */
 button[type="submit"],
 .btn-primary {
     background-color: var(--ink);
+    background-image: linear-gradient(to bottom,
+        color-mix(in srgb, #ffffff 13%, var(--ink)),
+        var(--ink));
     color: var(--text-on-ink);
+    border-color: color-mix(in srgb, #000000 16%, var(--ink));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.17),
+                0 1px 2px rgba(var(--shadow-tint), 0.3);
 }
 
 button[type="submit"]:hover,
 .btn-primary:hover {
     background-color: var(--accent-ink);
+    background-image: linear-gradient(to bottom,
+        color-mix(in srgb, #ffffff 13%, var(--accent-ink)),
+        var(--accent-ink));
+    border-color: color-mix(in srgb, #000000 16%, var(--accent-ink));
 }
 
+/* El secundario deja de ser transparente: apoyado sobre la superficie y con su
+   propia sombra, se lee como un boton y no como texto con un borde alrededor. */
+/* background-image: none es obligatorio, no decorativo: el primario pinta su
+   volumen con un degradado, y button[type="submit"] (0,1,1) le gana en
+   especificidad a .btn-secondary (0,1,0). Sin resetear la imagen, un boton de
+   envio con esta clase se queda con el degradado del primario encima. */
 .btn-secondary {
-    background-color: transparent;
+    background-color: var(--surface);
+    background-image: none;
+    box-shadow: 0 1px 2px rgba(var(--shadow-tint), 0.12);
     color: var(--ink);
     border-color: var(--line);
+    box-shadow: 0 1px 2px rgba(var(--shadow-tint), 0.12);
 }
 
 .btn-secondary:hover {
-    border-color: var(--ink);
+    background-color: var(--field);
+    background-image: none;
+    border-color: var(--ink-soft);
 }
 
+/* El borde iba en --danger-soft, que contra el blanco da 1.1:1: el contorno del
+   boton era practicamente invisible, y al lado de un secundario que si tiene
+   borde parecia texto suelto. La mezcla al 45% lo hace visible sin gritar. */
 .btn-danger,
 form[action*="eliminar"] button {
-    background-color: transparent;
+    background-color: var(--surface);
+    background-image: none;
     color: var(--danger);
-    border-color: var(--danger-soft);
+    border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+    box-shadow: 0 1px 2px rgba(var(--shadow-tint), 0.12);
 }
 
 .btn-danger:hover,
 form[action*="eliminar"] button:hover {
     background-color: var(--danger-soft);
+    background-image: none;
+    border-color: var(--danger);
 }
 
 .btn-generar-pdf.deshabilitado {
