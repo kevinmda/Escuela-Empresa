@@ -443,8 +443,9 @@ main > *:nth-child(n+7) { animation-delay: 0.15s; }
     /* Se mantiene el fundido de opacidad (ayuda a entender que algo apareció),
        se quita el desplazamiento. "aparecer" está definido más abajo. */
     main > *,
-    .documentos-lista,
-    .documentos-cargando {
+    .documentos-menu[open] .documentos-lista,
+    .documentos-cargando,
+    .ficha-alta[open] .ficha-alta-cuerpo {
         animation: aparecer 0.2s ease both;
     }
 
@@ -562,14 +563,6 @@ main h3 {
     max-width: 400px;
 }
 
-.valor-fijo {
-    font-family: var(--font-mono);
-    font-weight: 500;
-    color: var(--ink);
-    display: inline-block;
-    padding: 0.55rem 0;
-}
-
 .zip-container {
     margin: 1.25rem 0;
 }
@@ -631,7 +624,17 @@ main h3 {
     color: var(--accent);
 }
 
+/* display:none explícito: sin esto, el propio <details> ya no alcanza para
+   ocultar este menú cuando está cerrado. La regla del navegador que oculta
+   el contenido de un <details> cerrado es de origen "user agent", y
+   cualquier display que declare el sitio (origen "author") le gana sin
+   importar la especificidad, así que .documentos-lista quedaba visible
+   siempre, encimada con la fila de la tabla. Probado en Chrome real. */
 .documentos-lista {
+    display: none;
+}
+
+.documentos-menu[open] .documentos-lista {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
@@ -658,10 +661,14 @@ main h3 {
 }
 
 /* Variante ancha del desplegable de documentos, para el menú de "Ver entregas"
-   de Reportes, que aloja una mini tabla en vez de una simple lista de enlaces */
+   de Reportes, que aloja una mini tabla en vez de una simple lista de enlaces.
+   min() y no un ancho fijo: en la vista móvil la tabla se convierte en tarjetas
+   y 380px fijos se salen de una pantalla de 375px. */
 .documentos-lista-ancha {
-    min-width: 380px;
+    min-width: 0;
+    width: min(380px, 100%);
     padding: 0.5rem;
+    overflow-x: auto; /* válvula: si el nombre de un tipo estira la mini tabla, scrollea acá adentro y no la página */
 }
 
 .tabla-resumen-documentos {
@@ -677,11 +684,31 @@ main h3 {
 .tabla-resumen-documentos tbody td {
     padding: 0.5rem 0.65rem;
     font-size: 0.78rem;
+    vertical-align: top;
+}
+
+/* Una entrega por renglón. Antes se separaban con <br>, que deja los enlaces
+   pegados sin aire donde tocarlos; en flex column el espacio se declara una
+   sola vez y el objetivo táctil crece. */
+.tabla-resumen-documentos td.celda-fechas {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    align-items: flex-start;
 }
 
 .tabla-resumen-documentos tbody td a {
     color: var(--accent-ink);
     display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+}
+
+/* Sin entregar no es un error: se dice con palabras y en tono apagado, no con
+   un guión largo que hay que interpretar ni con rojo. */
+.tabla-resumen-documentos td.celda-sin-entregas {
+    color: var(--ink-soft);
+    font-style: italic;
 }
 
 .bienvenida {
@@ -1180,7 +1207,6 @@ button:active,
     transform: translateY(1px);
 }
 
-.icono-buscar::before { content: "\1F50D  "; }
 .icono-descargar::before { content: "\2B07  "; }
 .icono-guardar::before { content: "\1F4BE  "; }
 .icono-eliminar::before { content: "\1F5D1  "; }
@@ -1317,6 +1343,15 @@ td input[type="email"] {
 .badge-danger {
     background-color: var(--danger-soft);
     color: var(--danger);
+}
+
+/* Pendiente, no error. Una entrega que todavía falta es un estado normal del
+   curso, así que va en el dorado de la casa y no en el rojo: si el rojo se usa
+   para "faltan 3 de 6", deja de significar "algo se rompió". Contraste del par
+   accent-ink sobre accent-soft: 5.0:1 en claro, 8.7:1 en oscuro. */
+.badge-pendiente {
+    background-color: var(--accent-soft);
+    color: var(--accent-ink);
 }
 
 /* ---------------- Mensajes de éxito/error ---------------- */
@@ -1821,6 +1856,15 @@ td input[type="email"] {
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
+    /* Sin esto, elegir sección era un corte duro: el relleno, el texto y el
+       anillo interior de aria-pressed aparecían de un salto. Misma lógica
+       que ya tiene .esp-chip: el estado cambia junto, no en pasos. El
+       transform de :active queda fuera de esta lista y con su propia
+       duración más corta, por la misma razón que en .esp-chip: la presión
+       tiene que sentirse de inmediato, no arrancar recién cuando termine
+       el resto del cambio. */
+    transition: background-color 0.15s ease, color 0.15s ease,
+                box-shadow 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -2342,6 +2386,811 @@ main > .hub-destinos { animation-delay: 0.18s; }
     }
 }
 
+/* ================= Inicio del coordinador (placa de especialidad) =================
+
+   El coordinador tiene una sola especialidad fija, así que su inicio no
+   necesita resumir "el sistema" como el del administrativo: necesita decir
+   de qué especialidad es dueño, en el mismo color que ya la identifica en
+   alumnos.html y reportes.html. Por eso el hero va pintado con --esp en vez
+   de --accent, y ese --esp sigue apareciendo en las dos filas siguientes:
+   es la identidad de la página entera, no un detalle suelto en el header.
+
+   [data-esp] vive en el <main> (ver coordinador/index.html): --esp/--esp-ink/
+   --esp-edge/--esp-tenue son variables CSS heredadas, así que fijar el
+   atributo una sola vez alcanza para las tres filas.
+
+   El dorado de --accent NO se reemplaza: sigue significando "pendiente" acá
+   igual que en el badge de Reportes y en el hub-tile--atencion del
+   administrativo, así que "sin supervisor" se queda en dorado a propósito.
+   Dos colores con trabajos distintos: --esp identifica la especialidad,
+   --accent señala qué falta resolver.
+
+   Los tokens --esp-ink/--esp-edge/--esp-tenue quedan reservados para fondos
+   y bordes (su calibración es de 3:1, la de un componente no textual). El
+   texto y los íconos que caen sobre --surface neutro usan --ink/--ink-soft
+   de siempre: ningún elemento nuevo apoya legibilidad en un tono que no fue
+   verificado para eso.
+
+   Tres filas, tres familias de layout, ninguna repetida: placa técnica con
+   regla de progreso, par de fichas de estado, grilla 2x2 de accesos (acá hay
+   cuatro pantallas y no dos, así que la fila 3 es grilla y no pila de barras). */
+
+main[data-esp] > .chub-hero     { animation-delay: 0s; }
+main[data-esp] > .chub-estado   { animation-delay: 0.09s; }
+main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
+
+/* ---------- Fila 1: la placa ---------- */
+
+.chub-hero {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem);
+    align-items: center;
+    gap: 2.5rem;
+    padding: 2.25rem 2.5rem;
+    background-color: var(--esp);
+    /* --esp-edge y no --line: con Química Industrial o Electrónica el relleno
+       casi no separa de --bg, y el borde es lo único que define el cuadro
+       (mismo problema que .alumnos-panel, misma solución). */
+    border: 1px solid var(--esp-edge);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 2px 14px -6px rgba(var(--shadow-tint), 0.16);
+    color: var(--esp-ink);
+    /* Papel cuadriculado, muy tenue: la referencia es el plano técnico y no
+       hace falta que compita con el contraste del texto, así que va por
+       detrás y a una opacidad puramente decorativa. */
+    background-image:
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--esp-ink) 12%, transparent) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(90deg, color-mix(in srgb, var(--esp-ink) 12%, transparent) 0 1px, transparent 1px 28px);
+}
+
+/* Escuadras de esquina: el mismo lenguaje de .panel (marca de plano técnico),
+   a mayor escala y en --esp-ink. No es un motivo nuevo, es el que ya usa el
+   resto de la app llevado al tamaño de un hero. */
+.chub-hero::before,
+.chub-hero::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--esp-ink);
+    opacity: 0.55;
+}
+
+.chub-hero::before {
+    top: 10px;
+    left: 10px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.chub-hero::after {
+    bottom: 10px;
+    right: 10px;
+    border-left: none;
+    border-top: none;
+}
+
+.chub-campo-etiqueta {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.4rem;
+}
+
+.chub-placa-nombre {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 4vw, 2.75rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    margin: 0;
+}
+
+.chub-placa-sub {
+    font-size: 0.98rem;
+    line-height: 1.55;
+    max-width: 42ch;
+    margin: 0.85rem 0 0;
+}
+
+/* ---------- La regla: el cumplimiento de la semana como escala horizontal,
+   no como anillo. Mecanismo distinto al del hub del administrativo a
+   propósito: acá el dato vive adentro de la misma placa, y una barra calza
+   entre los demás campos en vez de competir por espacio con un círculo. --- */
+
+.chub-regla-pista {
+    position: relative;
+    height: 0.6rem;
+    border-radius: 100px;
+    background-color: color-mix(in srgb, var(--esp-ink) 16%, transparent);
+    /* marcas cada 10%: es una regla, no una barra de progreso lisa */
+    background-image: repeating-linear-gradient(90deg,
+        color-mix(in srgb, var(--esp-ink) 35%, transparent) 0 1px,
+        transparent 1px calc(100% / 10));
+}
+
+.chub-regla-relleno {
+    position: relative;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background-color: var(--esp-ink);
+    animation: chub-avance 1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+@keyframes chub-avance {
+    from { width: 0; }
+    to   { width: calc(var(--chub-pct) * 1%); }
+}
+
+/* El puntero queda pegado al borde del relleno: se mueve solo con él, sin
+   recalcular ninguna posición aparte. */
+.chub-regla-relleno::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    background-color: var(--esp-ink);
+    border: 3px solid var(--esp);
+    transform: translate(50%, -50%);
+    box-shadow: 0 1px 4px -1px rgba(var(--shadow-tint), 0.4);
+}
+
+.chub-regla-lectura {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.9rem;
+}
+
+.chub-regla-valor {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.chub-regla-label {
+    font-size: 0.78rem;
+    /* tracking apenas positivo, igual que .hub-anillo-label: es texto chico,
+       y a este tamaño el espaciado cerrado por defecto le come legibilidad. */
+    letter-spacing: 0.01em;
+    text-align: right;
+    max-width: 14em;
+}
+
+/* ---------- Fila 2: fichas de estado ---------- */
+
+.chub-estado {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 1rem;
+}
+
+.chub-tile {
+    padding: 1.5rem 1.75rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    /* filo de identidad: el color de la especialidad sigue presente sin
+       repintar la ficha entera, que acá cuenta un dato neutral. Con Química
+       Industrial (#F9FAFB) ese filo por sí solo queda blanco sobre blanco,
+       el mismo problema que ya resolvió .alumnos-panel: una línea de 1px en
+       --esp-edge justo por dentro del lomo de color es lo que de verdad
+       lo separa de la superficie en ese caso. */
+    border-left: 3px solid var(--esp);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 1px 6px -3px rgba(var(--shadow-tint), 0.12),
+                inset 1px 0 0 var(--esp-edge);
+}
+
+.chub-cifra {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 5.5vw, 3.4rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.chub-tile-label {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+}
+
+/* Dorado = pendiente en toda la app (badge-pendiente de Reportes, esta misma
+   ficha en el hub del administrativo). No se reemplaza por --esp: haría que
+   "sin supervisor" dejara de leerse como lo mismo que ya significa en el
+   resto de las pantallas. */
+.chub-tile--atencion {
+    background-color: var(--accent-soft);
+    border-color: var(--accent);
+    border-left-color: var(--accent);
+    /* Sin la línea --esp-edge de .chub-tile: acá el trabajo es del dorado
+       solo, no hace falta (ni conviene) que la identidad de la especialidad
+       se cuele adentro del filo de "atención". */
+    box-shadow: 0 1px 6px -3px rgba(var(--shadow-tint), 0.12);
+}
+
+.chub-tile--atencion .chub-cifra,
+.chub-tile--atencion .chub-tile-label {
+    color: var(--accent-ink);
+}
+
+.chub-ok {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    color: var(--success);
+}
+
+/* ---------- Fila 3: los cuatro accesos, en grilla 2x2 ---------- */
+
+.chub-destinos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+}
+
+.chub-destino {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1.35rem 1.5rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Mismo relleno direccional que .hub-destino: entra por el borde que cruzó
+   el cursor, fijado en pointerenter antes de que arranque la transición. */
+.chub-destino::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--esp-tenue);
+    transform: scaleX(0);
+    transform-origin: var(--chub-origen, left) center;
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chub-destino-titulo {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
+
+.chub-destino-desc {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.chub-destino-flecha {
+    margin-top: auto;
+    align-self: flex-end;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    line-height: 1;
+    color: var(--ink-soft);
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .chub-destino:hover {
+        border-color: var(--esp-edge);
+        box-shadow: 0 6px 18px -8px rgba(var(--shadow-tint), 0.3);
+        transform: translateY(-2px);
+    }
+
+    .chub-destino:hover::before {
+        transform: scaleX(1);
+    }
+
+    .chub-destino:hover .chub-destino-flecha {
+        transform: translateX(4px);
+    }
+}
+
+.chub-destino:active {
+    transform: translateY(0) scale(0.985);
+    transition-duration: 0.08s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chub-regla-relleno {
+        width: calc(var(--chub-pct) * 1%);
+        animation: none;
+    }
+
+    .chub-destino,
+    .chub-destino-flecha {
+        transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .chub-destino::before {
+        transform: scaleX(1);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .chub-destino:active {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .chub-destino:hover::before {
+        opacity: 1;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .chub-hero {
+        border-color: var(--esp-ink);
+    }
+
+    .chub-tile,
+    .chub-destino {
+        border-color: var(--ink-soft);
+    }
+}
+
+/* ================= Supervisores y Empresas (coordinador) =================
+
+   Las dos pantallas comparten forma: una ficha por registro (persona o
+   empresa) y una tabla de asignación por alumno. Antes eran dos <table> sin
+   una sola clase propia, la misma trama para datos que no tienen la misma
+   forma: un supervisor son tres campos, una asignación son treinta filas.
+   Cada dato va al componente que le queda, no al mismo por costumbre.
+
+   Metáfora: "ficha" como la ficha de un fichero de papel, no "card" genérico.
+   Encaja con el resto de la casa (planos técnicos, escuadras de esquina) y
+   sirve igual para una persona que para una empresa.
+
+   [data-esp] va en el <main> de cada plantilla, igual que en el home del
+   coordinador: --esp/--esp-ink/--esp-edge/--esp-tenue se heredan una sola
+   vez para toda la pantalla. */
+
+.registro-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.registro-cabecera h2 {
+    margin: 0;
+}
+
+/* ---------- Secciones de la página ----------
+
+   Roster y asignación son dos módulos distintos y antes corrían juntos con
+   solo un <h3> flotando entre medio. Cada uno va en su propio panel: se ve
+   dónde empieza y termina cada cosa sin tener que leer el texto para
+   averiguarlo. */
+.registro-seccion {
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 6px -3px rgba(var(--shadow-tint), 0.12);
+}
+
+.registro-seccion > h3 {
+    margin-top: 0;
+}
+
+/* Envoltorio liviano para el mismo .seccion-grupo que ya usan Alumnos y
+   Reportes. Sin el fondo teñido de .alumnos-panel-barra a propósito: esa
+   franja está pensada para un panel de lomo de color de borde a borde, y
+   .registro-seccion ya tiene su propio padding, así que reutilizarla acá
+   sumaría un padding encima de otro y un tinte que no llega a los bordes. */
+.seccion-selector {
+    margin-bottom: 1.25rem;
+}
+
+/* ---------- Agregar nuevo registro ----------
+
+   Vive FUERA de .fichas-grid a propósito. Antes era la primera celda de esa
+   grilla y al abrirse forzaba grid-column:1/-1: eso reordena de golpe en
+   qué fila cae cada ficha existente, en el mismo instante en que el
+   formulario de adentro hace su propia animación de entrada, y esa
+   combinación (reflow de grilla + animación) es la que producía el
+   amontonamiento al hacer clic. Como bloque normal, abrirla solo empuja lo
+   de abajo, que es un movimiento que el navegador resuelve sin sobresaltos
+   (el mismo mecanismo que ya usa .documentos-menu en Alumnos/Reportes, sin
+   ese problema, precisamente porque nunca compartió grilla con nada). */
+.ficha-alta {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.ficha-alta summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ficha-alta summary::-webkit-details-marker {
+    display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .ficha-alta:not([open]) summary:hover {
+        background-color: var(--esp-tenue);
+        color: var(--ink);
+    }
+}
+
+.ficha-alta:not([open]):active {
+    transform: scale(0.995);
+    transition: transform 0.08s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ficha-alta:not([open]):active {
+        transform: none;
+    }
+}
+
+.ficha-alta-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    font-size: 1.1rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Abierta, la cabecera se tiñe con el color de la especialidad: es la misma
+   señal de "estás en modo carga" que ya usa el resto de la casa (el filo de
+   .ficha, el fondo de .esp-etiqueta), llevada al momento exacto en que
+   arranca la acción. Cerrada se queda neutra a propósito: el color se gana
+   al abrir, no se regala en la barra de reposo. */
+.ficha-alta[open] summary {
+    background-color: var(--esp);
+    color: var(--esp-ink);
+}
+
+.ficha-alta[open] .ficha-alta-icono {
+    transform: rotate(45deg);
+}
+
+/* display:none explícito y no implícito: el <details> nativo ya oculta su
+   contenido cerrado, pero esa regla la pone el navegador en el origen "user
+   agent", y CUALQUIER display declarado por el sitio (el "author") le gana
+   a esa regla sin importar la especificidad (así lo define el orden de
+   cascada: author normal siempre pisa a user-agent normal). Por eso un
+   .ficha-alta-cuerpo{display:flex} sin más, aunque parezca inofensivo,
+   deja el formulario visible SIEMPRE, encimado con el "+"/las fichas de al
+   lado incluso con la ficha cerrada. Puesto a prueba en Chrome real, no es
+   un supuesto: es el mismo motivo por el que .documentos-lista tenía este
+   bug de arrastre (corregido acá abajo con la misma receta). */
+.ficha-alta-cuerpo {
+    display: none;
+}
+
+.ficha-alta[open] .ficha-alta-cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    /* Confirma que se abrió: el <details> nativo no anima su propio toggle,
+       así que la señal de "pasó algo" la da el contenido de adentro. */
+    animation: entrada 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Grupo de campos con su propio rótulo. Una empresa tiene cinco campos que
+   no son la misma cosa (quién es vs. cómo contactarla); separarlos en dos
+   grupos se lee más rápido que cinco campos sueltos en fila. Un supervisor
+   son tres campos de una sola idea (persona), así que ese formulario no
+   fuerza grupos donde no los hay. */
+.ficha-alta-grupo-titulo {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin: 0 0 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.ficha-alta-campos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+/* Envoltorio del <form> cuando trae más de un grupo (el caso de empresa):
+   apila título+campos, título+campos en vez de que floten pegados. Clase
+   propia y no .ficha-alta-campos en el <form>: esa ya vale display:grid
+   para el caso de un solo grupo (supervisor) y pisarla acá rompería esa otra. */
+.ficha-alta-grupos {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.ficha-alta-campos .btn-primary {
+    height: fit-content;
+}
+
+/* ---------- Grilla de fichas ya cargadas ---------- */
+
+.fichas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+/* Ficha de un registro ya cargado. El borde superior en --esp es la misma
+   idea que el filo de .chub-tile, llevada arriba porque acá la ficha es
+   angosta y vertical en vez de ancha. La línea --esp-edge de adentro es la
+   misma solución que ya usa .alumnos-panel para que Química Industrial (casi
+   blanco) no quede sin filo contra la superficie. */
+.ficha {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.1rem 1.25rem 1rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--esp);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 1px 6px -3px rgba(var(--shadow-tint), 0.12),
+                inset 0 1px 0 var(--esp-edge);
+}
+
+.ficha-titulo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+/* Los campos se ven como texto y no como un formulario hasta que se los toca:
+   la ficha se lee de un vistazo, y recién al pasar el mouse o enfocar un
+   campo aparece el borde que dice "esto se puede editar". */
+.ficha-campo {
+    min-width: 0;
+    flex: 1 1 auto;
+    border: 1px solid transparent;
+    background-color: transparent;
+    border-radius: 6px;
+    padding: 0.15rem 0.35rem;
+    margin: -0.15rem -0.35rem;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.ficha-campo:hover {
+    background-color: var(--bg);
+}
+
+.ficha-campo:focus {
+    background-color: var(--surface);
+}
+
+.ficha-campo--nombre {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.ficha-campo--secundario {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+}
+
+/* Ficha de empresa: más campos que un supervisor, así que debajo del nombre
+   van en su propia mini grilla de etiqueta + valor, como los datos de una
+   tarjeta de presentación y no como una fila más de tabla. */
+.ficha-datos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem 0.85rem;
+}
+
+.ficha-dato-etiqueta {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin-bottom: 0.15rem;
+}
+
+.ficha-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--line);
+}
+
+/* ---------- Tabla de asignación por alumno ----------
+
+   Acá sí es tabla: treinta alumnos con un único campo variable por fila
+   (a quién le asignaste) es exactamente la forma que una tabla resuelve
+   bien. Mismo lenguaje que .tabla-alumnos: cabecera fija teñida con el
+   color de la especialidad. */
+.tabla-asignacion {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+}
+
+.tabla-asignacion thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--esp);
+    color: var(--esp-ink);
+    border-bottom: 1px solid var(--esp-edge);
+}
+
+.tabla-asignacion tbody tr:hover {
+    background-color: var(--esp-tenue);
+}
+
+.tabla-asignacion td.celda-nombre {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+/* ---------- Select de asignación (supervisor/empresa por alumno) ----------
+
+   Antes era el <select> genérico de toda la app, sin nada propio. Acá toma
+   prestado el mismo lenguaje que ya usan las fichas de esta pantalla:
+   punteado = todavía no hay nada (igual que .ficha-alta antes de abrirse),
+   sólido con el color de la especialidad = ya es un dato real (igual que
+   el filo de .ficha). No es un adorno nuevo, es la misma idea aplicada acá.
+
+   El <select> sigue siendo el elemento nativo (teclado, lector de pantalla
+   y el picker del sistema en el celular quedan intactos); solo se le saca
+   el chrome del navegador con appearance:none y se dibuja una flecha propia
+   en el envoltorio. :has() lee si hay algo elegido para cambiar de estado
+   sin una sola línea de JS. */
+.select-envoltorio {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 16rem;
+}
+
+.select-asignacion {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    padding: 0.55rem 2.1rem 0.55rem 0.85rem;
+    border: 1.5px dashed var(--line);
+    border-radius: var(--radius-field);
+    background-color: var(--surface);
+    color: var(--ink-soft);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, border-style 0.15s ease,
+                background-color 0.15s ease, color 0.15s ease;
+}
+
+.select-asignacion option[value=""] {
+    color: var(--ink-soft);
+    font-style: italic;
+}
+
+/* Ya tiene a alguien asignado: deja de ser un hueco punteado. */
+.select-asignacion:has(option:checked:not([value=""])) {
+    border-style: solid;
+    border-color: var(--esp-edge);
+    background-color: var(--esp-tenue);
+    color: var(--ink);
+    font-weight: 500;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .select-asignacion:hover {
+        border-color: var(--esp-edge);
+    }
+}
+
+.select-asignacion:focus {
+    border-style: solid;
+    border-color: var(--focus);
+}
+
+/* La flecha va en el envoltorio y no en el <select>: los pseudo-elementos
+   de <select> se comportan distinto entre navegadores, y esto funciona
+   igual en todos. Dibujada con dos bordes en vez de un SVG: no hace falta
+   una imagen para una V. */
+.select-envoltorio::after {
+    content: "";
+    position: absolute;
+    top: 45%;
+    right: 0.95rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    color: var(--ink-soft);
+    transform: translateY(-50%) rotate(45deg);
+    pointer-events: none;
+    transition: color 0.15s ease;
+}
+
+.select-envoltorio:has(.select-asignacion option:checked:not([value=""]))::after {
+    color: var(--esp-edge);
+}
+
+.select-envoltorio:has(.select-asignacion:focus)::after {
+    color: var(--focus);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .select-envoltorio:has(.select-asignacion:hover)::after {
+        color: var(--esp-edge);
+    }
+}
+
+@media (prefers-contrast: more) {
+    .ficha,
+    .ficha-alta,
+    .registro-seccion {
+        border-color: var(--ink-soft);
+    }
+}
+
 /* ---------------- Responsive ---------------- */
 
 @media (max-width: 720px) {
@@ -2463,6 +3312,91 @@ main > .hub-destinos { animation-delay: 0.18s; }
         padding-top: 0.6rem;
     }
 
+    /* Misma conversión a tarjetas que .tabla-alumnos, para la tabla de
+       asignación de Supervisores/Empresas. */
+    .tabla-asignacion {
+        display: block;
+        white-space: normal;
+        overflow: visible;
+    }
+
+    .tabla-asignacion thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+
+    .tabla-asignacion tbody,
+    .tabla-asignacion tr,
+    .tabla-asignacion td {
+        display: block;
+    }
+
+    .tabla-asignacion tr {
+        padding: 0.9rem 1.1rem;
+        border-top: 1px solid var(--line);
+    }
+
+    .tabla-asignacion tbody tr:nth-child(even) {
+        background-color: transparent;
+    }
+
+    .tabla-asignacion td {
+        display: grid;
+        grid-template-columns: 7rem 1fr;
+        align-items: baseline;
+        gap: 0.75rem;
+        border: none;
+        padding: 0.25rem 0;
+    }
+
+    .tabla-asignacion td::before {
+        content: attr(data-label);
+        font-family: var(--font-display);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+    }
+
+    .tabla-asignacion td.celda-asignar {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+        padding-top: 0.6rem;
+    }
+
+    .select-envoltorio {
+        max-width: none;
+    }
+
+    .registro-seccion {
+        padding: 1.25rem;
+    }
+
+    /* Una sola columna siempre por debajo de 720px: con auto-fill a veces
+       entraban dos fichas angostas y apretadas en vez de una cómoda. */
+    .fichas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* A una columna: RUC/Email/Dirección son valores largos y a dos columnas
+       en un teléfono angosto se cortan mal. */
+    .ficha-datos {
+        grid-template-columns: 1fr;
+    }
+
+    /* La celda de Entregas (Reportes) aloja una mini tabla de tres columnas.
+       Con la etiqueta al costado le quedan menos de 200px, así que acá pasa a
+       ocupar el ancho completo de la tarjeta y la etiqueta se va arriba. */
+    .tabla-alumnos td.celda-entregas {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+        padding-top: 0.6rem;
+    }
+
     .esp-picker {
         grid-template-columns: 1fr;
     }
@@ -2492,6 +3426,27 @@ main > .hub-destinos { animation-delay: 0.18s; }
 
     .hub-destino {
         padding: 1.35rem 1.25rem;
+    }
+
+    /* La placa del coordinador apila igual que el hero del administrativo:
+       texto arriba, regla de progreso abajo. Las cuatro fichas de acceso
+       vuelven a una columna, la misma regla de colapso que cualquier bento. */
+    .chub-hero {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 1.75rem 1.5rem;
+    }
+
+    .chub-placa-sub {
+        max-width: none;
+    }
+
+    .chub-estado {
+        grid-template-columns: 1fr;
+    }
+
+    .chub-destinos {
+        grid-template-columns: 1fr;
     }
 
     .filtro-panel-encabezado {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTN Pasantias coord</title>
+    <title>Inicio | CTN Pasantías</title>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,33 +37,134 @@
         <a th:href="@{/admin/supervisores}" class="nav-links">Supervisores</a>
         <a th:href="@{/admin/empresas}" class="nav-links">Empresas</a>
     </nav>
-    <main id="main-content">
-        <section class="saludo">
-            <div class="avatar-circulo" th:text="${#strings.substring(admin.nombres.trim(), 0, 1)}">A</div>
+
+    <!-- data-esp una sola vez acá arriba: --esp/--esp-ink/--esp-edge/--esp-tenue
+         son variables CSS y se heredan, así que las tres secciones de abajo
+         las usan sin repetir la lógica de color. -->
+    <main id="main-content" th:attr="data-esp=${admin.especialidades[0].idEsp}">
+
+        <!-- Fila 1: la placa técnica de la especialidad + el dato que cambia
+             semana a semana, como una regla de progreso en vez del anillo
+             que usa el hub del administrativo (acá el número vive adentro
+             de la placa, no compite por espacio con un círculo aparte). -->
+        <section class="chub-hero" aria-labelledby="chub-especialidad">
             <div>
-                <p class="eyebrow">Panel de coordinación</p>
-                <h1 th:text="|Bienvenido, ${admin.nombres.trim().split(' ')[0]}!|">Bienvenido!</h1>
+                <p class="chub-campo-etiqueta">Especialidad a tu cargo</p>
+                <h2 class="chub-placa-nombre" id="chub-especialidad"
+                    th:text="${admin.especialidades[0].nombre}">Especialidad</h2>
+                <p class="chub-placa-sub">Resumen de la semana,
+                    <strong th:text="${admin.nombres.trim().split(' ')[0]}">Nombre</strong>.</p>
+            </div>
+
+            <!-- --chub-pct lleva el porcentaje real; el CSS lo usa para el ancho del relleno -->
+            <div class="chub-regla" th:style="'--chub-pct:' + ${porcentajeCumplimiento}">
+                <div class="chub-regla-pista">
+                    <div class="chub-regla-relleno"></div>
+                </div>
+                <div class="chub-regla-lectura">
+                    <span class="chub-regla-valor"><span th:text="${porcentajeCumplimiento}"
+                                                         th:attr="data-contar=${porcentajeCumplimiento}">0</span>%</span>
+                    <span class="chub-regla-label">planillas entregadas esta semana</span>
+                </div>
             </div>
         </section>
 
-        <div class="panel bienvenida">
-            <p class="bienvenida-texto">Desde acá manejás todo lo de tu especialidad: revisá a tus <strong>Alumnos</strong> y su documentación, controlá el <strong>cumplimiento</strong> semanal, y asigná <strong>Supervisores</strong> y <strong>Empresas</strong> a cada pasante.</p>
-        </div>
+        <!-- Fila 2: estado de la especialidad -->
+        <section class="chub-estado" aria-label="Estado de la especialidad">
+            <div class="chub-tile">
+                <span class="chub-cifra" th:text="${cantidadAlumnos}"
+                      th:attr="data-contar=${cantidadAlumnos}">0</span>
+                <span class="chub-tile-label">Alumnos de la especialidad</span>
+            </div>
 
-        <section class="estadisticas-inicio" aria-label="Resumen de la especialidad">
-            <div class="estadistica-inicio">
-                <strong th:text="${cantidadAlumnos}">0</strong>
-                <span>Alumnos de la especialidad</span>
+            <div class="chub-tile" th:classappend="${cantidadSinSupervisor > 0} ? ' chub-tile--atencion'">
+                <span th:if="${cantidadSinSupervisor > 0}">
+                    <span class="chub-cifra" th:text="${cantidadSinSupervisor}"
+                          th:attr="data-contar=${cantidadSinSupervisor}">0</span>
+                    <span class="chub-tile-label">Sin supervisor asignado</span>
+                </span>
+                <span th:unless="${cantidadSinSupervisor > 0}">
+                    <span class="chub-ok">Todos con supervisor</span>
+                    <span class="chub-tile-label">No queda ningún alumno por asignar</span>
+                </span>
             </div>
-            <div class="estadistica-inicio">
-                <strong th:text="|${porcentajeCumplimiento}%|">0%</strong>
-                <span>Cumplimiento esta semana</span>
-            </div>
-            <div class="estadistica-inicio">
-                <strong th:text="${cantidadSinSupervisor}">0</strong>
-                <span>Sin supervisor asignado</span>
-            </div>
+        </section>
+
+        <!-- Fila 3: los cuatro destinos de trabajo, en grilla 2x2. Son cuatro
+             pantallas y no dos como en el hub del administrativo: una pila de
+             cuatro barras se estira sin necesidad, la grilla entra en menos alto. -->
+        <section class="chub-destinos" aria-label="Pantallas de trabajo">
+            <a class="chub-destino" th:href="@{/admin/alumnos}">
+                <span class="chub-destino-titulo">Alumnos</span>
+                <span class="chub-destino-desc">Gestionar y descargar la documentación de tus alumnos por sección.</span>
+                <span class="chub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="chub-destino" th:href="@{/admin/reportes}">
+                <span class="chub-destino-titulo">Reportes</span>
+                <span class="chub-destino-desc">Revisar el cumplimiento semanal de las planillas.</span>
+                <span class="chub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="chub-destino" th:href="@{/admin/supervisores}">
+                <span class="chub-destino-titulo">Supervisores</span>
+                <span class="chub-destino-desc">Cargar y editar los profesores supervisores de tu especialidad.</span>
+                <span class="chub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="chub-destino" th:href="@{/admin/empresas}">
+                <span class="chub-destino-titulo">Empresas</span>
+                <span class="chub-destino-desc">Cargar y editar las empresas donde tus alumnos hacen la pasantía.</span>
+                <span class="chub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
         </section>
     </main>
+
+    <script>
+        // Conteo ascendente de las cifras. Idéntico al del hub del administrativo:
+        // data-contar es genérico, no depende de qué página lo usa. El valor final
+        // ya viene renderizado en el DOM, así que sin JS (o con reduced motion)
+        // el número igual se lee.
+        (function () {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            if (document.hidden) return;
+
+            document.querySelectorAll('[data-contar]').forEach(function (nodo) {
+                var fin = parseInt(nodo.dataset.contar, 10);
+                if (!isFinite(fin) || fin === 0) return;
+
+                var duracion = 900;
+
+                requestAnimationFrame(function (inicio) {
+                    nodo.textContent = '0';
+
+                    function paso(ahora) {
+                        var p = Math.min(1, (ahora - inicio) / duracion);
+                        var suave = 1 - Math.pow(1 - p, 3); // ease-out cúbico
+                        nodo.textContent = Math.round(fin * suave);
+                        if (p < 1) {
+                            requestAnimationFrame(paso);
+                        } else {
+                            nodo.textContent = fin;
+                        }
+                    }
+                    requestAnimationFrame(paso);
+                });
+            });
+        })();
+
+        // El relleno de cada acceso entra por el borde que cruzó el cursor, igual
+        // que en el hub del administrativo. Solo aplica con mouse: el hover en
+        // CSS ya está detrás de (hover: hover) and (pointer: fine).
+        (function () {
+            document.querySelectorAll('.chub-destino').forEach(function (destino) {
+                destino.addEventListener('pointerenter', function (evento) {
+                    var caja = destino.getBoundingClientRect();
+                    var entroPorIzquierda = (evento.clientX - caja.left) < caja.width / 2;
+                    destino.style.setProperty('--chub-origen', entroPorIzquierda ? 'left' : 'right');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

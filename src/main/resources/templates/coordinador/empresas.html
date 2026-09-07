@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTN Pasantias ad</title>
+    <title>Empresas | CTN Pasantías</title>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,70 +38,96 @@
         <a th:href="@{/admin/empresas}" class="nav-links activo">Empresas</a>
     </nav>
 
-    <main id="main-content">
-        <h2>Empresas de <span th:text="${especialidadFija.nombre}"></span></h2>
+    <!-- data-esp: mismo hilo de color que el home y el resto de las pantallas
+         del coordinador. Se hereda una sola vez para toda la página. -->
+    <main id="main-content" th:attr="data-esp=${especialidadFija.idEsp}">
+
+        <div class="registro-cabecera">
+            <h2>Empresas</h2>
+            <span class="esp-etiqueta" th:text="${especialidadFija.nombre}"></span>
+        </div>
 
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
         <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
 
-        <!-- Formulario para agregar una nueva empresa -->
-        <h3>Agregar nueva empresa</h3>
-        <form th:action="@{/admin/empresas/crear}" method="post" class="toolbar panel">
-            <div>
-                <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" name="nombre" required>
-            </div>
-            <div>
-                <label for="ruc">RUC</label>
-                <input type="text" id="ruc" name="ruc" required>
-            </div>
-            <div>
-                <label for="telefono">Teléfono</label>
-                <input type="text" id="telefono" name="telefono" required>
-            </div>
-            <div>
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div>
-                <label for="direccion">Dirección</label>
-                <input type="text" id="direccion" name="direccion" required>
-            </div>
-            <button type="submit" class="btn-primary">Agregar</button>
-        </form>
+        <section class="registro-seccion" aria-labelledby="titulo-roster-emp">
+            <h3 id="titulo-roster-emp">Empresas cargadas</h3>
 
-        <!-- Lista de empresas ya cargadas -->
-        <h3>Empresas cargadas</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>RUC</th>
-                    <th>Teléfono</th>
-                    <th>Email</th>
-                    <th>Dirección</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="emp : ${empresas}">
-                    <td>
-                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="nombre" th:value="${emp.nombre}" required>
-                    </td>
-                    <td>
-                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="ruc" th:value="${emp.ruc}" required>
-                    </td>
-                    <td>
-                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="telefono" th:value="${emp.telefono}" required>
-                    </td>
-                    <td>
-                        <input type="email" th:form="${'editar-' + emp.idEmp}" name="email" th:value="${emp.email}" required>
-                    </td>
-                    <td>
-                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="direccion" th:value="${emp.direccion}" required>
-                    </td>
-                    <td class="fila-acciones">
-                        <!-- Este form no tiene inputs propios adentro: los toma de las celdas de arriba via el atributo form="" -->
+            <!-- Fuera de la grilla de fichas a propósito: ver el comentario de
+                 .ficha-alta en el CSS. -->
+            <details class="ficha-alta">
+                <summary>
+                    <span class="ficha-alta-icono" aria-hidden="true">+</span>
+                    <span>Agregar empresa</span>
+                </summary>
+                <div class="ficha-alta-cuerpo">
+                    <form th:action="@{/admin/empresas/crear}" method="post" class="ficha-alta-grupos">
+                        <p class="ficha-alta-grupo-titulo">Identificación</p>
+                        <div class="ficha-alta-campos">
+                            <div>
+                                <label for="nombre">Nombre</label>
+                                <input type="text" id="nombre" name="nombre" required>
+                            </div>
+                            <div>
+                                <label for="ruc">RUC</label>
+                                <input type="text" id="ruc" name="ruc" required>
+                            </div>
+                        </div>
+
+                        <p class="ficha-alta-grupo-titulo">Contacto</p>
+                        <div class="ficha-alta-campos">
+                            <div>
+                                <label for="telefono">Teléfono</label>
+                                <input type="text" id="telefono" name="telefono" required>
+                            </div>
+                            <div>
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div>
+                                <label for="direccion">Dirección</label>
+                                <input type="text" id="direccion" name="direccion" required>
+                            </div>
+                            <button type="submit" class="btn-primary">Agregar</button>
+                        </div>
+                    </form>
+                </div>
+            </details>
+
+            <!-- Una ficha por empresa: el nombre encabeza, y RUC/Teléfono/Email/
+                 Dirección van abajo como los datos de una tarjeta, no como
+                 cinco columnas más de tabla. -->
+            <section class="fichas-grid" aria-label="Empresas cargadas">
+                <article class="ficha" th:each="emp : ${empresas}">
+                    <input type="text" th:form="${'editar-' + emp.idEmp}" name="nombre" th:value="${emp.nombre}"
+                           class="ficha-campo ficha-campo--nombre" aria-label="Nombre" required>
+
+                    <div class="ficha-datos">
+                        <div>
+                            <span class="ficha-dato-etiqueta">RUC</span>
+                            <input type="text" th:form="${'editar-' + emp.idEmp}" name="ruc" th:value="${emp.ruc}"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="RUC" required>
+                        </div>
+                        <div>
+                            <span class="ficha-dato-etiqueta">Teléfono</span>
+                            <input type="text" th:form="${'editar-' + emp.idEmp}" name="telefono" th:value="${emp.telefono}"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="Teléfono" required>
+                        </div>
+                        <div>
+                            <span class="ficha-dato-etiqueta">Email</span>
+                            <input type="email" th:form="${'editar-' + emp.idEmp}" name="email" th:value="${emp.email}"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
+                        </div>
+                        <div>
+                            <span class="ficha-dato-etiqueta">Dirección</span>
+                            <input type="text" th:form="${'editar-' + emp.idEmp}" name="direccion" th:value="${emp.direccion}"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="Dirección" required>
+                        </div>
+                    </div>
+
+                    <div class="ficha-acciones">
+                        <!-- Este form no tiene inputs propios adentro: los toma de los
+                             campos de arriba via el atributo form="" -->
                         <form th:id="${'editar-' + emp.idEmp}" th:action="@{/admin/empresas/editar}" method="post">
                             <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
                             <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
@@ -111,52 +137,158 @@
                             <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
                             <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
                         </form>
-                    </td>
-                </tr>
-                <tr th:if="${empresas.isEmpty()}">
-                    <td colspan="6" class="mensaje-vacio">Todavía no cargaste ninguna empresa.</td>
-                </tr>
-            </tbody>
-        </table>
+                    </div>
+                </article>
+            </section>
 
-        <!-- Asignación de empresa por alumno -->
-        <h3>Asignar empresa a cada alumno</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
-                    <th>Curso</th>
-                    <th>Sección</th>
-                    <th>Empresa asignada</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="alumno : ${alumnos}">
-                    <td th:text="${alumno.nombres}"></td>
-                    <td th:text="${alumno.apellidos}"></td>
-                    <td th:text="${alumno.curso}"></td>
-                    <td th:text="${alumno.seccion}"></td>
-                    <td>
-                        <form th:action="@{/admin/empresas/asignar}" method="post" class="fila-acciones">
-                            <input type="hidden" name="idAl" th:value="${alumno.idAl}">
-                            <select name="idEmp">
-                                <option value="">-- Sin asignar --</option>
-                                <option th:each="emp : ${empresas}"
-                                        th:value="${emp.idEmp}"
-                                        th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
-                                        th:text="${emp.nombre}"></option>
-                            </select>
-                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
-                        </form>
-                    </td>
-                </tr>
-                <tr th:if="${alumnos.isEmpty()}">
-                    <td colspan="6" class="mensaje-vacio">No hay alumnos cargados en esta especialidad.</td>
-                </tr>
-            </tbody>
-        </table>
+            <p th:if="${empresas.isEmpty()}" class="mensaje-vacio">
+                Todavía no cargaste ninguna empresa. Usá "Agregar empresa" arriba para cargar la primera.
+            </p>
+        </section>
+
+        <!-- Asignación de empresa por alumno. Antes era una sola tabla con las
+             tres secciones mezcladas; ahora usa el mismo selector de sección
+             que Alumnos/Reportes, así se elige A/B/C primero y la tabla
+             muestra una sección genuina. -->
+        <section class="registro-seccion" aria-labelledby="titulo-asignacion-emp">
+            <h3 id="titulo-asignacion-emp">Asignar empresa a cada alumno</h3>
+
+            <div class="seccion-selector">
+                <span class="seccion-etiqueta" id="etiqueta-seccion-emp">Sección</span>
+                <span class="seccion-grupo" id="grupo-seccion-emp" role="group" aria-labelledby="etiqueta-seccion-emp"></span>
+            </div>
+
+            <div class="tabla-scroll">
+                <table class="tabla-asignacion oculto" id="tabla-asignacion-emp" role="table">
+                    <thead role="rowgroup">
+                        <tr role="row">
+                            <th role="columnheader" scope="col">Nombres</th>
+                            <th role="columnheader" scope="col">Apellidos</th>
+                            <th role="columnheader" scope="col">Curso</th>
+                            <th role="columnheader" scope="col">Sección</th>
+                            <th role="columnheader" scope="col">Empresa asignada</th>
+                        </tr>
+                    </thead>
+                    <tbody role="rowgroup" id="tabla-asignacion-emp-body">
+                        <tr role="row" th:each="alumno : ${alumnos}" th:attr="data-seccion=${alumno.seccion}">
+                            <td role="cell" data-label="Nombres" class="celda-nombre" th:text="${alumno.nombres}"></td>
+                            <td role="cell" data-label="Apellidos" class="celda-nombre" th:text="${alumno.apellidos}"></td>
+                            <td role="cell" data-label="Curso" th:text="${alumno.curso}"></td>
+                            <td role="cell" data-label="Sección" th:text="${alumno.seccion}"></td>
+                            <td role="cell" data-label="Empresa" class="celda-asignar">
+                                <form th:action="@{/admin/empresas/asignar}" method="post" class="fila-acciones">
+                                    <input type="hidden" name="idAl" th:value="${alumno.idAl}">
+                                    <span class="select-envoltorio">
+                                        <select name="idEmp" class="select-asignacion">
+                                            <option value="">-- Sin asignar --</option>
+                                            <option th:each="emp : ${empresas}"
+                                                    th:value="${emp.idEmp}"
+                                                    th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
+                                                    th:text="${emp.nombre}"></option>
+                                        </select>
+                                    </span>
+                                    <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p th:if="${alumnos.isEmpty()}" class="mensaje-vacio">No hay alumnos cargados en esta especialidad.</p>
+            <div th:unless="${alumnos.isEmpty()}" id="estado-asignacion-emp" class="estado-vacio" role="status" aria-live="polite"></div>
+        </section>
     </main>
+
+    <script>
+        // Mismo mapa y misma normalización que alumnos.html/reportes.html: cada
+        // especialidad tiene su juego fijo de secciones, y los valores viejos
+        // ("1ra", "2da"...) se leen igual que A/B/C.
+        const SECCIONES_POR_ESP = {
+            '1': ['A', 'B'],
+            '2': ['A', 'B', 'C'],
+            '4': ['A', 'B', 'C'],
+            '5': ['A', 'B'],
+            '6': ['A', 'B'],
+            '7': ['A', 'B'],
+            '8': ['A', 'B'],
+            '9': ['A', 'B', 'C'],
+        };
+        const SECCIONES_POR_DEFECTO = ['A', 'B', 'C'];
+
+        function normalizarSeccion(valor) {
+            if (valor == null) return valor;
+            const v = String(valor).trim().toLowerCase();
+            if (['1ra', '1era', '1ro', '1er', '1', '1°', 'primera'].includes(v)) return 'A';
+            if (['2da', '2do', '2', '2°', 'segunda'].includes(v)) return 'B';
+            if (['3ra', '3ro', '3er', '3', '3°', 'tercera'].includes(v)) return 'C';
+            return String(valor).trim().toUpperCase();
+        }
+
+        // Los alumnos de las tres secciones ya vienen en el HTML (esta pantalla
+        // no hace fetch como alumnos.html); acá solo se muestra/oculta según la
+        // sección elegida, no se vuelve a pedir nada al servidor.
+        (function () {
+            const idEsp = document.getElementById('main-content').dataset.esp;
+            const grupo = document.getElementById('grupo-seccion-emp');
+            const tabla = document.getElementById('tabla-asignacion-emp');
+            const estado = document.getElementById('estado-asignacion-emp');
+            if (!grupo || !tabla || !estado) return; // no hay alumnos: nada que filtrar
+
+            const filas = Array.from(document.querySelectorAll('#tabla-asignacion-emp-body tr'));
+            filas.forEach(fila => {
+                fila.dataset.seccionNormalizada = normalizarSeccion(fila.dataset.seccion);
+            });
+
+            function mostrarEstado(titulo, nota) {
+                tabla.classList.add('oculto');
+                estado.innerHTML = '';
+                const h = document.createElement('p');
+                h.className = 'estado-vacio-titulo';
+                h.textContent = titulo;
+                const p = document.createElement('p');
+                p.className = 'estado-vacio-nota';
+                p.textContent = nota;
+                estado.append(h, p);
+                estado.classList.remove('oculto');
+            }
+
+            function elegirSeccion(seccion) {
+                grupo.querySelectorAll('.seccion-btn').forEach(
+                    b => b.setAttribute('aria-pressed', String(b.dataset.seccion === seccion)));
+
+                const hayAlumnos = filas.some(f => f.dataset.seccionNormalizada === seccion);
+                if (!hayAlumnos) {
+                    mostrarEstado('No hay alumnos en esta sección',
+                        `Ningún alumno figura en 3ro sección ${seccion}.`);
+                    return;
+                }
+
+                estado.classList.add('oculto');
+                filas.forEach(f => f.classList.toggle('oculto', f.dataset.seccionNormalizada !== seccion));
+                tabla.classList.remove('oculto');
+            }
+
+            const secciones = SECCIONES_POR_ESP[idEsp] || SECCIONES_POR_DEFECTO;
+            secciones.forEach(seccion => {
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'seccion-btn';
+                boton.dataset.seccion = seccion;
+                boton.setAttribute('aria-pressed', 'false');
+                boton.textContent = seccion;
+                boton.addEventListener('click', () => elegirSeccion(seccion));
+                grupo.appendChild(boton);
+            });
+
+            // Con una sola sección no hay nada que elegir: se abre directo.
+            if (secciones.length === 1) {
+                elegirSeccion(secciones[0]);
+            } else {
+                mostrarEstado('Elegí una sección',
+                    'Las pasantías son de 3er año, así que solo falta indicar la sección.');
+            }
+        })();
+    </script>
 </body>
 </html>
