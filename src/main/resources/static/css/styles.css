@@ -2825,7 +2825,9 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     font-size: clamp(6rem, 12vw, 8.5rem);
     font-weight: 700;
     line-height: 1;
-    letter-spacing: -0.04em;
+    /* Sin letter-spacing: el interletrado tambien se agrega DESPUES del ultimo
+       glifo, y en un texto de una sola letra eso es todo lo que hace. Con
+       -0.04em a 8.5rem el centrado optico se corria ~2.7px a la derecha. */
     color: color-mix(in srgb, var(--esp-ink) 16%, transparent);
     pointer-events: none;
     user-select: none;
@@ -2975,11 +2977,15 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     color: var(--ink-soft);
 }
 
+/* -0.01em como .ahub-destino-titulo, que esta en el mismo cuerpo: el
+   interletrado va con el tamano, no con el componente, y este era el unico
+   texto en display de la pantalla que se habia quedado sin ajustar. */
 .ahub-asignacion-valor {
     margin: 0;
     font-family: var(--font-display);
     font-size: 1.1rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
     line-height: 1.25;
     color: var(--ink);
 }
@@ -3049,17 +3055,30 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* La interlinea va al reves que el cuerpo: mas grande el texto, mas junta.
+   Los titulos heredaban el 1.5 del body, pensado para parrafos, y arriba de
+   un titulo de una linea eso es aire que no separa nada y que hacia ver el
+   gap con la descripcion mas grande de lo que es. */
 .ahub-destino-titulo {
     font-family: var(--font-display);
     font-size: 1.15rem;
     font-weight: 600;
     letter-spacing: -0.01em;
+    line-height: 1.25;
     color: var(--ink);
 }
 
+/* margin-top: auto tambien arriba del titulo. Cuando hay dos margenes
+   automaticos en el eje principal, el espacio libre se reparte igual entre los
+   dos: el texto queda centrado en el hueco que deja la flecha, y la flecha se
+   mantiene clavada abajo a la derecha. El principal ocupa dos filas y le
+   sobraban ~120px que se juntaban todos al final, y un borde alrededor de una
+   region vacia se lee como algo que falta, no como aire puesto a proposito. */
 .ahub-destino--principal .ahub-destino-titulo {
+    margin-top: auto;
     font-size: 1.5rem;
     letter-spacing: -0.02em;
+    line-height: 1.15;
 }
 
 .ahub-destino-desc {
