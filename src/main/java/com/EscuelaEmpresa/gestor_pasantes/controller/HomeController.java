@@ -36,6 +36,16 @@ public class HomeController {
         this.planillaSemanalRepository = planillaSemanalRepository;
     }
 
+    // la raiz del sitio no tenia handler, asi que entrar a http://localhost:8080/
+    // daba 404: /login no esta en la lista de permitAll de SecurityConfig, cae en
+    // .anyRequest().authenticated(), y con sesion activa (rememberMe dura 14 dias)
+    // Security deja pasar la peticion hasta un mapping que no existia.
+    // /login se encarga del resto: si ya hay alguien logueado, rebota a /home.
+    @GetMapping("/")
+    public String raiz() {
+        return "redirect:/login";
+    }
+
     @GetMapping("/home")
     public String home(Authentication authentication, Model model) {
 
