@@ -2802,7 +2802,12 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     height: 0.45rem;
     border-radius: 999px;
     background-color: var(--bg);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--esp-ink) 22%, transparent);
+    /* Dos sombras y no un filo parejo: el anillo define el troquel cuando la
+       chapa y el fondo de pagina casi no separan (Quimica Industrial), y la
+       segunda pone la luz donde viene, de arriba. Un agujero real deja sombra
+       en su borde interno superior, no un contorno uniforme. */
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--esp-ink) 16%, transparent),
+                inset 0 1px 2px color-mix(in srgb, var(--esp-ink) 26%, transparent);
 }
 
 /* La inicial como textura, no como dato: entera y centrada bajo la ranura,
@@ -2922,6 +2927,13 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     background-color: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-panel);
+    /* La escalera de elevacion queda explicita: la credencial es la superficie
+       grande y va mas alta (14px / 0.16, el escalon de .chub-hero), esta es
+       secundaria y va en el escalon de .panel (10px / 0.12), y los accesos
+       quedan al ras hasta que se los toca. Antes esta tira no tenia sombra
+       ninguna, asi que su jerarquia frente a la credencial se leia como un
+       olvido y no como una decision. */
+    box-shadow: 0 2px 10px -4px rgba(var(--shadow-tint), 0.12);
 }
 
 .ahub-asignacion {
