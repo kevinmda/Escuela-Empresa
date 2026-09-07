@@ -5328,6 +5328,20 @@ button:disabled,
     color: var(--ink-soft);
 }
 
+/* El objetivo mas grande de la pantalla no respondia al presionarlo: tenia
+   hover y tenia el estado de arrastre, pero entre que apretabas y que se abria
+   el dialogo del sistema no pasaba nada. Se hunde, y se hunde sin transicion,
+   porque la respuesta a la pulsacion tiene que ser inmediata; la vuelta si se
+   suaviza. La sombra interna es lo que hace legible el hundido en las ocho
+   especialidades: con --esp casi blanco, un relleno mas del mismo color no
+   cambia nada. */
+.dropzone:active {
+    background-color: color-mix(in srgb, var(--esp) 18%, transparent);
+    border-color: var(--esp-edge);
+    box-shadow: inset 0 2px 5px rgba(var(--shadow-tint), 0.12);
+    transition-duration: 0s;
+}
+
 /* Con archivo elegido deja de estar punteada: ya no esta vacia. */
 .dropzone-con-archivo {
     border-style: solid;
@@ -5384,11 +5398,23 @@ button:disabled,
 }
 
 /* Botones de fila: la altura de 44px del boton general no entra en una tabla
-   sin estirar cada renglon casi al doble. Acá el objetivo es chico a proposito
+   sin estirar cada renglon casi al doble. Acá el boton se ve chico a proposito
    y va acompanado de su aria-label con el nombre del archivo. */
 .sb-btn-fila {
+    position: relative;
     padding: 0.42rem 0.9rem;
     font-size: 0.78rem;
+}
+
+/* Pero el area que responde al dedo si llega a los 44px. Lo que no entra en la
+   fila es el boton dibujado, no el objetivo tactil: se estira 7px arriba y
+   abajo con una capa transparente, que sobre 30px de boton deja 44. Los 3px
+   laterales entran en el hueco de 6.4px que hay entre los dos botones, asi que
+   no se pisan. */
+.sb-btn-fila::after {
+    content: "";
+    position: absolute;
+    inset: -7px -3px;
 }
 
 /* El vacio deja de ser una linea en italica y dice que hacer. */
