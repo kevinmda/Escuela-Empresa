@@ -4451,6 +4451,7 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     font-size: 0.92rem;
     font-weight: 500;
     letter-spacing: -0.005em;
+    line-height: 1.25;
     color: var(--ink-soft);
     transition: color 0.18s ease;
 }
@@ -4521,11 +4522,15 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     color: var(--ink-soft);
 }
 
+/* El peor caso de los cinco: 2rem con la interlinea de 1.5 heredada arma una
+   caja de linea de 48px para un glifo de 32, o sea 16px de aire muerto dentro
+   de una chapa que se dimensiona por su contenido. */
 .pl-total-valor {
     font-family: var(--font-display);
     font-size: 2rem;
     font-weight: 600;
     letter-spacing: -0.02em;
+    line-height: 1.05;
     font-variant-numeric: tabular-nums;
     color: var(--ink);
 }
@@ -5176,6 +5181,8 @@ button:disabled,
     border: none;
 }
 
+/* 1.25 y no el 1.5 que hereda del body: ese es el interlineado de un parrafo,
+   y aca es un titulo de una linea. La interlinea va al reves que el cuerpo. */
 .sb-tipos-titulo {
     margin: 0 0 0.9rem;
     padding: 0;
@@ -5183,6 +5190,7 @@ button:disabled,
     font-size: 1.15rem;
     font-weight: 600;
     letter-spacing: -0.015em;
+    line-height: 1.25;
     color: var(--ink);
 }
 
@@ -5316,11 +5324,15 @@ button:disabled,
     background-color: var(--esp-tenue);
 }
 
+/* Este si parte en varias lineas: cuando hay archivo elegido muestra su nombre,
+   que puede ser largo. Con 1.5 heredado, un nombre de dos lineas se abria mas
+   que el parrafo que tiene debajo. */
 .dropzone-titulo {
     font-family: var(--font-display);
     font-size: 1.05rem;
     font-weight: 600;
     letter-spacing: -0.01em;
+    line-height: 1.3;
     color: var(--ink);
     overflow-wrap: anywhere;
 }
@@ -5382,6 +5394,7 @@ button:disabled,
     font-size: 1.15rem;
     font-weight: 600;
     letter-spacing: -0.015em;
+    line-height: 1.25;
     text-transform: none;
     color: var(--ink);
 }
