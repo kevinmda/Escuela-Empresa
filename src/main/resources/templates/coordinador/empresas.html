@@ -178,13 +178,15 @@
                             <td role="cell" data-label="Empresa" class="celda-asignar">
                                 <form th:action="@{/admin/empresas/asignar}" method="post" class="fila-acciones">
                                     <input type="hidden" name="idAl" th:value="${alumno.idAl}">
-                                    <select name="idEmp">
-                                        <option value="">-- Sin asignar --</option>
-                                        <option th:each="emp : ${empresas}"
-                                                th:value="${emp.idEmp}"
-                                                th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
-                                                th:text="${emp.nombre}"></option>
-                                    </select>
+                                    <span class="select-envoltorio">
+                                        <select name="idEmp" class="select-asignacion">
+                                            <option value="">-- Sin asignar --</option>
+                                            <option th:each="emp : ${empresas}"
+                                                    th:value="${emp.idEmp}"
+                                                    th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
+                                                    th:text="${emp.nombre}"></option>
+                                        </select>
+                                    </span>
                                     <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
                                 </form>
                             </td>

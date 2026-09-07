@@ -145,13 +145,15 @@
                             <td role="cell" data-label="Supervisor" class="celda-asignar">
                                 <form th:action="@{/admin/supervisores/asignar}" method="post" class="fila-acciones">
                                     <input type="hidden" name="idAl" th:value="${alumno.idAl}">
-                                    <select name="idSup">
-                                        <option value="">-- Sin asignar --</option>
-                                        <option th:each="sup : ${supervisores}"
-                                                th:value="${sup.idSup}"
-                                                th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
-                                                th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
-                                    </select>
+                                    <span class="select-envoltorio">
+                                        <select name="idSup" class="select-asignacion">
+                                            <option value="">-- Sin asignar --</option>
+                                            <option th:each="sup : ${supervisores}"
+                                                    th:value="${sup.idSup}"
+                                                    th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
+                                                    th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
+                                        </select>
+                                    </span>
                                     <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
                                 </form>
                             </td>

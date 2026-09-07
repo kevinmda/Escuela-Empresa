@@ -3089,8 +3089,98 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
     color: var(--ink);
 }
 
-.tabla-asignacion select {
+/* ---------- Select de asignación (supervisor/empresa por alumno) ----------
+
+   Antes era el <select> genérico de toda la app, sin nada propio. Acá toma
+   prestado el mismo lenguaje que ya usan las fichas de esta pantalla:
+   punteado = todavía no hay nada (igual que .ficha-alta antes de abrirse),
+   sólido con el color de la especialidad = ya es un dato real (igual que
+   el filo de .ficha). No es un adorno nuevo, es la misma idea aplicada acá.
+
+   El <select> sigue siendo el elemento nativo (teclado, lector de pantalla
+   y el picker del sistema en el celular quedan intactos); solo se le saca
+   el chrome del navegador con appearance:none y se dibuja una flecha propia
+   en el envoltorio. :has() lee si hay algo elegido para cambiar de estado
+   sin una sola línea de JS. */
+.select-envoltorio {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
     max-width: 16rem;
+}
+
+.select-asignacion {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    padding: 0.55rem 2.1rem 0.55rem 0.85rem;
+    border: 1.5px dashed var(--line);
+    border-radius: var(--radius-field);
+    background-color: var(--surface);
+    color: var(--ink-soft);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, border-style 0.15s ease,
+                background-color 0.15s ease, color 0.15s ease;
+}
+
+.select-asignacion option[value=""] {
+    color: var(--ink-soft);
+    font-style: italic;
+}
+
+/* Ya tiene a alguien asignado: deja de ser un hueco punteado. */
+.select-asignacion:has(option:checked:not([value=""])) {
+    border-style: solid;
+    border-color: var(--esp-edge);
+    background-color: var(--esp-tenue);
+    color: var(--ink);
+    font-weight: 500;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .select-asignacion:hover {
+        border-color: var(--esp-edge);
+    }
+}
+
+.select-asignacion:focus {
+    border-style: solid;
+    border-color: var(--focus);
+}
+
+/* La flecha va en el envoltorio y no en el <select>: los pseudo-elementos
+   de <select> se comportan distinto entre navegadores, y esto funciona
+   igual en todos. Dibujada con dos bordes en vez de un SVG: no hace falta
+   una imagen para una V. */
+.select-envoltorio::after {
+    content: "";
+    position: absolute;
+    top: 45%;
+    right: 0.95rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    color: var(--ink-soft);
+    transform: translateY(-50%) rotate(45deg);
+    pointer-events: none;
+    transition: color 0.15s ease;
+}
+
+.select-envoltorio:has(.select-asignacion option:checked:not([value=""]))::after {
+    color: var(--esp-edge);
+}
+
+.select-envoltorio:has(.select-asignacion:focus)::after {
+    color: var(--focus);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .select-envoltorio:has(.select-asignacion:hover)::after {
+        color: var(--esp-edge);
+    }
 }
 
 @media (prefers-contrast: more) {
@@ -3278,7 +3368,7 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
         padding-top: 0.6rem;
     }
 
-    .tabla-asignacion select {
+    .select-envoltorio {
         max-width: none;
     }
 
