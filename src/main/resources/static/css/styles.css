@@ -4099,7 +4099,12 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     padding: 0.95rem 1.3rem 0.85rem;
     border-radius: var(--radius-panel);
     background-color: color-mix(in srgb, var(--esp-ink) 11%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--esp-ink) 20%, transparent);
+    /* Dos sombras internas y no un anillo parejo: la chapa esta hundida en el
+       campo de color, y la luz viene de arriba, asi que su borde interno
+       superior queda en sombra. Con el anillo solo, la cifra parecia apoyada
+       sobre el campo en vez de embutida en el. */
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--esp-ink) 18%, transparent),
+                inset 0 2px 3px color-mix(in srgb, var(--esp-ink) 15%, transparent);
 }
 
 .portada-cifra {
