@@ -4005,6 +4005,142 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     margin: 1.75rem 0 0.85rem;
 }
 
+/* ---------------- Portada de pantalla (area del alumno) ----------------
+
+   Componente compartido por Planilla Semanal y Subir. Se escribio primero para
+   la planilla y despues lo pidio Subir tal cual, asi que vive aca y no dentro
+   del bloque de una pantalla: duplicarlo era garantizar que las dos se
+   despeguen.
+
+   La pantalla abria con un h2 gris y un parrafo gris sobre el fondo crema, y el
+   contador de semanas era una linea chiquita perdida a la derecha del riel. Todo
+   el color que tenia la pagina eran hairlines.
+
+   Ahora abre con un campo del color de la especialidad del alumno. No es un
+   color nuevo: es el mismo con el que su inicio lo identifica, y esta es su
+   planilla. El alumno de Quimica Industrial ve una pantalla distinta a la del de
+   Informatica, con la misma estructura. */
+
+.portada {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.5rem 2.5rem;
+    margin-bottom: 1.5rem;
+    padding: 2.1rem 2.25rem;
+    background-color: var(--esp);
+    /* --esp-edge y no --line: con Quimica Industrial o Electronica el relleno
+       casi no separa de --bg y el borde es lo unico que define el campo. */
+    border: 1px solid var(--esp-edge);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 2px 16px -7px rgba(var(--shadow-tint), 0.2);
+    color: var(--esp-ink);
+    background-image:
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--esp-ink) 11%, transparent) 0 1px, transparent 1px 26px),
+        repeating-linear-gradient(90deg, color-mix(in srgb, var(--esp-ink) 11%, transparent) 0 1px, transparent 1px 26px);
+}
+
+/* Las escuadras de esquina de .panel, a escala de portada y en --esp-ink. */
+.portada::before,
+.portada::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--esp-ink);
+    opacity: 0.5;
+}
+
+.portada::before {
+    top: 10px;
+    left: 10px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.portada::after {
+    bottom: 10px;
+    right: 10px;
+    border-left: none;
+    border-top: none;
+}
+
+/* main h2 le pone barra dorada y sangria a todos los h2. Sobre el campo de color
+   la barra dorada no tiene nada que hacer. */
+.portada-titulo {
+    margin: 0;
+    padding: 0;
+    border-left: none;
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.6vw, 2.4rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+}
+
+.portada-sub {
+    margin: 0.8rem 0 0;
+    max-width: 46ch;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--esp-ink) 82%, transparent);
+}
+
+/* La cuenta como cifra grande y no como renglon de texto: 3 de 6 es el dato que
+   contesta "cuanto me falta", y merece el tamano que tiene esa pregunta. */
+.portada-cuenta {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    justify-items: start;
+    gap: 0 0.5rem;
+    margin: 0;
+    padding: 0.95rem 1.3rem 0.85rem;
+    border-radius: var(--radius-panel);
+    background-color: color-mix(in srgb, var(--esp-ink) 11%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--esp-ink) 20%, transparent);
+}
+
+.portada-cifra {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+    font-variant-numeric: tabular-nums;
+}
+
+.portada-total {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: color-mix(in srgb, var(--esp-ink) 80%, transparent);
+}
+
+.portada-label {
+    grid-column: 1 / -1;
+    margin-top: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--esp-ink) 78%, transparent);
+}
+
+@media (max-width: 900px) {
+    /* Apila: el titulo arriba y la cuenta debajo, alineada a la izquierda como
+       todo lo demas. */
+    .portada {
+        grid-template-columns: 1fr;
+        padding: 1.75rem 1.5rem;
+    }
+
+    .portada-cuenta {
+        justify-self: start;
+    }
+}
+
 /* ---------------- Planilla Semanal (alumno) ----------------
 
    Dos objetos organizan la pantalla, y ninguno de los dos existia antes: las
@@ -4031,124 +4167,6 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
    encabezado de la tabla; en los demas siguen en el DOM para el lector de
    pantalla pero se ocultan a la vista. En movil, donde cada dia se apila solo,
    vuelven a verse todas. */
-
-/* ---------- La portada ----------
-
-   La pantalla abria con un h2 gris y un parrafo gris sobre el fondo crema, y el
-   contador de semanas era una linea chiquita perdida a la derecha del riel. Todo
-   el color que tenia la pagina eran hairlines.
-
-   Ahora abre con un campo del color de la especialidad del alumno. No es un
-   color nuevo: es el mismo con el que su inicio lo identifica, y esta es su
-   planilla. El alumno de Quimica Industrial ve una pantalla distinta a la del de
-   Informatica, con la misma estructura. */
-
-.pl-portada {
-    position: relative;
-    overflow: hidden;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 1.5rem 2.5rem;
-    margin-bottom: 1.5rem;
-    padding: 2.1rem 2.25rem;
-    background-color: var(--esp);
-    /* --esp-edge y no --line: con Quimica Industrial o Electronica el relleno
-       casi no separa de --bg y el borde es lo unico que define el campo. */
-    border: 1px solid var(--esp-edge);
-    border-radius: var(--radius-panel);
-    box-shadow: 0 2px 16px -7px rgba(var(--shadow-tint), 0.2);
-    color: var(--esp-ink);
-    background-image:
-        repeating-linear-gradient(0deg, color-mix(in srgb, var(--esp-ink) 11%, transparent) 0 1px, transparent 1px 26px),
-        repeating-linear-gradient(90deg, color-mix(in srgb, var(--esp-ink) 11%, transparent) 0 1px, transparent 1px 26px);
-}
-
-/* Las escuadras de esquina de .panel, a escala de portada y en --esp-ink. */
-.pl-portada::before,
-.pl-portada::after {
-    content: "";
-    position: absolute;
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--esp-ink);
-    opacity: 0.5;
-}
-
-.pl-portada::before {
-    top: 10px;
-    left: 10px;
-    border-right: none;
-    border-bottom: none;
-}
-
-.pl-portada::after {
-    bottom: 10px;
-    right: 10px;
-    border-left: none;
-    border-top: none;
-}
-
-/* main h2 le pone barra dorada y sangria a todos los h2. Sobre el campo de color
-   la barra dorada no tiene nada que hacer. */
-.pl-portada-titulo {
-    margin: 0;
-    padding: 0;
-    border-left: none;
-    font-family: var(--font-display);
-    font-size: clamp(1.75rem, 3.6vw, 2.4rem);
-    font-weight: 600;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
-}
-
-.pl-portada-sub {
-    margin: 0.8rem 0 0;
-    max-width: 46ch;
-    font-size: 0.95rem;
-    line-height: 1.55;
-    color: color-mix(in srgb, var(--esp-ink) 82%, transparent);
-}
-
-/* La cuenta como cifra grande y no como renglon de texto: 3 de 6 es el dato que
-   contesta "cuanto me falta", y merece el tamano que tiene esa pregunta. */
-.pl-portada-cuenta {
-    display: grid;
-    grid-template-columns: auto auto;
-    align-items: baseline;
-    justify-items: start;
-    gap: 0 0.5rem;
-    margin: 0;
-    padding: 0.95rem 1.3rem 0.85rem;
-    border-radius: var(--radius-panel);
-    background-color: color-mix(in srgb, var(--esp-ink) 11%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--esp-ink) 20%, transparent);
-}
-
-.pl-portada-cifra {
-    font-family: var(--font-display);
-    font-size: 3rem;
-    font-weight: 700;
-    letter-spacing: -0.045em;
-    line-height: 0.95;
-    font-variant-numeric: tabular-nums;
-}
-
-.pl-portada-total {
-    font-family: var(--font-mono);
-    font-size: 0.95rem;
-    color: color-mix(in srgb, var(--esp-ink) 80%, transparent);
-}
-
-.pl-portada-label {
-    grid-column: 1 / -1;
-    margin-top: 0.4rem;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: color-mix(in srgb, var(--esp-ink) 78%, transparent);
-}
 
 /* ---------- Las seis semanas ---------- */
 
@@ -4682,17 +4700,6 @@ button:disabled,
    declaran despues, asi que con la misma especificidad ganaria el orden de
    fuente y el media query quedaria sin efecto. */
 @media (max-width: 900px) {
-    /* La portada apila: el titulo arriba y la cuenta debajo, alineada a la
-       izquierda como todo lo demas. */
-    .pl-portada {
-        grid-template-columns: 1fr;
-        padding: 1.75rem 1.5rem;
-    }
-
-    .pl-portada-cuenta {
-        justify-self: start;
-    }
-
     /* Seis casilleros no entran a este ancho sin quedar ilegibles: pasan a dos
        filas de tres, que sigue leyendose como las seis semanas. */
     .pl-riel {

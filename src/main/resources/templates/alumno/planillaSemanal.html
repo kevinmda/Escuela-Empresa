@@ -38,17 +38,17 @@
     </nav>
     <main id="main-content"
           th:attr="data-esp=${idEspecialidad != null ? idEspecialidad : ''}">
-        <section class="pl-portada">
-            <div class="pl-portada-texto">
-                <h2 class="pl-portada-titulo">Planilla Semanal</h2>
-                <p class="pl-portada-sub">La pasantía son seis semanas y cada una se carga por
+        <section class="portada">
+            <div class="portada-texto">
+                <h2 class="portada-titulo">Planilla Semanal</h2>
+                <p class="portada-sub">La pasantía son seis semanas y cada una se carga por
                     separado. Elegí una ya cargada para revisarla, o abrí la siguiente.</p>
             </div>
 
-            <p class="pl-portada-cuenta">
-                <span class="pl-portada-cifra" th:text="${planillasAsc.size()}">0</span>
-                <span class="pl-portada-total">de 6</span>
-                <span class="pl-portada-label">semanas cargadas</span>
+            <p class="portada-cuenta">
+                <span class="portada-cifra" th:text="${planillasAsc.size()}">0</span>
+                <span class="portada-total">de 6</span>
+                <span class="portada-label">semanas cargadas</span>
             </p>
         </section>
 
