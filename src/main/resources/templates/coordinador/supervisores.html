@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTN Pasantias ad</title>
+    <title>Supervisores | CTN Pasantías</title>
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,109 +38,111 @@
         <a th:href="@{/admin/empresas}" class="nav-links">Empresas</a>
     </nav>
 
-    <main id="main-content">
-        <h2>Supervisores de <span th:text="${especialidadFija.nombre}"></span></h2>
+    <!-- data-esp: mismo hilo de color que el home y el resto de las pantallas
+         del coordinador. Se hereda una sola vez para toda la página. -->
+    <main id="main-content" th:attr="data-esp=${especialidadFija.idEsp}">
+
+        <div class="registro-cabecera">
+            <h2>Supervisores</h2>
+            <span class="esp-etiqueta" th:text="${especialidadFija.nombre}"></span>
+        </div>
 
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
         <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
 
-        <!-- Formulario para agregar un nuevo supervisor -->
-        <h3>Agregar nuevo profesor/supervisor</h3>
-        <form th:action="@{/admin/supervisores/crear}" method="post" class="toolbar panel">
-            <div>
-                <label for="nombres">Nombres</label>
-                <input type="text" id="nombres" name="nombres" required>
-            </div>
-            <div>
-                <label for="apellidos">Apellidos</label>
-                <input type="text" id="apellidos" name="apellidos" required>
-            </div>
-            <div>
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <button type="submit" class="btn-primary">Agregar</button>
-        </form>
+        <!-- Una ficha por supervisor, no una fila de tabla: son tres campos por
+             persona, y una ficha se lee de un vistazo. La primera es la que
+             agrega uno nuevo, siempre en el mismo lugar que el resto. -->
+        <section class="fichas-grid" aria-label="Supervisores cargados">
+            <details class="ficha-nueva">
+                <summary>
+                    <span class="ficha-nueva-icono" aria-hidden="true">+</span>
+                    <span>Agregar supervisor</span>
+                </summary>
+                <form th:action="@{/admin/supervisores/crear}" method="post" class="ficha-form">
+                    <div>
+                        <label for="nombres">Nombres</label>
+                        <input type="text" id="nombres" name="nombres" required>
+                    </div>
+                    <div>
+                        <label for="apellidos">Apellidos</label>
+                        <input type="text" id="apellidos" name="apellidos" required>
+                    </div>
+                    <div>
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Agregar</button>
+                </form>
+            </details>
 
-        <!-- Lista de supervisores ya cargados -->
-        <h3>Supervisores cargados</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
-                    <th>Email</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="sup : ${supervisores}">
-                    <td>
-                        <input type="text" th:form="${'editar-' + sup.idSup}" name="nombres" th:value="${sup.nombres}" required>
-                    </td>
-                    <td>
-                        <input type="text" th:form="${'editar-' + sup.idSup}" name="apellidos" th:value="${sup.apellidos}" required>
-                    </td>
-                    <td>
-                        <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}" required>
-                    </td>
-                    <td class="fila-acciones">
-                        <!-- Este form no tiene inputs propios adentro: los toma de la celdas de arriba via el atributo form="" -->
-                        <form th:id="${'editar-' + sup.idSup}" th:action="@{/admin/supervisores/editar}" method="post">
-                            <input type="hidden" name="idSup" th:value="${sup.idSup}">
-                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
-                        </form>
-                        <form th:action="@{/admin/supervisores/eliminar}" method="post"
-                              onsubmit="return confirm('¿Eliminar este supervisor? Los alumnos que lo tengan asignado van a quedar sin supervisor.');">
-                            <input type="hidden" name="idSup" th:value="${sup.idSup}">
-                            <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
-                        </form>
-                    </td>
-                </tr>
-                <tr th:if="${supervisores.isEmpty()}">
-                    <td colspan="4" class="mensaje-vacio">Todavía no cargaste ningún supervisor.</td>
-                </tr>
-            </tbody>
-        </table>
+            <article class="ficha" th:each="sup : ${supervisores}">
+                <div class="ficha-titulo">
+                    <input type="text" th:form="${'editar-' + sup.idSup}" name="nombres" th:value="${sup.nombres}"
+                           class="ficha-campo ficha-campo--nombre" aria-label="Nombres" required>
+                    <input type="text" th:form="${'editar-' + sup.idSup}" name="apellidos" th:value="${sup.apellidos}"
+                           class="ficha-campo ficha-campo--nombre" aria-label="Apellidos" required>
+                </div>
+                <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}"
+                       class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
+
+                <div class="ficha-acciones">
+                    <!-- Este form no tiene inputs propios adentro: los toma de los
+                         campos de arriba via el atributo form="" -->
+                    <form th:id="${'editar-' + sup.idSup}" th:action="@{/admin/supervisores/editar}" method="post">
+                        <input type="hidden" name="idSup" th:value="${sup.idSup}">
+                        <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
+                    </form>
+                    <form th:action="@{/admin/supervisores/eliminar}" method="post"
+                          onsubmit="return confirm('¿Eliminar este supervisor? Los alumnos que lo tengan asignado van a quedar sin supervisor.');">
+                        <input type="hidden" name="idSup" th:value="${sup.idSup}">
+                        <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
+                    </form>
+                </div>
+            </article>
+        </section>
+
+        <p th:if="${supervisores.isEmpty()}" class="mensaje-vacio">
+            Todavía no cargaste ningún supervisor. Usá la ficha de arriba para agregar el primero.
+        </p>
 
         <!-- Asignación de supervisor por alumno -->
-        <h3>Asignar supervisor a cada alumno</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
-                    <th>Curso</th>
-                    <th>Sección</th>
-                    <th>Supervisor asignado</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="alumno : ${alumnos}">
-                    <td th:text="${alumno.nombres}"></td>
-                    <td th:text="${alumno.apellidos}"></td>
-                    <td th:text="${alumno.curso}"></td>
-                    <td th:text="${alumno.seccion}"></td>
-                    <td>
-                        <form th:action="@{/admin/supervisores/asignar}" method="post" class="fila-acciones">
-                            <input type="hidden" name="idAl" th:value="${alumno.idAl}">
-                            <select name="idSup">
-                                <option value="">-- Sin asignar --</option>
-                                <option th:each="sup : ${supervisores}"
-                                        th:value="${sup.idSup}"
-                                        th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
-                                        th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
-                            </select>
-                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
-                        </form>
-                    </td>
-                </tr>
-                <tr th:if="${alumnos.isEmpty()}">
-                    <td colspan="6" class="mensaje-vacio">No hay alumnos cargados en esta especialidad.</td>
-                </tr>
-            </tbody>
-        </table>
+        <h3 class="registro-subtitulo">Asignar supervisor a cada alumno</h3>
+        <div class="tabla-scroll">
+            <table class="tabla-asignacion" role="table">
+                <thead role="rowgroup">
+                    <tr role="row">
+                        <th role="columnheader" scope="col">Nombres</th>
+                        <th role="columnheader" scope="col">Apellidos</th>
+                        <th role="columnheader" scope="col">Curso</th>
+                        <th role="columnheader" scope="col">Sección</th>
+                        <th role="columnheader" scope="col">Supervisor asignado</th>
+                    </tr>
+                </thead>
+                <tbody role="rowgroup">
+                    <tr role="row" th:each="alumno : ${alumnos}">
+                        <td role="cell" data-label="Nombres" class="celda-nombre" th:text="${alumno.nombres}"></td>
+                        <td role="cell" data-label="Apellidos" class="celda-nombre" th:text="${alumno.apellidos}"></td>
+                        <td role="cell" data-label="Curso" th:text="${alumno.curso}"></td>
+                        <td role="cell" data-label="Sección" th:text="${alumno.seccion}"></td>
+                        <td role="cell" data-label="Supervisor" class="celda-asignar">
+                            <form th:action="@{/admin/supervisores/asignar}" method="post" class="fila-acciones">
+                                <input type="hidden" name="idAl" th:value="${alumno.idAl}">
+                                <select name="idSup">
+                                    <option value="">-- Sin asignar --</option>
+                                    <option th:each="sup : ${supervisores}"
+                                            th:value="${sup.idSup}"
+                                            th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
+                                            th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
+                                </select>
+                                <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p th:if="${alumnos.isEmpty()}" class="mensaje-vacio">No hay alumnos cargados en esta especialidad.</p>
     </main>
 </body>
 </html>

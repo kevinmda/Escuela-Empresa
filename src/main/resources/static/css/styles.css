@@ -444,7 +444,8 @@ main > *:nth-child(n+7) { animation-delay: 0.15s; }
        se quita el desplazamiento. "aparecer" está definido más abajo. */
     main > *,
     .documentos-lista,
-    .documentos-cargando {
+    .documentos-cargando,
+    .ficha-form {
         animation: aparecer 0.2s ease both;
     }
 
@@ -2750,6 +2751,276 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
     }
 }
 
+/* ================= Supervisores y Empresas (coordinador) =================
+
+   Las dos pantallas comparten forma: una ficha por registro (persona o
+   empresa) y una tabla de asignación por alumno. Antes eran dos <table> sin
+   una sola clase propia, la misma trama para datos que no tienen la misma
+   forma: un supervisor son tres campos, una asignación son treinta filas.
+   Cada dato va al componente que le queda, no al mismo por costumbre.
+
+   Metáfora: "ficha" como la ficha de un fichero de papel, no "card" genérico.
+   Encaja con el resto de la casa (planos técnicos, escuadras de esquina) y
+   sirve igual para una persona que para una empresa.
+
+   [data-esp] va en el <main> de cada plantilla, igual que en el home del
+   coordinador: --esp/--esp-ink/--esp-edge/--esp-tenue se heredan una sola
+   vez para toda la pantalla. */
+
+.registro-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.registro-cabecera h2 {
+    margin: 0;
+}
+
+main h3.registro-subtitulo {
+    margin-top: 2.25rem;
+}
+
+/* ---------- Grilla de fichas ---------- */
+
+.fichas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0 2rem;
+}
+
+/* La ficha en blanco que agrega una nueva. Va PRIMERA en la grilla, como el
+   "+" de cualquier galería: no hace falta un formulario grande y siempre
+   visible para algo que se usa una vez cada tanto por alumno nuevo. */
+.ficha-nueva {
+    border: 1.5px dashed var(--line);
+    border-radius: var(--radius-panel);
+    background-color: transparent;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .ficha-nueva:hover {
+        border-color: var(--esp-edge);
+        background-color: var(--esp-tenue);
+    }
+}
+
+/* La presión tiene que sentirse ya, no recién cuando el navegador termine de
+   decidir si abrió el <details>. No se aplica si ya está abierta: ahí es un
+   contenedor de formulario, no un botón. */
+.ficha-nueva:not([open]):active {
+    transform: scale(0.99);
+    transition: transform 0.08s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ficha-nueva:not([open]):active {
+        transform: none;
+    }
+}
+
+.ficha-nueva summary {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    height: 100%;
+    min-height: 4.5rem;
+    padding: 1.1rem 1.25rem;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+.ficha-nueva summary::-webkit-details-marker {
+    display: none;
+}
+
+.ficha-nueva-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    font-size: 1.1rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Abierta ocupa toda la fila: el formulario necesita ancho, y una ficha de
+   ese tamaño angosta entre las demás se leería rota. El "+" gira a "×": la
+   misma pieza dice "agregar" cerrada y "cancelar" abierta, sin duplicar íconos. */
+.ficha-nueva[open] {
+    grid-column: 1 / -1;
+    border-style: solid;
+    background-color: var(--surface);
+}
+
+.ficha-nueva[open] summary {
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+}
+
+.ficha-nueva[open] .ficha-nueva-icono {
+    transform: rotate(45deg);
+}
+
+.ficha-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    align-items: end;
+    padding: 1.25rem;
+    /* Confirma que la ficha se abrió: el <details> nativo no anima su propio
+       toggle, así que la señal de "pasó algo" la da el contenido de adentro. */
+    animation: entrada 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ficha-form .btn-primary {
+    height: fit-content;
+}
+
+/* Ficha de un registro ya cargado. El borde superior en --esp es la misma
+   idea que el filo de .chub-tile, llevada arriba porque acá la ficha es
+   angosta y vertical en vez de ancha. La línea --esp-edge de adentro es la
+   misma solución que ya usa .alumnos-panel para que Química Industrial (casi
+   blanco) no quede sin filo contra la superficie. */
+.ficha {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.1rem 1.25rem 1rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--esp);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 1px 6px -3px rgba(var(--shadow-tint), 0.12),
+                inset 0 1px 0 var(--esp-edge);
+}
+
+.ficha-titulo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+/* Los campos se ven como texto y no como un formulario hasta que se los toca:
+   la ficha se lee de un vistazo, y recién al pasar el mouse o enfocar un
+   campo aparece el borde que dice "esto se puede editar". */
+.ficha-campo {
+    min-width: 0;
+    flex: 1 1 auto;
+    border: 1px solid transparent;
+    background-color: transparent;
+    border-radius: 6px;
+    padding: 0.15rem 0.35rem;
+    margin: -0.15rem -0.35rem;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.ficha-campo:hover {
+    background-color: var(--bg);
+}
+
+.ficha-campo:focus {
+    background-color: var(--surface);
+}
+
+.ficha-campo--nombre {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.ficha-campo--secundario {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+}
+
+/* Ficha de empresa: más campos que un supervisor, así que debajo del nombre
+   van en su propia mini grilla de etiqueta + valor, como los datos de una
+   tarjeta de presentación y no como una fila más de tabla. */
+.ficha-datos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem 0.85rem;
+}
+
+.ficha-dato-etiqueta {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin-bottom: 0.15rem;
+}
+
+.ficha-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--line);
+}
+
+/* ---------- Tabla de asignación por alumno ----------
+
+   Acá sí es tabla: treinta alumnos con un único campo variable por fila
+   (a quién le asignaste) es exactamente la forma que una tabla resuelve
+   bien. Mismo lenguaje que .tabla-alumnos: cabecera fija teñida con el
+   color de la especialidad. */
+.tabla-asignacion {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+}
+
+.tabla-asignacion thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--esp);
+    color: var(--esp-ink);
+    border-bottom: 1px solid var(--esp-edge);
+}
+
+.tabla-asignacion tbody tr:hover {
+    background-color: var(--esp-tenue);
+}
+
+.tabla-asignacion td.celda-nombre {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.tabla-asignacion select {
+    max-width: 16rem;
+}
+
+@media (prefers-contrast: more) {
+    .ficha,
+    .ficha-nueva {
+        border-color: var(--ink-soft);
+    }
+}
+
 /* ---------------- Responsive ---------------- */
 
 @media (max-width: 720px) {
@@ -2869,6 +3140,78 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
     .tabla-alumnos td.celda-acciones {
         text-align: left;
         padding-top: 0.6rem;
+    }
+
+    /* Misma conversión a tarjetas que .tabla-alumnos, para la tabla de
+       asignación de Supervisores/Empresas. */
+    .tabla-asignacion {
+        display: block;
+        white-space: normal;
+        overflow: visible;
+    }
+
+    .tabla-asignacion thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+
+    .tabla-asignacion tbody,
+    .tabla-asignacion tr,
+    .tabla-asignacion td {
+        display: block;
+    }
+
+    .tabla-asignacion tr {
+        padding: 0.9rem 1.1rem;
+        border-top: 1px solid var(--line);
+    }
+
+    .tabla-asignacion tbody tr:nth-child(even) {
+        background-color: transparent;
+    }
+
+    .tabla-asignacion td {
+        display: grid;
+        grid-template-columns: 7rem 1fr;
+        align-items: baseline;
+        gap: 0.75rem;
+        border: none;
+        padding: 0.25rem 0;
+    }
+
+    .tabla-asignacion td::before {
+        content: attr(data-label);
+        font-family: var(--font-display);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+    }
+
+    .tabla-asignacion td.celda-asignar {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+        padding-top: 0.6rem;
+    }
+
+    .tabla-asignacion select {
+        max-width: none;
+    }
+
+    /* Una sola columna siempre por debajo de 720px: con auto-fill a veces
+       entraban dos fichas angostas y apretadas en vez de una cómoda. */
+    .fichas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* A una columna: RUC/Email/Dirección son valores largos y a dos columnas
+       en un teléfono angosto se cortan mal. */
+    .ficha-datos {
+        grid-template-columns: 1fr;
     }
 
     /* La celda de Entregas (Reportes) aloja una mini tabla de tres columnas.
