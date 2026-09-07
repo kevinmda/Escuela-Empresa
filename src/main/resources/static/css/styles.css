@@ -2722,10 +2722,15 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
    eso se dice con una regla punteada y texto apagado, y el rojo se queda donde
    sirve. */
 
+/* El aviso y la credencial arrancan juntos en 0. El aviso es condicional:
+   con el escalonado anterior, el alumno que ya cambio su contrasena veia la
+   pantalla empezar a pintar recien a los 60ms, y el ultimo bloque llegaba a
+   los 520ms. Latencia agregada que no compra nada. Ahora el escalon es de
+   80ms y el orden de lectura se sigue entendiendo igual. */
 main[data-esp] > .ahub-aviso        { animation-delay: 0s; }
-main[data-esp] > .ahub-carnet       { animation-delay: 0.06s; }
-main[data-esp] > .ahub-asignaciones { animation-delay: 0.15s; }
-main[data-esp] > .ahub-destinos     { animation-delay: 0.24s; }
+main[data-esp] > .ahub-carnet       { animation-delay: 0s; }
+main[data-esp] > .ahub-asignaciones { animation-delay: 0.08s; }
+main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 /* ---------- Aviso de contraseña por defecto ----------
    Dorado y no rojo, por lo mismo que el badge-pendiente de Reportes: el par
@@ -2741,10 +2746,19 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.24s; }
     font-weight: 500;
 }
 
+/* El unico control de esta pantalla que no respondia al dedo. El hundido
+   entra sin transicion (la respuesta a la pulsacion tiene que ser inmediata,
+   si tarda deja de sentirse directa) y la vuelta si se suaviza. */
 .ahub-aviso a {
     color: inherit;
     font-weight: 600;
     text-underline-offset: 3px;
+    transition: opacity 0.12s ease-out;
+}
+
+.ahub-aviso a:active {
+    opacity: 0.65;
+    transition-duration: 0s;
 }
 
 /* ---------- Fila 1: la credencial ---------- */
