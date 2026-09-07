@@ -562,14 +562,6 @@ main h3 {
     max-width: 400px;
 }
 
-.valor-fijo {
-    font-family: var(--font-mono);
-    font-weight: 500;
-    color: var(--ink);
-    display: inline-block;
-    padding: 0.55rem 0;
-}
-
 .zip-container {
     margin: 1.25rem 0;
 }
@@ -658,10 +650,14 @@ main h3 {
 }
 
 /* Variante ancha del desplegable de documentos, para el menú de "Ver entregas"
-   de Reportes, que aloja una mini tabla en vez de una simple lista de enlaces */
+   de Reportes, que aloja una mini tabla en vez de una simple lista de enlaces.
+   min() y no un ancho fijo: en la vista móvil la tabla se convierte en tarjetas
+   y 380px fijos se salen de una pantalla de 375px. */
 .documentos-lista-ancha {
-    min-width: 380px;
+    min-width: 0;
+    width: min(380px, 100%);
     padding: 0.5rem;
+    overflow-x: auto; /* válvula: si el nombre de un tipo estira la mini tabla, scrollea acá adentro y no la página */
 }
 
 .tabla-resumen-documentos {
@@ -677,11 +673,31 @@ main h3 {
 .tabla-resumen-documentos tbody td {
     padding: 0.5rem 0.65rem;
     font-size: 0.78rem;
+    vertical-align: top;
+}
+
+/* Una entrega por renglón. Antes se separaban con <br>, que deja los enlaces
+   pegados sin aire donde tocarlos; en flex column el espacio se declara una
+   sola vez y el objetivo táctil crece. */
+.tabla-resumen-documentos td.celda-fechas {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    align-items: flex-start;
 }
 
 .tabla-resumen-documentos tbody td a {
     color: var(--accent-ink);
     display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+}
+
+/* Sin entregar no es un error: se dice con palabras y en tono apagado, no con
+   un guión largo que hay que interpretar ni con rojo. */
+.tabla-resumen-documentos td.celda-sin-entregas {
+    color: var(--ink-soft);
+    font-style: italic;
 }
 
 .bienvenida {
@@ -1180,7 +1196,6 @@ button:active,
     transform: translateY(1px);
 }
 
-.icono-buscar::before { content: "\1F50D  "; }
 .icono-descargar::before { content: "\2B07  "; }
 .icono-guardar::before { content: "\1F4BE  "; }
 .icono-eliminar::before { content: "\1F5D1  "; }
@@ -1317,6 +1332,15 @@ td input[type="email"] {
 .badge-danger {
     background-color: var(--danger-soft);
     color: var(--danger);
+}
+
+/* Pendiente, no error. Una entrega que todavía falta es un estado normal del
+   curso, así que va en el dorado de la casa y no en el rojo: si el rojo se usa
+   para "faltan 3 de 6", deja de significar "algo se rompió". Contraste del par
+   accent-ink sobre accent-soft: 5.0:1 en claro, 8.7:1 en oscuro. */
+.badge-pendiente {
+    background-color: var(--accent-soft);
+    color: var(--accent-ink);
 }
 
 /* ---------------- Mensajes de éxito/error ---------------- */
@@ -2460,6 +2484,15 @@ main > .hub-destinos { animation-delay: 0.18s; }
 
     .tabla-alumnos td.celda-acciones {
         text-align: left;
+        padding-top: 0.6rem;
+    }
+
+    /* La celda de Entregas (Reportes) aloja una mini tabla de tres columnas.
+       Con la etiqueta al costado le quedan menos de 200px, así que acá pasa a
+       ocupar el ancho completo de la tarjeta y la etiqueta se va arriba. */
+    .tabla-alumnos td.celda-entregas {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
         padding-top: 0.6rem;
     }
 
