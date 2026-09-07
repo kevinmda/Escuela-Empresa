@@ -50,124 +50,141 @@
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
         <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
 
-        <!-- Una ficha por empresa: el nombre encabeza, y RUC/Teléfono/Email/
-             Dirección van abajo como los datos de una tarjeta, no como cinco
-             columnas más de tabla. La primera ficha agrega una nueva. -->
-        <section class="fichas-grid" aria-label="Empresas cargadas">
-            <details class="ficha-nueva">
+        <section class="registro-seccion" aria-labelledby="titulo-roster-emp">
+            <h3 id="titulo-roster-emp">Empresas cargadas</h3>
+
+            <!-- Fuera de la grilla de fichas a propósito: ver el comentario de
+                 .ficha-alta en el CSS. -->
+            <details class="ficha-alta">
                 <summary>
-                    <span class="ficha-nueva-icono" aria-hidden="true">+</span>
+                    <span class="ficha-alta-icono" aria-hidden="true">+</span>
                     <span>Agregar empresa</span>
                 </summary>
-                <form th:action="@{/admin/empresas/crear}" method="post" class="ficha-form">
-                    <div>
-                        <label for="nombre">Nombre</label>
-                        <input type="text" id="nombre" name="nombre" required>
-                    </div>
-                    <div>
-                        <label for="ruc">RUC</label>
-                        <input type="text" id="ruc" name="ruc" required>
-                    </div>
-                    <div>
-                        <label for="telefono">Teléfono</label>
-                        <input type="text" id="telefono" name="telefono" required>
-                    </div>
-                    <div>
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div>
-                        <label for="direccion">Dirección</label>
-                        <input type="text" id="direccion" name="direccion" required>
-                    </div>
-                    <button type="submit" class="btn-primary">Agregar</button>
-                </form>
+                <div class="ficha-alta-cuerpo">
+                    <form th:action="@{/admin/empresas/crear}" method="post" class="ficha-alta-grupos">
+                        <p class="ficha-alta-grupo-titulo">Identificación</p>
+                        <div class="ficha-alta-campos">
+                            <div>
+                                <label for="nombre">Nombre</label>
+                                <input type="text" id="nombre" name="nombre" required>
+                            </div>
+                            <div>
+                                <label for="ruc">RUC</label>
+                                <input type="text" id="ruc" name="ruc" required>
+                            </div>
+                        </div>
+
+                        <p class="ficha-alta-grupo-titulo">Contacto</p>
+                        <div class="ficha-alta-campos">
+                            <div>
+                                <label for="telefono">Teléfono</label>
+                                <input type="text" id="telefono" name="telefono" required>
+                            </div>
+                            <div>
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div>
+                                <label for="direccion">Dirección</label>
+                                <input type="text" id="direccion" name="direccion" required>
+                            </div>
+                            <button type="submit" class="btn-primary">Agregar</button>
+                        </div>
+                    </form>
+                </div>
             </details>
 
-            <article class="ficha" th:each="emp : ${empresas}">
-                <input type="text" th:form="${'editar-' + emp.idEmp}" name="nombre" th:value="${emp.nombre}"
-                       class="ficha-campo ficha-campo--nombre" aria-label="Nombre" required>
+            <!-- Una ficha por empresa: el nombre encabeza, y RUC/Teléfono/Email/
+                 Dirección van abajo como los datos de una tarjeta, no como
+                 cinco columnas más de tabla. -->
+            <section class="fichas-grid" aria-label="Empresas cargadas">
+                <article class="ficha" th:each="emp : ${empresas}">
+                    <input type="text" th:form="${'editar-' + emp.idEmp}" name="nombre" th:value="${emp.nombre}"
+                           class="ficha-campo ficha-campo--nombre" aria-label="Nombre" required>
 
-                <div class="ficha-datos">
-                    <div>
-                        <span class="ficha-dato-etiqueta">RUC</span>
-                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="ruc" th:value="${emp.ruc}"
-                               class="ficha-campo ficha-campo--secundario" aria-label="RUC" required>
+                    <div class="ficha-datos">
+                        <div>
+                            <span class="ficha-dato-etiqueta">RUC</span>
+                            <input type="text" th:form="${'editar-' + emp.idEmp}" name="ruc" th:value="${emp.ruc}"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="RUC" required>
+                        </div>
+                        <div>
+                            <span class="ficha-dato-etiqueta">Teléfono</span>
+                            <input type="text" th:form="${'editar-' + emp.idEmp}" name="telefono" th:value="${emp.telefono}"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="Teléfono" required>
+                        </div>
+                        <div>
+                            <span class="ficha-dato-etiqueta">Email</span>
+                            <input type="email" th:form="${'editar-' + emp.idEmp}" name="email" th:value="${emp.email}"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
+                        </div>
+                        <div>
+                            <span class="ficha-dato-etiqueta">Dirección</span>
+                            <input type="text" th:form="${'editar-' + emp.idEmp}" name="direccion" th:value="${emp.direccion}"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="Dirección" required>
+                        </div>
                     </div>
-                    <div>
-                        <span class="ficha-dato-etiqueta">Teléfono</span>
-                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="telefono" th:value="${emp.telefono}"
-                               class="ficha-campo ficha-campo--secundario" aria-label="Teléfono" required>
-                    </div>
-                    <div>
-                        <span class="ficha-dato-etiqueta">Email</span>
-                        <input type="email" th:form="${'editar-' + emp.idEmp}" name="email" th:value="${emp.email}"
-                               class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
-                    </div>
-                    <div>
-                        <span class="ficha-dato-etiqueta">Dirección</span>
-                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="direccion" th:value="${emp.direccion}"
-                               class="ficha-campo ficha-campo--secundario" aria-label="Dirección" required>
-                    </div>
-                </div>
 
-                <div class="ficha-acciones">
-                    <!-- Este form no tiene inputs propios adentro: los toma de los
-                         campos de arriba via el atributo form="" -->
-                    <form th:id="${'editar-' + emp.idEmp}" th:action="@{/admin/empresas/editar}" method="post">
-                        <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
-                        <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
-                    </form>
-                    <form th:action="@{/admin/empresas/eliminar}" method="post"
-                          onsubmit="return confirm('¿Eliminar esta empresa? Los alumnos que la tengan asignada van a quedar sin empresa.');">
-                        <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
-                        <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
-                    </form>
-                </div>
-            </article>
+                    <div class="ficha-acciones">
+                        <!-- Este form no tiene inputs propios adentro: los toma de los
+                             campos de arriba via el atributo form="" -->
+                        <form th:id="${'editar-' + emp.idEmp}" th:action="@{/admin/empresas/editar}" method="post">
+                            <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
+                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
+                        </form>
+                        <form th:action="@{/admin/empresas/eliminar}" method="post"
+                              onsubmit="return confirm('¿Eliminar esta empresa? Los alumnos que la tengan asignada van a quedar sin empresa.');">
+                            <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
+                            <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
+                        </form>
+                    </div>
+                </article>
+            </section>
+
+            <p th:if="${empresas.isEmpty()}" class="mensaje-vacio">
+                Todavía no cargaste ninguna empresa. Usá "Agregar empresa" arriba para cargar la primera.
+            </p>
         </section>
 
-        <p th:if="${empresas.isEmpty()}" class="mensaje-vacio">
-            Todavía no cargaste ninguna empresa. Usá la ficha de arriba para agregar la primera.
-        </p>
-
         <!-- Asignación de empresa por alumno -->
-        <h3 class="registro-subtitulo">Asignar empresa a cada alumno</h3>
-        <div class="tabla-scroll">
-            <table class="tabla-asignacion" role="table">
-                <thead role="rowgroup">
-                    <tr role="row">
-                        <th role="columnheader" scope="col">Nombres</th>
-                        <th role="columnheader" scope="col">Apellidos</th>
-                        <th role="columnheader" scope="col">Curso</th>
-                        <th role="columnheader" scope="col">Sección</th>
-                        <th role="columnheader" scope="col">Empresa asignada</th>
-                    </tr>
-                </thead>
-                <tbody role="rowgroup">
-                    <tr role="row" th:each="alumno : ${alumnos}">
-                        <td role="cell" data-label="Nombres" class="celda-nombre" th:text="${alumno.nombres}"></td>
-                        <td role="cell" data-label="Apellidos" class="celda-nombre" th:text="${alumno.apellidos}"></td>
-                        <td role="cell" data-label="Curso" th:text="${alumno.curso}"></td>
-                        <td role="cell" data-label="Sección" th:text="${alumno.seccion}"></td>
-                        <td role="cell" data-label="Empresa" class="celda-asignar">
-                            <form th:action="@{/admin/empresas/asignar}" method="post" class="fila-acciones">
-                                <input type="hidden" name="idAl" th:value="${alumno.idAl}">
-                                <select name="idEmp">
-                                    <option value="">-- Sin asignar --</option>
-                                    <option th:each="emp : ${empresas}"
-                                            th:value="${emp.idEmp}"
-                                            th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
-                                            th:text="${emp.nombre}"></option>
-                                </select>
-                                <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
-                            </form>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <p th:if="${alumnos.isEmpty()}" class="mensaje-vacio">No hay alumnos cargados en esta especialidad.</p>
+        <section class="registro-seccion" aria-labelledby="titulo-asignacion-emp">
+            <h3 id="titulo-asignacion-emp">Asignar empresa a cada alumno</h3>
+            <div class="tabla-scroll">
+                <table class="tabla-asignacion" role="table">
+                    <thead role="rowgroup">
+                        <tr role="row">
+                            <th role="columnheader" scope="col">Nombres</th>
+                            <th role="columnheader" scope="col">Apellidos</th>
+                            <th role="columnheader" scope="col">Curso</th>
+                            <th role="columnheader" scope="col">Sección</th>
+                            <th role="columnheader" scope="col">Empresa asignada</th>
+                        </tr>
+                    </thead>
+                    <tbody role="rowgroup">
+                        <tr role="row" th:each="alumno : ${alumnos}">
+                            <td role="cell" data-label="Nombres" class="celda-nombre" th:text="${alumno.nombres}"></td>
+                            <td role="cell" data-label="Apellidos" class="celda-nombre" th:text="${alumno.apellidos}"></td>
+                            <td role="cell" data-label="Curso" th:text="${alumno.curso}"></td>
+                            <td role="cell" data-label="Sección" th:text="${alumno.seccion}"></td>
+                            <td role="cell" data-label="Empresa" class="celda-asignar">
+                                <form th:action="@{/admin/empresas/asignar}" method="post" class="fila-acciones">
+                                    <input type="hidden" name="idAl" th:value="${alumno.idAl}">
+                                    <select name="idEmp">
+                                        <option value="">-- Sin asignar --</option>
+                                        <option th:each="emp : ${empresas}"
+                                                th:value="${emp.idEmp}"
+                                                th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
+                                                th:text="${emp.nombre}"></option>
+                                    </select>
+                                    <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p th:if="${alumnos.isEmpty()}" class="mensaje-vacio">No hay alumnos cargados en esta especialidad.</p>
+        </section>
     </main>
 </body>
 </html>

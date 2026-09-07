@@ -443,9 +443,9 @@ main > *:nth-child(n+7) { animation-delay: 0.15s; }
     /* Se mantiene el fundido de opacidad (ayuda a entender que algo apareció),
        se quita el desplazamiento. "aparecer" está definido más abajo. */
     main > *,
-    .documentos-lista,
+    .documentos-menu[open] .documentos-lista,
     .documentos-cargando,
-    .ficha-form {
+    .ficha-alta[open] .ficha-alta-cuerpo {
         animation: aparecer 0.2s ease both;
     }
 
@@ -624,7 +624,17 @@ main h3 {
     color: var(--accent);
 }
 
+/* display:none explícito: sin esto, el propio <details> ya no alcanza para
+   ocultar este menú cuando está cerrado. La regla del navegador que oculta
+   el contenido de un <details> cerrado es de origen "user agent", y
+   cualquier display que declare el sitio (origen "author") le gana sin
+   importar la especificidad, así que .documentos-lista quedaba visible
+   siempre, encimada con la fila de la tabla. Probado en Chrome real. */
 .documentos-lista {
+    display: none;
+}
+
+.documentos-menu[open] .documentos-lista {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
@@ -2780,70 +2790,80 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
     margin: 0;
 }
 
-main h3.registro-subtitulo {
-    margin-top: 2.25rem;
-}
+/* ---------- Secciones de la página ----------
 
-/* ---------- Grilla de fichas ---------- */
-
-.fichas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
-    margin: 1.25rem 0 2rem;
-}
-
-/* La ficha en blanco que agrega una nueva. Va PRIMERA en la grilla, como el
-   "+" de cualquier galería: no hace falta un formulario grande y siempre
-   visible para algo que se usa una vez cada tanto por alumno nuevo. */
-.ficha-nueva {
-    border: 1.5px dashed var(--line);
+   Roster y asignación son dos módulos distintos y antes corrían juntos con
+   solo un <h3> flotando entre medio. Cada uno va en su propio panel: se ve
+   dónde empieza y termina cada cosa sin tener que leer el texto para
+   averiguarlo. */
+.registro-seccion {
+    background-color: var(--surface);
+    border: 1px solid var(--line);
     border-radius: var(--radius-panel);
-    background-color: transparent;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 6px -3px rgba(var(--shadow-tint), 0.12);
 }
 
-@media (hover: hover) and (pointer: fine) {
-    .ficha-nueva:hover {
-        border-color: var(--esp-edge);
-        background-color: var(--esp-tenue);
-    }
+.registro-seccion > h3 {
+    margin-top: 0;
 }
 
-/* La presión tiene que sentirse ya, no recién cuando el navegador termine de
-   decidir si abrió el <details>. No se aplica si ya está abierta: ahí es un
-   contenedor de formulario, no un botón. */
-.ficha-nueva:not([open]):active {
-    transform: scale(0.99);
-    transition: transform 0.08s ease;
+/* ---------- Agregar nuevo registro ----------
+
+   Vive FUERA de .fichas-grid a propósito. Antes era la primera celda de esa
+   grilla y al abrirse forzaba grid-column:1/-1: eso reordena de golpe en
+   qué fila cae cada ficha existente, en el mismo instante en que el
+   formulario de adentro hace su propia animación de entrada, y esa
+   combinación (reflow de grilla + animación) es la que producía el
+   amontonamiento al hacer clic. Como bloque normal, abrirla solo empuja lo
+   de abajo, que es un movimiento que el navegador resuelve sin sobresaltos
+   (el mismo mecanismo que ya usa .documentos-menu en Alumnos/Reportes, sin
+   ese problema, precisamente porque nunca compartió grilla con nada). */
+.ficha-alta {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .ficha-nueva:not([open]):active {
-        transform: none;
-    }
-}
-
-.ficha-nueva summary {
+.ficha-alta summary {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    height: 100%;
-    min-height: 4.5rem;
-    padding: 1.1rem 1.25rem;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
     cursor: pointer;
     list-style: none;
     font-family: var(--font-display);
     font-size: 0.95rem;
     font-weight: 600;
     color: var(--ink-soft);
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.ficha-nueva summary::-webkit-details-marker {
+.ficha-alta summary::-webkit-details-marker {
     display: none;
 }
 
-.ficha-nueva-icono {
+@media (hover: hover) and (pointer: fine) {
+    .ficha-alta:not([open]) summary:hover {
+        background-color: var(--esp-tenue);
+        color: var(--ink);
+    }
+}
+
+.ficha-alta:not([open]):active {
+    transform: scale(0.995);
+    transition: transform 0.08s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ficha-alta:not([open]):active {
+        transform: none;
+    }
+}
+
+.ficha-alta-icono {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2857,37 +2877,87 @@ main h3.registro-subtitulo {
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Abierta ocupa toda la fila: el formulario necesita ancho, y una ficha de
-   ese tamaño angosta entre las demás se leería rota. El "+" gira a "×": la
-   misma pieza dice "agregar" cerrada y "cancelar" abierta, sin duplicar íconos. */
-.ficha-nueva[open] {
-    grid-column: 1 / -1;
-    border-style: solid;
-    background-color: var(--surface);
+/* Abierta, la cabecera se tiñe con el color de la especialidad: es la misma
+   señal de "estás en modo carga" que ya usa el resto de la casa (el filo de
+   .ficha, el fondo de .esp-etiqueta), llevada al momento exacto en que
+   arranca la acción. Cerrada se queda neutra a propósito: el color se gana
+   al abrir, no se regala en la barra de reposo. */
+.ficha-alta[open] summary {
+    background-color: var(--esp);
+    color: var(--esp-ink);
 }
 
-.ficha-nueva[open] summary {
-    border-bottom: 1px solid var(--line);
-    color: var(--ink);
-}
-
-.ficha-nueva[open] .ficha-nueva-icono {
+.ficha-alta[open] .ficha-alta-icono {
     transform: rotate(45deg);
 }
 
-.ficha-form {
+/* display:none explícito y no implícito: el <details> nativo ya oculta su
+   contenido cerrado, pero esa regla la pone el navegador en el origen "user
+   agent", y CUALQUIER display declarado por el sitio (el "author") le gana
+   a esa regla sin importar la especificidad (así lo define el orden de
+   cascada: author normal siempre pisa a user-agent normal). Por eso un
+   .ficha-alta-cuerpo{display:flex} sin más, aunque parezca inofensivo,
+   deja el formulario visible SIEMPRE, encimado con el "+"/las fichas de al
+   lado incluso con la ficha cerrada. Puesto a prueba en Chrome real, no es
+   un supuesto: es el mismo motivo por el que .documentos-lista tenía este
+   bug de arrastre (corregido acá abajo con la misma receta). */
+.ficha-alta-cuerpo {
+    display: none;
+}
+
+.ficha-alta[open] .ficha-alta-cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    /* Confirma que se abrió: el <details> nativo no anima su propio toggle,
+       así que la señal de "pasó algo" la da el contenido de adentro. */
+    animation: entrada 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Grupo de campos con su propio rótulo. Una empresa tiene cinco campos que
+   no son la misma cosa (quién es vs. cómo contactarla); separarlos en dos
+   grupos se lee más rápido que cinco campos sueltos en fila. Un supervisor
+   son tres campos de una sola idea (persona), así que ese formulario no
+   fuerza grupos donde no los hay. */
+.ficha-alta-grupo-titulo {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin: 0 0 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.ficha-alta-campos {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
     align-items: end;
-    padding: 1.25rem;
-    /* Confirma que la ficha se abrió: el <details> nativo no anima su propio
-       toggle, así que la señal de "pasó algo" la da el contenido de adentro. */
-    animation: entrada 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.ficha-form .btn-primary {
+/* Envoltorio del <form> cuando trae más de un grupo (el caso de empresa):
+   apila título+campos, título+campos en vez de que floten pegados. Clase
+   propia y no .ficha-alta-campos en el <form>: esa ya vale display:grid
+   para el caso de un solo grupo (supervisor) y pisarla acá rompería esa otra. */
+.ficha-alta-grupos {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.ficha-alta-campos .btn-primary {
     height: fit-content;
+}
+
+/* ---------- Grilla de fichas ya cargadas ---------- */
+
+.fichas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
 }
 
 /* Ficha de un registro ya cargado. El borde superior en --esp es la misma
@@ -3016,7 +3086,8 @@ main h3.registro-subtitulo {
 
 @media (prefers-contrast: more) {
     .ficha,
-    .ficha-nueva {
+    .ficha-alta,
+    .registro-seccion {
         border-color: var(--ink-soft);
     }
 }
@@ -3200,6 +3271,10 @@ main h3.registro-subtitulo {
 
     .tabla-asignacion select {
         max-width: none;
+    }
+
+    .registro-seccion {
+        padding: 1.25rem;
     }
 
     /* Una sola columna siempre por debajo de 720px: con auto-fill a veces
