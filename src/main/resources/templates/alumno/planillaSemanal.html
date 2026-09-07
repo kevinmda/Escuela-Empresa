@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTN Pasantias al Imprimir</title>
+    <title>Planilla Semanal | CTN Pasantías</title>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
@@ -15,6 +15,7 @@
 
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
     <header>
         <div class="h-titulo">
             <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
@@ -35,9 +36,10 @@
         <a th:href="@{/alumno/planilla}" class="nav-links activo">Planilla Semanal</a>
         <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
     </nav>
-    <main>
+    <main id="main-content">
         <h2>Planilla Semanal</h2>
-        <p class="subtitulo-pagina">Registrá tus actividades día por día. Podés cargar una semana nueva o revisar una que ya enviaste.</p>
+        <p class="subtitulo-pagina">La pasantía son seis semanas y cada una se carga por separado.
+            Elegí una ya cargada para revisarla, o abrí la siguiente para completarla.</p>
 
         <div th:if="${error}" class="mensaje-error">
             <p th:text="${error}"></p>
@@ -46,114 +48,217 @@
             <p th:text="${exito}"></p>
         </div>
 
-        <div class="panel">
-            <a th:if="${informeHabilitado}" th:href="@{/alumno/planilla/Informe_Pasantia.docx}" class="btn btn-secondary">Descargar Informe de Pasantía (Word)</a>
-            <button th:unless="${informeHabilitado}" type="button" class="btn btn-secondary" disabled>Descargar Informe de Pasantía (Word)</button>
+        <!-- ================= Las seis semanas =================
 
-            <p class="subtitulo-pagina" style="margin-top: 0.75rem;">
-                Para descargar el informe, necesitás:
-                <br><span th:text="${tieneEmpresa ? '✔' : '✘'}"></span> Una empresa asignada.
-                <br><span th:text="${tieneSupervisor ? '✔' : '✘'}"></span> Un supervisor/docente asignado.
-                <br><span th:text="${tieneSeisPlanillas ? '✔' : '✘'}"></span> Las 6 semanas de planillas cargadas.
-            </p>
-        </div>
+             Esto reemplaza al <select> de semanas y al boton "+ Cargar semana
+             nueva", que eran dos controles sueltos en dos lugares distintos y
+             que entre los dos no decian lo unico importante: que la pasantia
+             son SEIS semanas y cuantas van. El limite existe de verdad, el
+             servicio corta en la sexta ("Ya cargaste las 6 semanas de
+             planilla"), pero la pantalla no lo mencionaba en ningun lado.
 
-        <!-- Selector de semana: elegís una ya cargada, o dejás "Nueva planilla" -->
-        <div class="toolbar panel selector-semana">
-            <form method="get" th:action="@{/alumno/planilla}">
-                <label for="selectorPlanilla">Semana</label>
-                <select id="selectorPlanilla" name="idPs" onchange="this.form.submit()">
-                    <option value="">Nueva planilla</option>
-                    <option th:each="p : ${planillas}"
-                            th:value="${p.idPs}"
-                            th:text="${'Semana del ' + #temporals.format(p.fechaDesde, 'dd/MM/yyyy') + ' al ' + #temporals.format(p.fechaHasta, 'dd/MM/yyyy')}"
-                            th:selected="${p.idPs == idPsSeleccionado}">
-                    </option>
-                </select>
-            </form>
+             Cada casillero es una semana: las cargadas son enlaces a su propia
+             planilla, la siguiente es el boton que abre el formulario, y las que
+             faltan quedan punteadas. Punteado es vacio en toda la app. -->
+        <section class="pl-semanas" aria-labelledby="pl-semanas-titulo">
+            <div class="pl-semanas-encabezado">
+                <h3 class="pl-semanas-titulo" id="pl-semanas-titulo">Las seis semanas</h3>
+                <p class="pl-semanas-cuenta">
+                    <span th:text="${planillasAsc.size()}">0</span> de 6 cargadas
+                </p>
+            </div>
 
-            <form th:if="${idPsSeleccionado != null}"
-                id="formEliminar"
-                th:action="@{/alumno/planilla/{id}/eliminar(id=${idPsSeleccionado})}"
-                method="post"
-                onsubmit="return confirm('¿Estás seguro que querés eliminar esta planilla? Esta acción no se puede deshacer.');">
-                <button type="submit" class="btn-secondary">Eliminar esta planilla</button>
-            </form>
+            <ol class="pl-riel">
+                <li class="pl-semana" th:each="n : ${#numbers.sequence(0, 5)}"
+                    th:with="p=${n < planillasAsc.size() ? planillasAsc[n] : null}">
 
-            <a th:if="${idPsSeleccionado != null}"
-                id="btnGenerarPdf"
-                th:href="@{/alumno/planilla/Planilla_Semanal.pdf(idPs=${idPsSeleccionado})}"
-                target="_blank"
-                class="btn btn-generar-pdf btn-secondary">
-                Generar PDF
-            </a>
+                    <!-- Semana ya cargada: enlace a su planilla. Antes esto era una
+                         opcion de un desplegable; como enlace la URL queda
+                         compartible y funciona sin JS. -->
+                    <a th:if="${p != null}" class="pl-semana-caja pl-semana-caja--cargada"
+                       th:classappend="${p.idPs == idPsSeleccionado} ? ' pl-semana-caja--activa'"
+                       th:href="@{/alumno/planilla(idPs=${p.idPs})}"
+                       th:attr="aria-current=${p.idPs == idPsSeleccionado} ? 'page' : null">
+                        <span class="pl-semana-orden" th:text="'Semana ' + ${n + 1}">Semana 1</span>
+                        <span class="pl-semana-fechas"
+                              th:text="${#temporals.format(p.fechaDesde, 'dd/MM')} + ' al ' + ${#temporals.format(p.fechaHasta, 'dd/MM')}">03/03 al 08/03</span>
+                    </a>
 
-            <button th:if="${idPsSeleccionado == null}" id="btnGenerarPdf" type="button" class="btn btn-generar-pdf btn-secondary" disabled>
-                Generar PDF
-            </button>
-        </div>
+                    <!-- La siguiente semana a cargar. Es el mismo boton de antes,
+                         con el mismo id, solo que ahora vive en el lugar del riel
+                         que le corresponde en vez de flotar suelto arriba del
+                         formulario. Queda deshabilitado mientras se lo esta
+                         completando, y ese estado se dibuja como "seleccionado". -->
+                    <button th:if="${p == null and n == planillasAsc.size()}"
+                            type="button" id="btnNuevo"
+                            class="pl-semana-caja pl-semana-caja--nueva"
+                            th:disabled="${habilitado}"
+                            onclick="habilitarFormulario()">
+                        <span class="pl-semana-orden" th:text="'Semana ' + ${n + 1}">Semana 1</span>
+                        <span class="pl-semana-fechas">Cargar</span>
+                    </button>
 
+                    <span th:if="${p == null and n > planillasAsc.size()}"
+                          class="pl-semana-caja pl-semana-caja--vacia">
+                        <span class="pl-semana-orden" th:text="'Semana ' + ${n + 1}">Semana 1</span>
+                    </span>
+                </li>
+            </ol>
+
+            <!-- Acciones de la semana que se esta mirando. Antes estaban en la
+                 misma barra que el selector, sin que nada dijera sobre cual de
+                 todas las planillas actuaban. -->
+            <div class="pl-semana-acciones" th:if="${idPsSeleccionado != null}">
+                <a id="btnGenerarPdf"
+                   th:href="@{/alumno/planilla/Planilla_Semanal.pdf(idPs=${idPsSeleccionado})}"
+                   target="_blank" rel="noopener"
+                   class="btn btn-secondary btn-generar-pdf">Generar PDF de esta semana</a>
+
+                <form id="formEliminar"
+                      th:action="@{/alumno/planilla/{id}/eliminar(id=${idPsSeleccionado})}"
+                      method="post"
+                      onsubmit="return confirm('¿Estás seguro que querés eliminar esta planilla? Esta acción no se puede deshacer.');">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= La semana =================
+
+             Los seis dias pasan de seis tarjetas iguales en una grilla auto-fit,
+             que segun el ancho se reacomodaban en 2, 3, 4 o 5 columnas y dejaban
+             de leerse como una semana, a seis renglones en orden de lunes a
+             sabado. Un renglon por dia es la forma que tiene el papel y la que
+             le da al campo de descripcion, que es el que mas se escribe, todo el
+             ancho que necesita. -->
         <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post" id="formPlanilla">
-
-            <button type="button" id="btnNuevo" class="btn-secondary" th:disabled="${habilitado}" onclick="habilitarFormulario()">+ Cargar semana nueva</button>
-
             <fieldset id="fieldsetPlanilla" th:disabled="${!habilitado}" class="fieldset-planilla">
 
-                <h3 class="subseccion-titulo">Días trabajados</h3>
-                <div class="dias-grid">
-                    <div th:each="dia, iterStat : *{dias}" class="dia-bloque panel">
-                        <h3 th:text="${dia.nombreDia}"></h3>
-
-                        <label>Fecha</label>
-                        <input type="date" th:field="*{dias[__${iterStat.index}__].fecha}">
-
-                        <label>Descripción</label>
-                        <textarea th:field="*{dias[__${iterStat.index}__].descripcion}" maxlength="65" placeholder="¿Qué hiciste este día?"></textarea>
-
-                        <label>Horas trabajadas</label>
-                        <input type="number" step="0.01" min="0.01" th:field="*{dias[__${iterStat.index}__].horas}" placeholder="0.00">
-                    </div>
-                </div>
-
-                <h3 class="subseccion-titulo">Resumen de la semana</h3>
-                <div class="panel resumen-semana">
-                    <div>
-                        <label>Supervisor</label>
-                        <input type="text" th:field="*{supervisor}" maxlength="100" placeholder="Nombre de tu supervisor en la empresa">
+                <section class="panel pl-bloque">
+                    <div class="pl-bloque-encabezado">
+                        <h3 class="pl-bloque-titulo">Los días de la semana</h3>
+                        <p class="pl-bloque-nota">Cargá los días que trabajaste. Cada día que cargues
+                            necesita sus tres datos: fecha, qué hiciste y horas.</p>
                     </div>
 
-                    <div>
-                        <label>Conocimientos adquiridos</label>
-                        <textarea th:field="*{conocimientos}" maxlength="265"></textarea>
+                    <div class="pl-dias">
+                        <div th:each="dia, iterStat : *{dias}" class="pl-dia dia-bloque">
+                            <span class="pl-dia-nombre" th:text="${dia.nombreDia}">Lunes</span>
+
+                            <label class="pl-campo pl-campo--fecha">
+                                <span class="pl-campo-etiqueta">Fecha</span>
+                                <input type="date" th:field="*{dias[__${iterStat.index}__].fecha}">
+                            </label>
+
+                            <label class="pl-campo pl-campo--que">
+                                <span class="pl-campo-etiqueta">Qué hiciste</span>
+                                <textarea class="pl-dia-desc" rows="1"
+                                          th:field="*{dias[__${iterStat.index}__].descripcion}"
+                                          maxlength="65" placeholder="Tarea del día"></textarea>
+                            </label>
+
+                            <label class="pl-campo pl-campo--horas">
+                                <span class="pl-campo-etiqueta">Horas</span>
+                                <input type="number" step="0.01" min="0.01"
+                                       th:field="*{dias[__${iterStat.index}__].horas}" placeholder="0.00">
+                            </label>
+                        </div>
                     </div>
 
-                    <div>
-                        <label>Experiencia</label>
-                        <textarea th:field="*{experiencia}" maxlength="200"></textarea>
+                    <!-- El total lo suma el navegador mientras se escribe. Es el
+                         numero que despues aparece en el PDF y en el informe, y
+                         hasta ahora habia que sacarlo de cabeza. -->
+                    <p class="pl-total">
+                        <span class="pl-total-etiqueta">Total de la semana</span>
+                        <span class="pl-total-valor" id="totalHoras" aria-live="polite">0</span>
+                        <span class="pl-total-unidad">horas</span>
+                    </p>
+                </section>
+
+                <section class="panel pl-bloque">
+                    <div class="pl-bloque-encabezado">
+                        <h3 class="pl-bloque-titulo">Resumen de la semana</h3>
+                        <p class="pl-bloque-nota">Los cuatro campos son obligatorios.</p>
                     </div>
 
-                    <div>
-                        <label>Aprendizaje</label>
-                        <textarea th:field="*{aprendizaje}" maxlength="200"></textarea>
+                    <div class="pl-resumen">
+                        <label class="pl-campo pl-campo--supervisor">
+                            <span class="pl-campo-etiqueta">Supervisor</span>
+                            <input type="text" th:field="*{supervisor}" maxlength="100"
+                                   placeholder="Nombre de tu supervisor en la empresa">
+                        </label>
+
+                        <label class="pl-campo">
+                            <span class="pl-campo-etiqueta">Conocimientos adquiridos</span>
+                            <textarea th:field="*{conocimientos}" maxlength="265"></textarea>
+                        </label>
+
+                        <label class="pl-campo">
+                            <span class="pl-campo-etiqueta">Experiencia</span>
+                            <textarea th:field="*{experiencia}" maxlength="200"></textarea>
+                        </label>
+
+                        <label class="pl-campo">
+                            <span class="pl-campo-etiqueta">Aprendizaje</span>
+                            <textarea th:field="*{aprendizaje}" maxlength="200"></textarea>
+                        </label>
                     </div>
-                </div>
+                </section>
 
                 <div class="acciones-planilla">
-                    <button type="submit" class="btn-primary">Enviar</button>
-                    <button type="button" id="btnCancelar" class="btn-secondary" onclick="limpiarFormulario()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Enviar la semana</button>
+                    <button type="button" id="btnCancelar" class="btn btn-secondary" onclick="limpiarFormulario()">Borrar lo escrito</button>
                 </div>
 
             </fieldset>
-
         </form>
 
-        <div class="panel nota-planilla-vacia">
-            <h3>¿Preferís llenarla a mano?</h3>
-            <p>Descargá la planilla en blanco para completarla vos y luego escanearla.</p>
-            <a th:href="@{/alumno/planilla/Planilla_Semanal_Vacio.pdf}" target="_blank">
-                <button type="button" class="btn-secondary">Descargar planilla vacía</button>
-            </a>
-        </div>
+        <!-- ================= Descargas =================
+             El informe y la planilla en blanco estaban en dos bloques separados,
+             uno arriba de todo y el otro al final de la pagina, sin nada que los
+             relacionara. Los dos son lo mismo: un archivo para bajar. -->
+        <section class="pl-descargas" aria-labelledby="pl-descargas-titulo">
+            <h3 class="pl-descargas-titulo" id="pl-descargas-titulo">Descargas</h3>
+
+            <div class="pl-descarga">
+                <div class="pl-descarga-texto">
+                    <h4 class="pl-descarga-nombre">Informe de Pasantía</h4>
+                    <p class="pl-descarga-desc">El informe final en Word, armado con todo lo que
+                        cargaste en las seis semanas.</p>
+
+                    <!-- Antes esto eran tres renglones con un caracter ✔ o ✘
+                         escrito como texto. Ahora cada requisito dice su estado
+                         con su propia marca, y los cumplidos se leen distinto de
+                         los que faltan sin depender de un simbolo suelto. -->
+                    <ul class="pl-requisitos">
+                        <li class="pl-requisito" th:classappend="${tieneEmpresa} ? ' pl-requisito--listo'">
+                            Una empresa asignada</li>
+                        <li class="pl-requisito" th:classappend="${tieneSupervisor} ? ' pl-requisito--listo'">
+                            Un supervisor o docente asignado</li>
+                        <li class="pl-requisito" th:classappend="${tieneSeisPlanillas} ? ' pl-requisito--listo'">
+                            Las seis semanas cargadas</li>
+                    </ul>
+                </div>
+
+                <div class="pl-descarga-accion">
+                    <a th:if="${informeHabilitado}" th:href="@{/alumno/planilla/Informe_Pasantia.docx}"
+                       class="btn btn-primary">Descargar Word</a>
+                    <button th:unless="${informeHabilitado}" type="button" class="btn btn-primary" disabled>Descargar Word</button>
+                </div>
+            </div>
+
+            <div class="pl-descarga">
+                <div class="pl-descarga-texto">
+                    <h4 class="pl-descarga-nombre">Planilla en blanco</h4>
+                    <p class="pl-descarga-desc">Para completarla a mano y después escanearla.</p>
+                </div>
+
+                <div class="pl-descarga-accion">
+                    <a th:href="@{/alumno/planilla/Planilla_Semanal_Vacio.pdf}"
+                       target="_blank" rel="noopener" class="btn btn-vacio">Descargar PDF</a>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script th:src="@{/js/planillaSemanal.js}"></script>

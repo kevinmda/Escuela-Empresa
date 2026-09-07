@@ -3653,10 +3653,6 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
         margin-top: 1.5rem;
     }
 
-    .dias-grid {
-        grid-template-columns: 1fr;
-    }
-
     /* Ocho columnas no entran en un teléfono, y el scroll horizontal que
        tenía antes obliga a arrastrar de ida y vuelta para leer una fila.
        Cada alumno pasa a ser una tarjeta con sus campos etiquetados.
@@ -3924,7 +3920,8 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     }
 }
 
-/* ---------------- Planilla Semanal (alumno) ---------------- */
+/* ---------------- Utilidades de pagina compartidas ----------------
+   Definidas aca por historia, pero las usan tambien Imprimir y Subir. */
 
 .subtitulo-pagina {
     color: var(--ink-soft);
@@ -3942,69 +3939,362 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     margin: 1.75rem 0 0.85rem;
 }
 
-.selector-semana {
-    align-items: flex-end;
-    margin-bottom: 1.5rem;
+/* ---------------- Planilla Semanal (alumno) ----------------
+
+   Dos objetos organizan la pantalla, y ninguno de los dos existia antes: las
+   seis semanas de la pasantia, y la semana como una secuencia de dias.
+
+   1. LAS SEIS SEMANAS. El limite es real, el servicio corta en la sexta ("Ya
+      cargaste las 6 semanas de planilla"), pero la pantalla no lo decia en
+      ningun lado: habia un <select> con las semanas ya cargadas y, en otro
+      lugar, un boton "+ Cargar semana nueva". Entre los dos no contestaban ni
+      cuantas van ni cuantas faltan. Ahora son seis casilleros: los cargados son
+      enlaces a su planilla, el siguiente es el boton (mismo id de antes) y los
+      que faltan quedan punteados. Cuatro estados con significados que la casa
+      ya usa: relleno en --ink para el que se esta mirando, superficie solida
+      para los cargados, dorado para el que toca cargar (dorado es pendiente) y
+      punteado para el vacio.
+
+   2. LA SEMANA. Los seis dias eran seis tarjetas iguales en una grilla auto-fit
+      que segun el ancho se reacomodaban en 2, 3, 4 o 5 columnas, con lo cual
+      dejaban de leerse como una semana. Ahora son seis renglones en orden de
+      lunes a sabado, que es la forma que tiene el papel y la que le da al campo
+      de descripcion, el que mas se escribe, todo el ancho disponible.
+
+   Las etiquetas de columna se ven solo en el primer renglon y funcionan como
+   encabezado de la tabla; en los demas siguen en el DOM para el lector de
+   pantalla pero se ocultan a la vista. En movil, donde cada dia se apila solo,
+   vuelven a verse todas. */
+
+/* ---------- Las seis semanas ---------- */
+
+.pl-semanas {
+    margin-bottom: 2rem;
 }
 
-.selector-semana select {
-    min-width: 260px;
-}
-
-.dias-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
-}
-
-.dia-bloque {
+.pl-semanas-encabezado {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1.1rem 1.25rem;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.85rem;
 }
 
-.dia-bloque h3 {
+.pl-semanas-titulo {
+    margin: 0;
     font-family: var(--font-display);
-    font-size: 0.95rem;
+    font-size: 1.15rem;
     font-weight: 600;
-    color: var(--accent-ink);
-    margin-bottom: 0.25rem;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
 }
 
-.dia-bloque label {
-    margin-top: 0.25rem;
+.pl-semanas-cuenta {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
 }
 
-.dia-bloque textarea {
-    min-height: 60px;
-    resize: none;
+.pl-riel {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.resumen-semana {
+.pl-semana {
+    display: flex;
+}
+
+/* La caja es la misma para los cuatro estados: cambia el relleno, no la forma.
+   Se declara para <a>, <button> y <span> a la vez porque cada estado usa el
+   elemento que le corresponde. */
+.pl-semana-caja {
     display: flex;
     flex-direction: column;
+    gap: 0.2rem;
+    width: 100%;
+    min-height: 4.1rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    background-color: var(--surface);
+    text-align: left;
+    text-decoration: none;
+    color: inherit;
+    font: inherit;
+    cursor: default;
+    transition: border-color 0.16s ease,
+                background-color 0.16s ease,
+                box-shadow 0.16s ease,
+                transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pl-semana-orden {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.pl-semana-fechas {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+}
+
+/* Cargada: superficie solida y clicable. */
+.pl-semana-caja--cargada {
+    cursor: pointer;
+    box-shadow: 0 1px 4px -2px rgba(var(--shadow-tint), 0.2);
+}
+
+/* La que se esta mirando: relleno en --ink, el mismo par que usa el boton
+   primario de la casa, asi que se da vuelta sola entre claro y oscuro. */
+.pl-semana-caja--activa {
+    background-color: var(--ink);
+    border-color: var(--ink);
+    color: var(--text-on-ink);
+}
+
+.pl-semana-caja--activa .pl-semana-fechas {
+    color: color-mix(in srgb, var(--text-on-ink) 78%, transparent);
+}
+
+/* La proxima a cargar: dorado, que en esta casa significa pendiente. Es el
+   unico casillero sobre el que hay algo que hacer. */
+.pl-semana-caja--nueva {
+    cursor: pointer;
+    background-color: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+}
+
+.pl-semana-caja--nueva .pl-semana-fechas {
+    color: inherit;
+}
+
+/* Mientras se completa el formulario el boton queda deshabilitado, y ese estado
+   es justamente "esta es la que estas cargando". Sin esto se lo comeria el
+   opacity 0.5 global de los botones deshabilitados y pareceria apagado. */
+.pl-semana-caja--nueva:disabled {
+    opacity: 1;
+    cursor: default;
+    background-color: var(--ink);
+    border-color: var(--ink);
+    color: var(--text-on-ink);
+}
+
+/* Todavia no le toca: punteada, que es como se dice vacio en toda la app. */
+.pl-semana-caja--vacia {
+    background-color: transparent;
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--ink-soft) 42%, transparent);
+    color: var(--ink-soft);
+}
+
+.pl-semana-caja--vacia .pl-semana-orden {
+    font-weight: 500;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .pl-semana-caja--cargada:hover,
+    .pl-semana-caja--nueva:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px -8px rgba(var(--shadow-tint), 0.32);
+    }
+
+    .pl-semana-caja--cargada:hover {
+        border-color: var(--ink-soft);
+    }
+}
+
+.pl-semana-caja--cargada:active,
+.pl-semana-caja--nueva:not(:disabled):active {
+    transform: translateY(0) scale(0.985);
+    transition-duration: 0.08s;
+}
+
+.pl-semana-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.85rem;
+}
+
+/* ---------- Los bloques del formulario ---------- */
+
+.pl-bloque {
+    margin-bottom: 1.25rem;
+}
+
+.pl-bloque-encabezado {
+    margin-bottom: 1.35rem;
+}
+
+.pl-bloque-titulo {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.pl-bloque-nota {
+    margin: 0.45rem 0 0;
+    max-width: 60ch;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+/* ---------- Los seis dias ---------- */
+
+.pl-dias {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.pl-dia {
+    display: grid;
+    grid-template-columns: 5.5rem 9.5rem minmax(0, 1fr) 5.5rem;
+    align-items: end;
+    gap: 0.75rem;
+}
+
+/* El nombre del dia se afirma cuando el dia tiene algo escrito. Es tipografia y
+   no un punto de color: se ve de un vistazo cuales dias estan cargados sin
+   sumarle otro codigo cromatico a la pantalla. */
+.pl-dia-nombre {
+    padding-bottom: 0.62rem;
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--ink-soft);
+    transition: color 0.18s ease;
+}
+
+.pl-dia:has(.pl-dia-desc:not(:placeholder-shown)) .pl-dia-nombre {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+/* El campo es la etiqueta: <label> envolviendo al input, sin depender de un for
+   que apunte al id que genera Thymeleaf. Antes las etiquetas eran <label> sueltos
+   sin asociar a nada. */
+.pl-campo {
+    display: block;
+    margin: 0;
+}
+
+.pl-campo-etiqueta {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.pl-campo input,
+.pl-campo textarea {
+    width: 100%;
+}
+
+.pl-campo--que textarea {
+    min-height: 2.6rem;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+/* Solo el primer renglon muestra las etiquetas de columna: hacen de encabezado
+   de la tabla. En los demas siguen en el DOM, ocultas a la vista, para que cada
+   campo siga teniendo su etiqueta en el lector de pantalla. */
+.pl-dia:not(:first-child) .pl-campo-etiqueta {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+.pl-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin: 1.35rem 0 0;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+}
+
+.pl-total-etiqueta {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+}
+
+.pl-total-valor {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+}
+
+.pl-total-unidad {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+}
+
+/* ---------- El resumen ---------- */
+
+.pl-resumen {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.1rem;
 }
 
-.resumen-semana textarea {
-    min-height: 70px;
-    resize: none;
+.pl-campo--supervisor {
+    grid-column: 1 / -1;
+    max-width: 32rem;
+}
+
+.pl-resumen textarea {
+    min-height: 5.5rem;
+    resize: vertical;
+    line-height: 1.5;
 }
 
 .acciones-planilla {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
     margin-top: 1.5rem;
 }
 
-#btnNuevo {
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
 .fieldset-planilla {
     border: none;
+    padding: 0;
+    margin: 0;
     transition: opacity 0.2s ease;
 }
 
@@ -4018,28 +4308,202 @@ button:disabled,
     cursor: not-allowed;
 }
 
-.nota-planilla-vacia {
+/* ---------- Descargas ---------- */
+
+.pl-descargas {
     margin-top: 2.5rem;
-    max-width: 480px;
 }
 
-.nota-planilla-vacia h3 {
+.pl-descargas-titulo {
+    margin: 0 0 0.85rem;
     font-family: var(--font-display);
-    font-size: 1rem;
-    margin-bottom: 0.4rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
 }
 
-.nota-planilla-vacia p {
+.pl-descarga {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem 2rem;
+    padding: 1.35rem 0;
+}
+
+.pl-descarga + .pl-descarga {
+    border-top: 1px solid var(--line);
+}
+
+.pl-descarga-nombre {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.pl-descarga-desc {
+    margin: 0.3rem 0 0;
+    max-width: 52ch;
+    font-size: 0.87rem;
+    line-height: 1.55;
     color: var(--ink-soft);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
 }
 
-.dia-bloque input,
-.dia-bloque textarea,
-.resumen-semana input,
-.resumen-semana textarea {
-    width: 100%;
+/* Los tres requisitos del informe. Antes eran tres renglones con un caracter
+   ✔ o ✘ escrito como texto plano. */
+.pl-requisitos {
+    margin: 0.85rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.pl-requisito {
+    position: relative;
+    padding-left: 1.35rem;
+    font-size: 0.84rem;
+    line-height: 1.4;
+    color: var(--ink-soft);
+}
+
+/* Falta: cuadro punteado, el vacio de siempre. */
+.pl-requisito::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.28rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 1.5px dashed color-mix(in srgb, var(--ink-soft) 55%, transparent);
+    border-radius: 2px;
+}
+
+/* Cumplido: el cuadro se llena con el verde que la casa ya usa para el estado
+   resuelto en badge-success, y el texto deja de estar apagado. */
+.pl-requisito--listo {
+    color: var(--ink);
+}
+
+.pl-requisito--listo::before {
+    border: 1.5px solid var(--success);
+    background-color: var(--success);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pl-semana-caja {
+        transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .pl-semana-caja--cargada:active,
+    .pl-semana-caja--nueva:not(:disabled):active {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .pl-semana-caja--cargada:hover,
+    .pl-semana-caja--nueva:not(:disabled):hover {
+        transform: none;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .pl-semana-caja,
+    .pl-descarga + .pl-descarga {
+        border-color: var(--ink-soft);
+    }
+
+    .pl-requisito::before {
+        border-color: var(--ink-soft);
+    }
+}
+
+/* El colapso movil de esta pantalla va en su propio @media y no en el compartido
+   de mas arriba: ese bloque esta en la mitad del archivo y estas reglas se
+   declaran despues, asi que con la misma especificidad ganaria el orden de
+   fuente y el media query quedaria sin efecto. */
+@media (max-width: 900px) {
+    /* Seis casilleros no entran a este ancho sin quedar ilegibles: pasan a dos
+       filas de tres, que sigue leyendose como las seis semanas. */
+    .pl-riel {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pl-resumen {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .pl-riel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Cada dia se apila solo, asi que las etiquetas vuelven a verse todas: acá
+       ya no hay columnas que puedan hacer de encabezado. */
+    .pl-dia {
+        grid-template-columns: 1fr 6.5rem;
+        align-items: start;
+        gap: 0.6rem 0.75rem;
+        padding-bottom: 0.9rem;
+    }
+
+    .pl-dia + .pl-dia {
+        border-top: 1px solid var(--line);
+        padding-top: 0.9rem;
+    }
+
+    /* Las filas van explicitas: sin esto el auto-placement deja a Fecha con
+       media fila vacia al lado y manda Horas a una fila propia, tambien a
+       medias. Fecha y Horas son los dos campos cortos, van juntos. */
+    .pl-dia-nombre {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        padding-bottom: 0;
+        font-size: 1rem;
+    }
+
+    .pl-campo--fecha {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .pl-campo--horas {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .pl-campo--que {
+        grid-column: 1 / -1;
+        grid-row: 3;
+    }
+
+    .pl-dia:not(:first-child) .pl-campo-etiqueta {
+        position: static;
+        width: auto;
+        height: auto;
+        margin: 0 0 0.3rem;
+        overflow: visible;
+        clip-path: none;
+    }
+
+    .pl-descarga {
+        grid-template-columns: 1fr;
+    }
+
+    .pl-descarga-accion .btn {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 /* ---------------- Imprimir (alumno) ----------------
@@ -4380,8 +4844,8 @@ button:disabled,
    720px) compartido de mas arriba: ese bloque esta en la mitad del archivo y
    las reglas de Imprimir se declaran despues, asi que con la misma
    especificidad gana el orden de fuente y el media query queda sin efecto.
-   Pasa lo mismo con la regla de .dias-grid que quedo alla arriba, solo que ahi
-   no se nota porque su version de escritorio usa auto-fit y colapsa sola. */
+   Planilla Semanal, que se declara mas abajo todavia, tiene el suyo por lo
+   mismo. */
 @media (max-width: 720px) {
     /* La hoja y el titulo comparten el primer renglon, y las acciones bajan
        cruzando las dos columnas y repartiendose el ancho. */

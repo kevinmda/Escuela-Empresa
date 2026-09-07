@@ -34,6 +34,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 
 @Controller
@@ -237,7 +238,17 @@ public class PlanillaSemanalController {
     // El informe de pasantia solo se puede descargar si el alumno ya completo las 6 semanas,
     // y tiene supervisor/docente y empresa asignados. Se llama tanto desde el GET como el POST
     // de /alumno/planilla, para que la pantalla nunca le falten estos atributos al modelo
+    // Estado que necesitan las dos partes de la pantalla: los requisitos del
+    // informe final, y el riel de las seis semanas.
     private void agregarEstadoInforme(Model model, Alumno alumno, List<PlanillaSemanal> planillas) {
+
+        // "planillas" viene ordenada de la mas nueva a la mas vieja, que es lo que
+        // servia para un desplegable. El riel muestra las seis semanas en el orden
+        // en que pasaron, asi que la vista necesita la lista al reves.
+        List<PlanillaSemanal> planillasAsc = new ArrayList<>(planillas);
+        Collections.reverse(planillasAsc);
+        model.addAttribute("planillasAsc", planillasAsc);
+
         boolean tieneSeisPlanillas = planillas.size() >= 6;
         boolean tieneSupervisor = alumno.getSupervisor() != null;
         boolean tieneEmpresa = alumno.getEmpresa() != null;
