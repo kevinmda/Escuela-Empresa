@@ -2809,6 +2809,15 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
     margin-top: 0;
 }
 
+/* Envoltorio liviano para el mismo .seccion-grupo que ya usan Alumnos y
+   Reportes. Sin el fondo teñido de .alumnos-panel-barra a propósito: esa
+   franja está pensada para un panel de lomo de color de borde a borde, y
+   .registro-seccion ya tiene su propio padding, así que reutilizarla acá
+   sumaría un padding encima de otro y un tinte que no llega a los bordes. */
+.seccion-selector {
+    margin-bottom: 1.25rem;
+}
+
 /* ---------- Agregar nuevo registro ----------
 
    Vive FUERA de .fichas-grid a propósito. Antes era la primera celda de esa

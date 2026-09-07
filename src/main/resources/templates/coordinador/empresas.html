@@ -146,11 +146,20 @@
             </p>
         </section>
 
-        <!-- Asignación de empresa por alumno -->
+        <!-- Asignación de empresa por alumno. Antes era una sola tabla con las
+             tres secciones mezcladas; ahora usa el mismo selector de sección
+             que Alumnos/Reportes, así se elige A/B/C primero y la tabla
+             muestra una sección genuina. -->
         <section class="registro-seccion" aria-labelledby="titulo-asignacion-emp">
             <h3 id="titulo-asignacion-emp">Asignar empresa a cada alumno</h3>
+
+            <div class="seccion-selector">
+                <span class="seccion-etiqueta" id="etiqueta-seccion-emp">Sección</span>
+                <span class="seccion-grupo" id="grupo-seccion-emp" role="group" aria-labelledby="etiqueta-seccion-emp"></span>
+            </div>
+
             <div class="tabla-scroll">
-                <table class="tabla-asignacion" role="table">
+                <table class="tabla-asignacion oculto" id="tabla-asignacion-emp" role="table">
                     <thead role="rowgroup">
                         <tr role="row">
                             <th role="columnheader" scope="col">Nombres</th>
@@ -160,8 +169,8 @@
                             <th role="columnheader" scope="col">Empresa asignada</th>
                         </tr>
                     </thead>
-                    <tbody role="rowgroup">
-                        <tr role="row" th:each="alumno : ${alumnos}">
+                    <tbody role="rowgroup" id="tabla-asignacion-emp-body">
+                        <tr role="row" th:each="alumno : ${alumnos}" th:attr="data-seccion=${alumno.seccion}">
                             <td role="cell" data-label="Nombres" class="celda-nombre" th:text="${alumno.nombres}"></td>
                             <td role="cell" data-label="Apellidos" class="celda-nombre" th:text="${alumno.apellidos}"></td>
                             <td role="cell" data-label="Curso" th:text="${alumno.curso}"></td>
@@ -183,8 +192,101 @@
                     </tbody>
                 </table>
             </div>
+
             <p th:if="${alumnos.isEmpty()}" class="mensaje-vacio">No hay alumnos cargados en esta especialidad.</p>
+            <div th:unless="${alumnos.isEmpty()}" id="estado-asignacion-emp" class="estado-vacio" role="status" aria-live="polite"></div>
         </section>
     </main>
+
+    <script>
+        // Mismo mapa y misma normalización que alumnos.html/reportes.html: cada
+        // especialidad tiene su juego fijo de secciones, y los valores viejos
+        // ("1ra", "2da"...) se leen igual que A/B/C.
+        const SECCIONES_POR_ESP = {
+            '1': ['A', 'B'],
+            '2': ['A', 'B', 'C'],
+            '4': ['A', 'B', 'C'],
+            '5': ['A', 'B'],
+            '6': ['A', 'B'],
+            '7': ['A', 'B'],
+            '8': ['A', 'B'],
+            '9': ['A', 'B', 'C'],
+        };
+        const SECCIONES_POR_DEFECTO = ['A', 'B', 'C'];
+
+        function normalizarSeccion(valor) {
+            if (valor == null) return valor;
+            const v = String(valor).trim().toLowerCase();
+            if (['1ra', '1era', '1ro', '1er', '1', '1°', 'primera'].includes(v)) return 'A';
+            if (['2da', '2do', '2', '2°', 'segunda'].includes(v)) return 'B';
+            if (['3ra', '3ro', '3er', '3', '3°', 'tercera'].includes(v)) return 'C';
+            return String(valor).trim().toUpperCase();
+        }
+
+        // Los alumnos de las tres secciones ya vienen en el HTML (esta pantalla
+        // no hace fetch como alumnos.html); acá solo se muestra/oculta según la
+        // sección elegida, no se vuelve a pedir nada al servidor.
+        (function () {
+            const idEsp = document.getElementById('main-content').dataset.esp;
+            const grupo = document.getElementById('grupo-seccion-emp');
+            const tabla = document.getElementById('tabla-asignacion-emp');
+            const estado = document.getElementById('estado-asignacion-emp');
+            if (!grupo || !tabla || !estado) return; // no hay alumnos: nada que filtrar
+
+            const filas = Array.from(document.querySelectorAll('#tabla-asignacion-emp-body tr'));
+            filas.forEach(fila => {
+                fila.dataset.seccionNormalizada = normalizarSeccion(fila.dataset.seccion);
+            });
+
+            function mostrarEstado(titulo, nota) {
+                tabla.classList.add('oculto');
+                estado.innerHTML = '';
+                const h = document.createElement('p');
+                h.className = 'estado-vacio-titulo';
+                h.textContent = titulo;
+                const p = document.createElement('p');
+                p.className = 'estado-vacio-nota';
+                p.textContent = nota;
+                estado.append(h, p);
+                estado.classList.remove('oculto');
+            }
+
+            function elegirSeccion(seccion) {
+                grupo.querySelectorAll('.seccion-btn').forEach(
+                    b => b.setAttribute('aria-pressed', String(b.dataset.seccion === seccion)));
+
+                const hayAlumnos = filas.some(f => f.dataset.seccionNormalizada === seccion);
+                if (!hayAlumnos) {
+                    mostrarEstado('No hay alumnos en esta sección',
+                        `Ningún alumno figura en 3ro sección ${seccion}.`);
+                    return;
+                }
+
+                estado.classList.add('oculto');
+                filas.forEach(f => f.classList.toggle('oculto', f.dataset.seccionNormalizada !== seccion));
+                tabla.classList.remove('oculto');
+            }
+
+            const secciones = SECCIONES_POR_ESP[idEsp] || SECCIONES_POR_DEFECTO;
+            secciones.forEach(seccion => {
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'seccion-btn';
+                boton.dataset.seccion = seccion;
+                boton.setAttribute('aria-pressed', 'false');
+                boton.textContent = seccion;
+                boton.addEventListener('click', () => elegirSeccion(seccion));
+                grupo.appendChild(boton);
+            });
+
+            // Con una sola sección no hay nada que elegir: se abre directo.
+            if (secciones.length === 1) {
+                elegirSeccion(secciones[0]);
+            } else {
+                mostrarEstado('Elegí una sección',
+                    'Las pasantías son de 3er año, así que solo falta indicar la sección.');
+            }
+        })();
+    </script>
 </body>
 </html>
