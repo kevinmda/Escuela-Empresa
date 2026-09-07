@@ -4215,6 +4215,20 @@ button:disabled,
         transparent 1px 0.45rem);
 }
 
+/* La linea de firma, abajo a la izquierda. La mitad inferior de la hoja quedaba
+   vacia, y ademas es lo que define a estos papeles: son formularios que alguien
+   firma. Un renglon corto ahi abajo equilibra la composicion y hace que la
+   marca se lea como "formulario para firmar" y no como "pagina de texto". */
+.impr-hoja-cara::after {
+    content: "";
+    position: absolute;
+    left: 0.3rem;
+    bottom: 0.7rem;
+    width: 62%;
+    height: 1px;
+    background-color: var(--line);
+}
+
 /* El ultimo renglon corto, como termina cualquier parrafo de verdad. */
 .impr-hoja-renglones::after {
     content: "";
@@ -4227,24 +4241,33 @@ button:disabled,
 }
 
 /* Cuatro hojas se dicen apilando cuatro hojas. Dos capas atras alcanzan para
-   leer "son varias" sin dibujar las cuatro. */
+   leer "son varias" sin dibujar las cuatro.
+
+   Las capas no pueden ser del mismo blanco que la de adelante: tres rectangulos
+   identicos se leen como tres contornos, no como tres hojas. Cada una se hunde
+   un poco hacia --bg y lleva su propia sombra, asi que la de mas atras es la
+   mas apagada. Se mezcla hacia --bg y no hacia --ink porque --bg es mas oscuro
+   que --surface en los dos temas; hacia --ink, en oscuro las capas se
+   aclararian y se adelantarian en vez de hundirse. */
 .impr-hoja--pila::before,
 .impr-hoja--pila::after {
     content: "";
     position: absolute;
     inset: 0;
     z-index: 0;
-    background-color: var(--surface);
     border: 1px solid var(--line);
     border-radius: 2px;
+    box-shadow: 0 1px 2px -1px rgba(var(--shadow-tint), 0.2);
 }
 
 .impr-hoja--pila::before {
     transform: translate(5px, -5px);
+    background-color: color-mix(in srgb, var(--surface) 62%, var(--bg));
 }
 
 .impr-hoja--pila::after {
     transform: translate(2.5px, -2.5px);
+    background-color: color-mix(in srgb, var(--surface) 81%, var(--bg));
 }
 
 .impr-hoja-cuenta {
