@@ -198,7 +198,15 @@ img {
 
 /* Chrome flotante como capa translúcida (Apple §12): el contenido pasa por debajo
    del header en vez de que este se coma una franja opaca fija. El blur mantiene
-   legible el título aunque debajo pase texto o una tabla. */
+   legible el título aunque debajo pase texto o una tabla.
+
+   OJO: es un selector de ELEMENTO, no de clase. Cualquier <header> anidado en
+   cualquier parte de una plantilla se lleva todo esto puesto (flex,
+   space-between, sticky, blur, z-index 20) y aparece como una barra donde uno
+   quería un encabezado de sección. Si necesitás encabezar un bloque, usá un
+   <div> con su clase. No se acota a "body > header" porque fragments/auth.html
+   trae su propio header dentro de un fragmento y habría que verificar dónde
+   termina insertado en cada pantalla que lo usa. */
 header {
     border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
     display: flex;
@@ -1405,76 +1413,6 @@ td input[type="email"] {
 .mensaje-error {
     background-color: var(--danger-soft);
     color: var(--danger);
-}
-
-/*---------------Inicio.html----------------*/
-#inicio-section-saludo {
-    padding: 0 0 0 1.5rem;
-}
-
-.saludo {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-}
-
-.avatar-circulo {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background-color: var(--accent);
-    color: var(--text-on-ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-#inicio-section-info {
-    padding: 2rem 0;
-    display: flex;
-    justify-content: center;
-}
-
-#inicio-info {
-    width: 100%;
-    max-width: 640px;
-}
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1.25rem 2rem;
-    margin: 1.5rem 0;
-}
-
-.info-item dt {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--ink-soft);
-    margin-bottom: 0.25rem;
-}
-
-.info-item dd {
-    font-size: 0.95rem;
-    color: var(--ink);
-    font-weight: 500;
-}
-
-.supervisor-linea {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--line);
-    font-size: 0.85rem;
-    color: var(--ink-soft);
 }
 
 /* ================= Color por especialidad =================
@@ -2761,6 +2699,476 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
     }
 }
 
+/* ================= Inicio del alumno (la credencial) =================
+
+   El alumno no elige especialidad ni la compara con otras: tiene una sola y es
+   la suya. Así que acá el color deja de ser un filtro al costado como en
+   alumnos.html y pasa a ser el material de la pantalla: la especialidad ocupa
+   una chapa de color de altura completa, con la inicial del alumno impresa
+   encima, y la ficha se apoya al lado sobre la superficie neutra de siempre.
+
+   Por qué no otra placa a lo ancho: el hub del administrativo abre con texto
+   más anillo y el del coordinador con una placa horizontal más regla de
+   progreso. Una tercera placa horizontal haría que las tres pantallas de
+   inicio se lean como la misma. La credencial gira el bloque de color noventa
+   grados y cambia el mecanismo, porque acá no hay ningún número que reportar:
+   hay una identidad que mostrar.
+
+   Reparto de color, el mismo del resto de la casa:
+     --esp        relleno de la chapa y regla de "ya asignado"
+     --esp-ink    el único texto que va encima de ese relleno
+     --esp-edge   define los bordes cuando --esp casi no separa de la
+                  superficie (Química Industrial da 1.05:1 contra el blanco)
+     --esp-tenue  el lavado del acceso principal y del hover
+   Ningún texto sobre superficie neutra se pinta con --esp: esos tokens están
+   calibrados a 3:1, que es el mínimo de un componente no textual, no el 4.5:1
+   que pide el texto.
+
+   El rojo no aparece en toda la pantalla. Antes "Aún no asignado" salía con
+   badge-danger, o sea el mismo rojo que un error de validación, para avisar de
+   un trámite que hace la coordinación y que el alumno no puede resolver. Ahora
+   eso se dice con una regla punteada y texto apagado, y el rojo se queda donde
+   sirve. */
+
+/* El aviso y la credencial arrancan juntos en 0. El aviso es condicional:
+   con el escalonado anterior, el alumno que ya cambio su contrasena veia la
+   pantalla empezar a pintar recien a los 60ms, y el ultimo bloque llegaba a
+   los 520ms. Latencia agregada que no compra nada. Ahora el escalon es de
+   80ms y el orden de lectura se sigue entendiendo igual. */
+main[data-esp] > .ahub-aviso        { animation-delay: 0s; }
+main[data-esp] > .ahub-carnet       { animation-delay: 0s; }
+main[data-esp] > .ahub-asignaciones { animation-delay: 0.08s; }
+main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
+
+/* ---------- Aviso de contraseña por defecto ----------
+   Dorado y no rojo, por lo mismo que el badge-pendiente de Reportes: el par
+   accent-ink sobre accent-soft da 5.0:1 en claro y 8.7:1 en oscuro. */
+
+.ahub-aviso {
+    margin-bottom: 1.25rem;
+    padding: 0.7rem 1.15rem;
+    background-color: var(--accent-soft);
+    color: var(--accent-ink);
+    border-radius: var(--radius-panel);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* El unico control de esta pantalla que no respondia al dedo. El hundido
+   entra sin transicion (la respuesta a la pulsacion tiene que ser inmediata,
+   si tarda deja de sentirse directa) y la vuelta si se suaviza. */
+.ahub-aviso a {
+    color: inherit;
+    font-weight: 600;
+    text-underline-offset: 3px;
+    transition: opacity 0.12s ease-out;
+}
+
+.ahub-aviso a:active {
+    opacity: 0.65;
+    transition-duration: 0s;
+}
+
+/* ---------- Fila 1: la credencial ---------- */
+
+.ahub-carnet {
+    display: grid;
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    margin-bottom: 1rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 2px 14px -6px rgba(var(--shadow-tint), 0.16);
+    overflow: hidden;
+}
+
+/* La chapa de color. justify-content: flex-end deja el pie abajo y el aire
+   arriba, que es donde entra el monograma. */
+.ahub-chapa {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 15rem;
+    padding: 1.5rem;
+    background-color: var(--esp);
+    color: var(--esp-ink);
+    /* Contra --surface blanco, cuatro de los ocho rellenos no llegan a 3:1 y la
+       chapa se despegaría del resto de la ficha. El borde interno la corta. */
+    border-right: 1px solid var(--esp-edge);
+}
+
+/* La ranura de una credencial de verdad: del color del fondo de página, así se
+   lee como un troquel y no como un elemento más. El filo interno la hunde. */
+.ahub-ranura {
+    position: absolute;
+    top: 0.9rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background-color: var(--bg);
+    /* Dos sombras y no un filo parejo: el anillo define el troquel cuando la
+       chapa y el fondo de pagina casi no separan (Quimica Industrial), y la
+       segunda pone la luz donde viene, de arriba. Un agujero real deja sombra
+       en su borde interno superior, no un contorno uniforme. */
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--esp-ink) 16%, transparent),
+                inset 0 1px 2px color-mix(in srgb, var(--esp-ink) 26%, transparent);
+}
+
+/* La inicial como textura, no como dato: entera y centrada bajo la ranura,
+   con el pie de la chapa pisándole la base. No se recorta contra el borde:
+   una L cortada por la derecha deja a la vista solo su asta y se lee como una
+   raya, y el ancho de la letra cambia con cada alumno, así que un recorte fijo
+   funciona con unas iniciales y con otras no. Al 16% de --esp-ink cae muy por
+   debajo del texto que lleva encima, así que no le compite. */
+.ahub-monograma {
+    position: absolute;
+    top: 2.4rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-display);
+    font-size: clamp(6rem, 12vw, 8.5rem);
+    font-weight: 700;
+    line-height: 1;
+    /* Sin letter-spacing: el interletrado tambien se agrega DESPUES del ultimo
+       glifo, y en un texto de una sola letra eso es todo lo que hace. Con
+       -0.04em a 8.5rem el centrado optico se corria ~2.7px a la derecha. */
+    color: color-mix(in srgb, var(--esp-ink) 16%, transparent);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* position: relative y nada más: alcanza para que el pie quede por encima del
+   monograma sin abrir un z-index nuevo. */
+.ahub-chapa-pie {
+    position: relative;
+}
+
+.ahub-chapa-especialidad {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+/* 80% de --esp-ink y no opacity: la jerarquía baja pero el peor par del
+   sistema (la plata con tinta casi negra) sigue en 5.3:1. */
+.ahub-chapa-curso {
+    margin: 0.55rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: color-mix(in srgb, var(--esp-ink) 80%, transparent);
+}
+
+.ahub-chapa-curso span + span::before {
+    content: " · ";
+}
+
+.ahub-identidad {
+    display: flex;
+    flex-direction: column;
+    padding: 1.75rem 2rem;
+}
+
+/* main h2 le pone barra dorada y sangría a todos los h2 de la app. Acá el h2
+   es el nombre del alumno dentro de su propia ficha, no un título de sección:
+   con la barra parecería el encabezado de otra cosa. */
+.ahub-nombre {
+    margin: 0;
+    padding: 0;
+    border-left: none;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+}
+
+.ahub-datos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem 1.75rem;
+    margin: 1.75rem 0 0;
+}
+
+.ahub-dato--ancho {
+    grid-column: 1 / -1;
+}
+
+.ahub-dato dt {
+    margin-bottom: 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--ink-soft);
+}
+
+.ahub-dato dd {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--ink);
+    /* un email largo parte donde haga falta en vez de estirar la columna */
+    overflow-wrap: anywhere;
+}
+
+/* Cédula y teléfono en monoespaciada y con cifras de ancho fijo: son números
+   para leer de a dígitos, no palabras. */
+.ahub-dato-cifra {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Fila 2: las asignaciones ---------- */
+
+.ahub-asignaciones {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.15rem 2rem;
+    margin-bottom: 1rem;
+    padding: 1.35rem 1.75rem 1.5rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    /* La escalera de elevacion queda explicita: la credencial es la superficie
+       grande y va mas alta (14px / 0.16, el escalon de .chub-hero), esta es
+       secundaria y va en el escalon de .panel (10px / 0.12), y los accesos
+       quedan al ras hasta que se los toca. Antes esta tira no tenia sombra
+       ninguna, asi que su jerarquia frente a la credencial se leia como un
+       olvido y no como una decision. */
+    box-shadow: 0 2px 10px -4px rgba(var(--shadow-tint), 0.12);
+}
+
+.ahub-asignacion {
+    position: relative;
+    padding-top: 1rem;
+}
+
+/* La regla de arriba es el estado. Va como pseudo-elemento y no como
+   border-top porque un borde de un solo color desaparece cuando --esp es casi
+   blanco; así lleva su propio filo en --esp-edge, igual que el punto de los
+   chips de especialidad. */
+.ahub-asignacion::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background-color: var(--esp);
+    border: 1px solid var(--esp-edge);
+    border-radius: 2px;
+}
+
+/* Sin asignar: punteada y gris. No es un error del alumno, es un trámite que
+   todavía no hizo la coordinación. */
+.ahub-asignacion--vacia::before {
+    height: 0;
+    background: none;
+    border: 0;
+    border-top: 2px dashed var(--line);
+}
+
+.ahub-asignacion-rol {
+    margin: 0 0 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--ink-soft);
+}
+
+/* -0.01em como .ahub-destino-titulo, que esta en el mismo cuerpo: el
+   interletrado va con el tamano, no con el componente, y este era el unico
+   texto en display de la pantalla que se habia quedado sin ajustar. */
+.ahub-asignacion-valor {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: var(--ink);
+}
+
+.ahub-asignacion--vacia .ahub-asignacion-valor {
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.ahub-asignaciones-nota {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+}
+
+/* ---------- Fila 3: los tres destinos, en trío asimétrico ----------
+   Tres tarjetas iguales en fila no dicen nada. La planilla vuelve cada semana
+   y las otras dos son ocasionales, así que la jerarquía se ve en el tamaño, y
+   la grilla tiene exactamente tres celdas para tres destinos. */
+
+.ahub-destinos {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 0.85rem;
+}
+
+.ahub-destino {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1.35rem 1.5rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* El principal ocupa la columna ancha y las dos filas, y ya viene teñido: cuál
+   es la pantalla de todas las semanas se ve sin pasar el mouse. */
+.ahub-destino--principal {
+    grid-row: span 2;
+    padding: 1.75rem;
+    border-color: var(--esp-edge);
+    background-image: linear-gradient(150deg, var(--esp-tenue), transparent 62%);
+}
+
+/* isolation: isolate en el padre hace que este z-index: -1 quede POR ENCIMA
+   del fondo de la tarjeta y por debajo del texto. Mismo recurso que en los
+   accesos del coordinador, pero acá el lavado entra con un fundido y no con
+   una barrida direccional: esa necesita un listener de pointerenter, y esta
+   pantalla no tiene una sola línea de JS propio. */
+.ahub-destino::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--esp-tenue);
+    opacity: 0;
+    transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* La interlinea va al reves que el cuerpo: mas grande el texto, mas junta.
+   Los titulos heredaban el 1.5 del body, pensado para parrafos, y arriba de
+   un titulo de una linea eso es aire que no separa nada y que hacia ver el
+   gap con la descripcion mas grande de lo que es. */
+.ahub-destino-titulo {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: var(--ink);
+}
+
+/* margin-top: auto tambien arriba del titulo. Cuando hay dos margenes
+   automaticos en el eje principal, el espacio libre se reparte igual entre los
+   dos: el texto queda centrado en el hueco que deja la flecha, y la flecha se
+   mantiene clavada abajo a la derecha. El principal ocupa dos filas y le
+   sobraban ~120px que se juntaban todos al final, y un borde alrededor de una
+   region vacia se lee como algo que falta, no como aire puesto a proposito. */
+.ahub-destino--principal .ahub-destino-titulo {
+    margin-top: auto;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.ahub-destino-desc {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.ahub-destino--principal .ahub-destino-desc {
+    font-size: 0.95rem;
+    max-width: 34ch;
+}
+
+.ahub-destino-flecha {
+    margin-top: auto;
+    align-self: flex-end;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    line-height: 1;
+    color: var(--ink-soft);
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .ahub-destino:hover {
+        border-color: var(--esp-edge);
+        box-shadow: 0 6px 18px -8px rgba(var(--shadow-tint), 0.3);
+        transform: translateY(-2px);
+    }
+
+    .ahub-destino:hover::before {
+        opacity: 1;
+    }
+
+    .ahub-destino:hover .ahub-destino-flecha {
+        transform: translateX(4px);
+    }
+}
+
+.ahub-destino:active {
+    transform: translateY(0) scale(0.985);
+    transition-duration: 0.08s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ahub-destino {
+        transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .ahub-destino-flecha {
+        transition: none;
+    }
+
+    .ahub-destino:active {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .ahub-destino:hover,
+    .ahub-destino:hover .ahub-destino-flecha {
+        transform: none;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .ahub-carnet,
+    .ahub-asignaciones,
+    .ahub-destino {
+        border-color: var(--ink-soft);
+    }
+
+    .ahub-chapa {
+        border-right-color: var(--esp-ink);
+    }
+
+    /* La marca de agua es ruido justo cuando se pidió lo contrario. */
+    .ahub-monograma {
+        display: none;
+    }
+}
+
 /* ================= Supervisores y Empresas (coordinador) =================
 
    Las dos pantallas comparten forma: una ficha por registro (persona o
@@ -3449,6 +3857,58 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
         grid-template-columns: 1fr;
     }
 
+    /* La credencial apila: la chapa deja de ser columna y pasa a ser una banda
+       de color arriba, con la ficha debajo. */
+    .ahub-carnet {
+        grid-template-columns: 1fr;
+    }
+
+    .ahub-chapa {
+        min-height: 10rem;
+        border-right: 0;
+        border-bottom: 1px solid var(--esp-edge);
+    }
+
+    /* La chapa pasa de columna alta a banda ancha y baja: la inicial deja el
+       centro (donde ahora está el texto) y se va al costado. */
+    .ahub-monograma {
+        top: 50%;
+        left: auto;
+        right: 1.25rem;
+        transform: translateY(-50%);
+        font-size: 5.5rem;
+    }
+
+    .ahub-identidad {
+        padding: 1.5rem 1.25rem 1.75rem;
+    }
+
+    .ahub-datos {
+        gap: 1rem 1.25rem;
+    }
+
+    /* El email es el único dato que a este ancho puede no entrar en un
+       renglón, y al partirse deja una letra suelta abajo. Un punto menos de
+       cuerpo lo acomoda sin tocar el resto de la ficha. */
+    .ahub-dato--ancho dd {
+        font-size: 0.88rem;
+    }
+
+    .ahub-asignaciones {
+        grid-template-columns: 1fr;
+        padding: 1.25rem 1.25rem 1.4rem;
+    }
+
+    /* Los tres destinos vuelven a una columna y el principal deja de ocupar dos
+       filas: en una sola columna no hay dos filas que ocupar. */
+    .ahub-destinos {
+        grid-template-columns: 1fr;
+    }
+
+    .ahub-destino--principal {
+        grid-row: auto;
+    }
+
     .filtro-panel-encabezado {
         margin-bottom: 0.75rem;
     }
@@ -3577,40 +4037,338 @@ button:disabled,
     width: 100%;
 }
 
-/* ---------------- Imprimir (alumno) ---------------- */
+/* ---------------- Imprimir (alumno) ----------------
 
-.documentos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.25rem;
-    margin: 1.5rem 0 2rem;
+   Cada documento existe en dos versiones, completado con los datos del alumno y
+   en blanco para llenar a mano, y se agrupan por el momento en que se firman:
+   contrato y autorizacion antes de arrancar, las dos fichas al terminar.
+
+   La version anterior de este bloque tenia la estructura bien pero se veia
+   plana, y el motivo era medible: todo el texto vivia entre 0.8rem y 1.35rem,
+   no habia un solo elemento con relleno de color, ni textura, ni nada con
+   elevacion propia. Una lista de titulos grises sobre blanco.
+
+   Lo que cambia es que ahora la pagina tiene un objeto. Cada documento lleva su
+   hoja dibujada al tamano de una miniatura real, con su banda de encabezado en
+   el dorado de la casa, sus renglones y su propia sombra, apoyada sobre la
+   trama de papel milimetrado del pliego. No es una vista previa del PDF ni
+   pretende serlo: es la marca de un papel, la misma abstraccion que un clip o
+   una carpeta en cualquier fichero, y esta hecha con bordes y gradientes, sin
+   una sola imagen ni un SVG dibujado a mano.
+
+   Y la hoja dice algo cierto. Tres de los documentos son de una hoja; la ficha
+   final evaluativa son cuatro, asi que su marca va apilada y su cuenta dice "4
+   hojas". Ese numero salio de contar las paginas de las plantillas reales en
+   src/main/resources/plantillas, y es justo lo que necesita saber alguien que
+   va a una fotocopiadora. Tambien explica por que esa ficha solo lleva el
+   nombre: las otras tres paginas las completa la empresa.
+
+   El color de especialidad sigue afuera a proposito: identifica al alumno en su
+   inicio y filtra en las pantallas del coordinador. Aca no hace ninguna de las
+   dos cosas. El unico color de la pantalla es el dorado de la casa, y aparece
+   donde un formulario impreso lo tendria: en la banda de encabezado del papel. */
+
+.impr-pliego {
+    margin-bottom: 1.25rem;
+    /* Trama de papel milimetrado, la misma que el body y a la misma escala: el
+       pliego se lee como una hoja del mismo cuaderno, no como una caja aparte.
+       A 0.04 de alfa es textura, no dibujo. */
+    background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 24px 24px;
 }
 
-.documento-card {
+/* ---------- Encabezado del momento ----------
+   Antes vivia en una columna marginal de 13rem, que se veia bien a 1100px pero
+   a 900px le robaba el ancho justo al texto del documento. Ahora encabeza el
+   bloque y el renglon completo queda para hoja, texto y acciones. */
+
+.impr-momento {
+    margin-bottom: 1.5rem;
+}
+
+/* main h3 va en versalitas y color apagado, que sirve para un subtitulo suelto.
+   Aca el momento encabeza el bloque entero y necesita peso propio, pero no mas
+   que el titulo de la pagina: main h2 mide 1.5rem, asi que 1.6rem dejaba a la
+   seccion pisando a su propia pagina. La escalera queda 1.5 (pagina), 1.3
+   (momento), 1.1 (documento), 0.87 (descripcion), y el contraste de tamano
+   grande lo pone el objeto, que es la hoja, no la tipografia. */
+.impr-momento-titulo {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.impr-momento-nota {
+    margin: 0.55rem 0 0;
+    max-width: 56ch;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.impr-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* ---------- Un documento ---------- */
+
+.impr-doc {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    /* El margen negativo hace que el realce del hover llegue mas alla del texto
+       y se lea como un renglon entero, que es lo que es. */
+    margin-inline: -0.85rem;
+    padding: 1.05rem 0.85rem;
+    border-radius: var(--radius-panel);
+    transition: background-color 0.2s ease;
+}
+
+/* Una sola linea, y entre documentos: un hairline arriba y otro abajo de cada
+   fila convierte la lista en una tabla, y aca no hay columnas que alinear. */
+.impr-doc + .impr-doc {
+    border-top: 1px solid var(--line);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    /* Cual de los cuatro renglones tiene el cursor encima importa: cada uno
+       tiene dos botones y estan alineados en columna, asi que sin el realce es
+       facil apuntarle al par equivocado. */
+    .impr-doc:hover {
+        background-color: color-mix(in srgb, var(--ink) 4%, transparent);
+    }
+
+    .impr-doc:hover .impr-hoja-cara {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px -8px rgba(var(--shadow-tint), 0.4);
+    }
+}
+
+/* ---------- La marca de papel ---------- */
+
+.impr-doc-hoja {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.documento-card h3 {
-    font-family: var(--font-display);
-    font-size: 1rem;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: normal;
-    color: var(--ink);
-    margin: 0;
+.impr-hoja {
+    position: relative;
+    width: 3.5rem;
+    aspect-ratio: 1 / 1.414;
+    flex-shrink: 0;
 }
 
-.documento-card p {
+/* La cara de la hoja. Blanca sobre blanco no se leeria como objeto, asi que la
+   define el borde mas su propia sombra: es lo que la separa del pliego. */
+.impr-hoja-cara {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-color: var(--surface);
+    /* Una hoja real no es un blanco parejo. El degradado es de tres puntos de
+       tinta y no se ve como degradado, se ve como que la hoja tiene cuerpo. */
+    background-image: linear-gradient(to bottom,
+        var(--surface),
+        color-mix(in srgb, var(--ink) 3%, var(--surface)));
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    box-shadow: 0 1px 3px -1px rgba(var(--shadow-tint), 0.25);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.22s ease;
+}
+
+/* La banda de encabezado, donde un formulario impreso lleva el membrete. Es el
+   unico relleno de color de la pantalla y por eso vale: cuatro marcas doradas
+   repartidas hacia abajo le dan ritmo a una pagina que era toda gris. */
+.impr-hoja-banda {
+    position: absolute;
+    top: 0.3rem;
+    left: 0.3rem;
+    right: 0.3rem;
+    height: 0.3rem;
+    border-radius: 1px;
+    background-color: var(--accent);
+}
+
+/* Renglones abstractos: un degradado repetido, no seis divs. */
+.impr-hoja-renglones {
+    position: absolute;
+    top: 1rem;
+    left: 0.3rem;
+    right: 0.3rem;
+    height: 1.55rem;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        var(--line) 0 1px,
+        transparent 1px 0.45rem);
+}
+
+/* El ultimo renglon corto, como termina cualquier parrafo de verdad. */
+.impr-hoja-renglones::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 1.8rem;
+    width: 58%;
+    height: 1px;
+    background-color: var(--line);
+}
+
+/* Cuatro hojas se dicen apilando cuatro hojas. Dos capas atras alcanzan para
+   leer "son varias" sin dibujar las cuatro. */
+.impr-hoja--pila::before,
+.impr-hoja--pila::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+}
+
+.impr-hoja--pila::before {
+    transform: translate(5px, -5px);
+}
+
+.impr-hoja--pila::after {
+    transform: translate(2.5px, -2.5px);
+}
+
+.impr-hoja-cuenta {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
     color: var(--ink-soft);
-    font-size: 0.85rem;
-    line-height: 1.5;
-    flex: 1;
+    white-space: nowrap;
 }
 
-.documento-card .btn {
-    align-self: flex-start;
+/* ---------- El texto ---------- */
+
+.impr-doc-titulo {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    text-transform: none;
+    color: var(--ink);
+}
+
+.impr-doc-desc {
+    margin: 0.3rem 0 0;
+    max-width: 52ch;
+    font-size: 0.87rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+/* Dorado, el color con el que la casa dice "esto esta pendiente": es una
+   condicion a cumplir antes, no un error de algo que ya paso. */
+.impr-doc-requisito {
+    margin: 0.5rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    line-height: 1.4;
+    color: var(--accent-ink);
+}
+
+/* ---------- Las dos acciones ---------- */
+
+.impr-doc-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* "En blanco" va punteado, el mismo codigo que ya usan el select de asignacion
+   del coordinador, las asignaciones del inicio del alumno y la zona de arrastre
+   de Subir: punteado significa vacio en toda la app.
+
+   El borde no puede ser --line como el de .btn-secondary. En un recuadro grande
+   como la zona de arrastre alcanza, pero en una pastilla chica el contorno es
+   todo lo que delimita el control, y --line contra el blanco queda en el limite
+   de lo visible. Se mezcla hacia --ink-soft, que es el par de gris que la casa
+   ya da vuelta entre claro y oscuro. */
+.btn-vacio {
+    background-color: transparent;
+    color: var(--ink);
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--ink-soft) 55%, transparent);
+}
+
+.btn-vacio:hover {
+    border-color: var(--ink-soft);
+    background-color: color-mix(in srgb, var(--ink-soft) 7%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .impr-hoja-cara {
+        transition: box-shadow 0.2s ease;
+    }
+
+    .impr-doc:hover .impr-hoja-cara {
+        transform: none;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .btn-vacio {
+        border-color: var(--ink-soft);
+    }
+
+    .impr-hoja-cara,
+    .impr-hoja--pila::before,
+    .impr-hoja--pila::after {
+        border-color: var(--ink-soft);
+    }
+
+    /* La trama es textura, y con mas contraste pedido se vuelve ruido. */
+    .impr-pliego {
+        background-image: none;
+    }
+}
+
+/* El colapso movil de esta pantalla NO puede vivir en el @media (max-width:
+   720px) compartido de mas arriba: ese bloque esta en la mitad del archivo y
+   las reglas de Imprimir se declaran despues, asi que con la misma
+   especificidad gana el orden de fuente y el media query queda sin efecto.
+   Pasa lo mismo con la regla de .dias-grid que quedo alla arriba, solo que ahi
+   no se nota porque su version de escritorio usa auto-fit y colapsa sola. */
+@media (max-width: 720px) {
+    /* La hoja y el titulo comparten el primer renglon, y las acciones bajan
+       cruzando las dos columnas y repartiendose el ancho. */
+    .impr-doc {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: start;
+        gap: 0.9rem 1rem;
+    }
+
+    .impr-doc-acciones {
+        grid-column: 1 / -1;
+    }
+
+    .impr-doc-acciones .btn {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .impr-momento-titulo {
+        font-size: 1.2rem;
+    }
 }
 
 /* ---------------- Subir (alumno) ---------------- */

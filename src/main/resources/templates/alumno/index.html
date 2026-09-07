@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTN Pasantias al</title>
+    <title>Inicio | CTN Pasantías</title>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
@@ -15,6 +15,7 @@
 
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
     <header>
         <div class="h-titulo">
             <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
@@ -35,73 +36,136 @@
         <a th:href="@{/alumno/planilla}" class="nav-links">Planilla Semanal</a>
         <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
     </nav>
-    <main>
-        <section id="inicio-section-saludo" class="saludo">
-            <div class="avatar-circulo" th:text="${#strings.substring(alumno.nombres.trim(), 0, 1)}">A</div>
-            <div>
-                <p class="eyebrow">Panel del alumno</p>
-                <h1 th:text="|Bienvenido, ${alumno.nombres.trim().split(' ')[0]}!|">Bienvenido, Alumno!</h1>
-            </div>
-        </section>
 
-        <div th:if="${avisoCambiarContrasena}" class="mensaje-error">
+    <!-- data-esp una sola vez acá arriba, igual que en el hub del coordinador:
+         --esp/--esp-ink/--esp-edge/--esp-tenue son variables CSS y se heredan,
+         así que las tres secciones de abajo se tiñen solas. El alumno no elige
+         especialidad: la suya es la de su ficha, y es la identidad de toda la
+         pantalla. Sin especialidad cargada el atributo queda vacío y el bloque
+         base de [data-esp] devuelve el par --ink / --text-on-ink. -->
+    <main id="main-content"
+          th:attr="data-esp=${alumno.especialidad != null ? alumno.especialidad.idEsp : ''}">
+
+        <!-- Dorado y no rojo: seguir con la contraseña por defecto es algo
+             pendiente, no un error. El rojo de la paleta se reserva para
+             errores de verdad, misma decisión que el badge-pendiente de
+             Reportes. -->
+        <div th:if="${avisoCambiarContrasena}" class="ahub-aviso">
             <p>
-                Estás usando la contraseña que te asignaron por defecto. Por seguridad,
-                te recomendamos cambiarla <a th:href="@{/cambiar-contrasena}">aqui</a>.
+                Estás usando la contraseña que te asignaron por defecto.
+                <a th:href="@{/cambiar-contrasena}">Cambiala acá</a> para que sea solo tuya.
             </p>
         </div>
 
-        <section id="inicio-section-info">
-            <div id="inicio-info" class="panel">
-                <h2>Mis datos</h2>
+        <!-- Fila 1: la credencial. La especialidad deja de ser un dato más de
+             la lista y pasa a ser una chapa de color de altura completa, con la
+             inicial del alumno impresa en grande como marca de agua. Es el
+             mismo recurso de siempre (bloque de --esp con texto en --esp-ink),
+             pero en vertical: los hubs del administrativo y del coordinador ya
+             usan placas horizontales, y repetirla sería la tercera pantalla de
+             inicio idéntica. -->
+        <section class="ahub-carnet" aria-labelledby="ahub-nombre">
 
-                <dl class="info-grid">
-                    <div class="info-item">
-                        <dt>Nombres</dt>
-                        <dd th:text="${alumno.nombres}"></dd>
-                    </div>
-                    <div class="info-item">
-                        <dt>Apellidos</dt>
-                        <dd th:text="${alumno.apellidos}"></dd>
-                    </div>
-                    <div class="info-item">
+            <div class="ahub-chapa">
+                <!-- La ranura de una credencial real. Va del color del fondo de
+                     página: se lee como un troquel, no como un elemento más. -->
+                <span class="ahub-ranura" aria-hidden="true"></span>
+
+                <!-- aria-hidden: es tipografía usada como textura. El nombre
+                     completo está al lado y es el que anuncia la sección. -->
+                <span class="ahub-monograma" aria-hidden="true"
+                      th:text="${#strings.toUpperCase(#strings.substring(alumno.nombres.trim(), 0, 1))}">A</span>
+
+                <div class="ahub-chapa-pie">
+                    <p class="ahub-chapa-especialidad"
+                       th:text="${alumno.especialidad != null ? alumno.especialidad.nombre : 'Sin especialidad asignada'}">Especialidad</p>
+                    <p class="ahub-chapa-curso">
+                        <span th:text="|Curso ${alumno.curso}|">Curso 3ro</span>
+                        <span th:text="|Sección ${alumno.seccion}|">Sección A</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="ahub-identidad">
+                <h2 class="ahub-nombre" id="ahub-nombre"
+                    th:text="|${alumno.nombres} ${alumno.apellidos}|">Nombre Apellido</h2>
+
+                <!-- Cuatro campos y no ocho: curso y sección se mudaron a la
+                     chapa (van con la especialidad, no con los datos
+                     personales) y el nombre ya es el título de la ficha. -->
+                <dl class="ahub-datos">
+                    <div class="ahub-dato">
                         <dt>CI</dt>
-                        <dd th:text="${alumno.ci}"></dd>
+                        <dd class="ahub-dato-cifra" th:text="${alumno.ci}"></dd>
                     </div>
-                    <div class="info-item">
+                    <div class="ahub-dato">
                         <dt>Sexo</dt>
                         <dd th:text="${alumno.sexo}"></dd>
                     </div>
-                    <div class="info-item">
+                    <div class="ahub-dato">
                         <dt>Teléfono</dt>
-                        <dd th:text="${alumno.telefono}"></dd>
+                        <dd class="ahub-dato-cifra" th:text="${alumno.telefono}"></dd>
                     </div>
-                    <div class="info-item">
+                    <div class="ahub-dato ahub-dato--ancho">
                         <dt>Email</dt>
                         <dd th:text="${alumno.email}"></dd>
                     </div>
-                    <div class="info-item">
-                        <dt>Curso</dt>
-                        <dd th:text="${alumno.curso}"></dd>
-                    </div>
-                    <div class="info-item">
-                        <dt>Sección</dt>
-                        <dd th:text="${alumno.seccion}"></dd>
-                    </div>
                 </dl>
-
-                <div class="supervisor-linea">
-                    <span>Supervisor asignado</span>
-                    <span class="badge" th:classappend="${alumno.supervisor != null} ? 'badge-success' : 'badge-danger'"
-                          th:text="${alumno.supervisor != null ? alumno.supervisor.nombres + ' ' + alumno.supervisor.apellidos : 'Aún no asignado'}"></span>
-                </div>
-
-                <div class="supervisor-linea">
-                    <span>Empresa asignada</span>
-                    <span class="badge" th:classappend="${alumno.empresa != null} ? 'badge-success' : 'badge-danger'"
-                          th:text="${alumno.empresa != null ? alumno.empresa.nombre : 'Aún sin asignar'}"></span>
-                </div>
             </div>
+        </section>
+
+        <!-- Fila 2: las dos asignaciones que dependen de la coordinación.
+             Antes iban con badge rojo, que le decía al alumno que algo estaba
+             mal cuando en realidad es un trámite que no está en sus manos.
+             Ahora el estado lo dice la regla de arriba: llena y en el color de
+             la especialidad si ya está asignada, punteada y apagada si todavía
+             no. Es el mismo código de "vacío contra real" que el select de
+             asignación de coordinador/supervisores.html. -->
+        <section class="ahub-asignaciones" aria-label="Asignaciones de tu pasantía">
+            <div class="ahub-asignacion"
+                 th:classappend="${alumno.supervisor == null} ? ' ahub-asignacion--vacia'">
+                <p class="ahub-asignacion-rol">Supervisor</p>
+                <p class="ahub-asignacion-valor"
+                   th:text="${alumno.supervisor != null
+                             ? alumno.supervisor.nombres + ' ' + alumno.supervisor.apellidos
+                             : 'Todavía sin asignar'}">Todavía sin asignar</p>
+            </div>
+
+            <div class="ahub-asignacion"
+                 th:classappend="${alumno.empresa == null} ? ' ahub-asignacion--vacia'">
+                <p class="ahub-asignacion-rol">Empresa</p>
+                <p class="ahub-asignacion-valor"
+                   th:text="${alumno.empresa != null ? alumno.empresa.nombre : 'Todavía sin asignar'}">Todavía sin asignar</p>
+            </div>
+
+            <p class="ahub-asignaciones-nota"
+               th:if="${alumno.supervisor == null or alumno.empresa == null}">
+                Las asignaciones las carga la coordinación de tu especialidad.
+            </p>
+        </section>
+
+        <!-- Fila 3: las tres pantallas del alumno, en trío asimétrico. Tres
+             tarjetas iguales en fila es el layout por defecto y no dice nada;
+             acá la planilla es la tarea que vuelve cada semana y las otras dos
+             son ocasionales, así que la jerarquía se ve en el tamaño. -->
+        <section class="ahub-destinos" aria-label="Tus pantallas">
+            <a class="ahub-destino ahub-destino--principal" th:href="@{/alumno/planilla}">
+                <span class="ahub-destino-titulo">Planilla Semanal</span>
+                <span class="ahub-destino-desc">Cargá tus actividades día por día y descargá el informe final de la pasantía.</span>
+                <span class="ahub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="ahub-destino" th:href="@{/alumno/subir}">
+                <span class="ahub-destino-titulo">Subir</span>
+                <span class="ahub-destino-desc">Subí en PDF la planilla que llenaste a mano.</span>
+                <span class="ahub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="ahub-destino" th:href="@{/alumno/imprimir}">
+                <span class="ahub-destino-titulo">Imprimir</span>
+                <span class="ahub-destino-desc">Generá el contrato, la autorización y la ficha final con tus datos ya cargados.</span>
+                <span class="ahub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
         </section>
     </main>
 </body>
