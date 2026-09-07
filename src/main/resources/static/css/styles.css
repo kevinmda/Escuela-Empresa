@@ -1184,9 +1184,13 @@ textarea::placeholder {
     opacity: 0.75;
 }
 
+/* Llegar al tope de caracteres no es un error, es un limite alcanzado: va en el
+   dorado con el que la casa avisa de algo pendiente, no en el rojo que queda
+   reservado para cuando algo se rompio. Lo inserta planillaSemanal.js debajo de
+   cada campo con maxlength. */
 .aviso-limite {
     display: none;
-    color: var(--danger);
+    color: var(--accent-ink);
     font-size: 0.78rem;
     margin-top: 0.3rem;
 }
