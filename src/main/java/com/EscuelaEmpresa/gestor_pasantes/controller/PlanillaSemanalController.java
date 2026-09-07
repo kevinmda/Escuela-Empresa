@@ -249,6 +249,12 @@ public class PlanillaSemanalController {
         Collections.reverse(planillasAsc);
         model.addAttribute("planillasAsc", planillasAsc);
 
+        // El color de la especialidad del alumno. La pantalla lo usa igual que su
+        // inicio: es su color, y esta es su planilla. Sin especialidad cargada el
+        // bloque base de [data-esp] devuelve el par --ink / --text-on-ink.
+        model.addAttribute("idEspecialidad",
+                alumno.getEspecialidad() != null ? alumno.getEspecialidad().getIdEsp() : null);
+
         boolean tieneSeisPlanillas = planillas.size() >= 6;
         boolean tieneSupervisor = alumno.getSupervisor() != null;
         boolean tieneEmpresa = alumno.getEmpresa() != null;

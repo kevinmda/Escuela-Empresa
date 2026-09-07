@@ -4032,38 +4032,128 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
    pantalla pero se ocultan a la vista. En movil, donde cada dia se apila solo,
    vuelven a verse todas. */
 
+/* ---------- La portada ----------
+
+   La pantalla abria con un h2 gris y un parrafo gris sobre el fondo crema, y el
+   contador de semanas era una linea chiquita perdida a la derecha del riel. Todo
+   el color que tenia la pagina eran hairlines.
+
+   Ahora abre con un campo del color de la especialidad del alumno. No es un
+   color nuevo: es el mismo con el que su inicio lo identifica, y esta es su
+   planilla. El alumno de Quimica Industrial ve una pantalla distinta a la del de
+   Informatica, con la misma estructura. */
+
+.pl-portada {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.5rem 2.5rem;
+    margin-bottom: 1.5rem;
+    padding: 2.1rem 2.25rem;
+    background-color: var(--esp);
+    /* --esp-edge y no --line: con Quimica Industrial o Electronica el relleno
+       casi no separa de --bg y el borde es lo unico que define el campo. */
+    border: 1px solid var(--esp-edge);
+    border-radius: var(--radius-panel);
+    box-shadow: 0 2px 16px -7px rgba(var(--shadow-tint), 0.2);
+    color: var(--esp-ink);
+    background-image:
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--esp-ink) 11%, transparent) 0 1px, transparent 1px 26px),
+        repeating-linear-gradient(90deg, color-mix(in srgb, var(--esp-ink) 11%, transparent) 0 1px, transparent 1px 26px);
+}
+
+/* Las escuadras de esquina de .panel, a escala de portada y en --esp-ink. */
+.pl-portada::before,
+.pl-portada::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--esp-ink);
+    opacity: 0.5;
+}
+
+.pl-portada::before {
+    top: 10px;
+    left: 10px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.pl-portada::after {
+    bottom: 10px;
+    right: 10px;
+    border-left: none;
+    border-top: none;
+}
+
+/* main h2 le pone barra dorada y sangria a todos los h2. Sobre el campo de color
+   la barra dorada no tiene nada que hacer. */
+.pl-portada-titulo {
+    margin: 0;
+    padding: 0;
+    border-left: none;
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.6vw, 2.4rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+}
+
+.pl-portada-sub {
+    margin: 0.8rem 0 0;
+    max-width: 46ch;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--esp-ink) 82%, transparent);
+}
+
+/* La cuenta como cifra grande y no como renglon de texto: 3 de 6 es el dato que
+   contesta "cuanto me falta", y merece el tamano que tiene esa pregunta. */
+.pl-portada-cuenta {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    justify-items: start;
+    gap: 0 0.5rem;
+    margin: 0;
+    padding: 0.95rem 1.3rem 0.85rem;
+    border-radius: var(--radius-panel);
+    background-color: color-mix(in srgb, var(--esp-ink) 11%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--esp-ink) 20%, transparent);
+}
+
+.pl-portada-cifra {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+    font-variant-numeric: tabular-nums;
+}
+
+.pl-portada-total {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: color-mix(in srgb, var(--esp-ink) 80%, transparent);
+}
+
+.pl-portada-label {
+    grid-column: 1 / -1;
+    margin-top: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--esp-ink) 78%, transparent);
+}
+
 /* ---------- Las seis semanas ---------- */
 
 .pl-semanas {
-    margin-bottom: 2rem;
-}
-
-.pl-semanas-encabezado {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-    margin-bottom: 0.85rem;
-}
-
-.pl-semanas-titulo {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    line-height: 1.25;
-    text-transform: none;
-    color: var(--ink);
-}
-
-.pl-semanas-cuenta {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.03em;
-    color: var(--ink-soft);
+    margin-bottom: 2.25rem;
 }
 
 .pl-riel {
@@ -4086,9 +4176,11 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    position: relative;
+    overflow: hidden;
     width: 100%;
-    min-height: 4.1rem;
-    padding: 0.7rem 0.8rem;
+    min-height: 4.75rem;
+    padding: 1.05rem 0.85rem 0.8rem;
     border: 1px solid var(--line);
     border-radius: var(--radius-panel);
     background-color: var(--surface);
@@ -4105,7 +4197,7 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 .pl-semana-orden {
     font-family: var(--font-display);
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
     letter-spacing: -0.01em;
     line-height: 1.2;
@@ -4118,22 +4210,46 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     color: var(--ink-soft);
 }
 
-/* Cargada: superficie solida y clicable. */
+/* Cada casillero lleva arriba una barra que dice su estado. En las cargadas es
+   del color de la especialidad, y es lo que le pone color al riel sin inundar
+   seis cajas del mismo relleno. */
+.pl-semana-caja::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: color-mix(in srgb, var(--ink-soft) 22%, transparent);
+}
+
 .pl-semana-caja--cargada {
     cursor: pointer;
     box-shadow: 0 1px 4px -2px rgba(var(--shadow-tint), 0.2);
 }
 
-/* La que se esta mirando: relleno en --ink, el mismo par que usa el boton
-   primario de la casa, asi que se da vuelta sola entre claro y oscuro. */
+.pl-semana-caja--cargada::before {
+    background-color: var(--esp);
+    box-shadow: inset 0 -1px 0 var(--esp-edge);
+}
+
+/* La que se esta mirando: relleno completo del color de la especialidad, que es
+   el mismo de la portada. El riel entero se lee de una: una llena, unas cuantas
+   con su barra de color, la proxima en dorado, las que faltan punteadas. */
 .pl-semana-caja--activa {
-    background-color: var(--ink);
-    border-color: var(--ink);
-    color: var(--text-on-ink);
+    background-color: var(--esp);
+    border-color: var(--esp-edge);
+    color: var(--esp-ink);
+    box-shadow: 0 4px 14px -6px rgba(var(--shadow-tint), 0.35);
+}
+
+.pl-semana-caja--activa::before {
+    background-color: color-mix(in srgb, var(--esp-ink) 55%, transparent);
+    box-shadow: none;
 }
 
 .pl-semana-caja--activa .pl-semana-fechas {
-    color: color-mix(in srgb, var(--text-on-ink) 78%, transparent);
+    color: color-mix(in srgb, var(--esp-ink) 80%, transparent);
 }
 
 /* La proxima a cargar: dorado, que en esta casa significa pendiente. Es el
@@ -4143,6 +4259,10 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     background-color: var(--accent-soft);
     border-color: var(--accent);
     color: var(--accent-ink);
+}
+
+.pl-semana-caja--nueva::before {
+    background-color: var(--accent);
 }
 
 .pl-semana-caja--nueva .pl-semana-fechas {
@@ -4155,9 +4275,14 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 .pl-semana-caja--nueva:disabled {
     opacity: 1;
     cursor: default;
-    background-color: var(--ink);
-    border-color: var(--ink);
-    color: var(--text-on-ink);
+    background-color: var(--esp);
+    border-color: var(--esp-edge);
+    color: var(--esp-ink);
+    box-shadow: 0 4px 14px -6px rgba(var(--shadow-tint), 0.35);
+}
+
+.pl-semana-caja--nueva:disabled::before {
+    background-color: color-mix(in srgb, var(--esp-ink) 55%, transparent);
 }
 
 /* Todavia no le toca: punteada, que es como se dice vacio en toda la app. */
@@ -4166,6 +4291,12 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     border-style: dashed;
     border-color: color-mix(in srgb, var(--ink-soft) 42%, transparent);
     color: var(--ink-soft);
+}
+
+.pl-semana-caja--vacia::before {
+    background-color: transparent;
+    border-top: 2px dashed color-mix(in srgb, var(--ink-soft) 42%, transparent);
+    height: 0;
 }
 
 .pl-semana-caja--vacia .pl-semana-orden {
@@ -4200,7 +4331,8 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 /* ---------- Los bloques del formulario ---------- */
 
 .pl-bloque {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    padding: 1.9rem 2.1rem;
 }
 
 .pl-bloque-encabezado {
@@ -4236,16 +4368,63 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 .pl-dia {
     display: grid;
-    grid-template-columns: 5.5rem 9.5rem minmax(0, 1fr) 5.5rem;
+    grid-template-columns: 7.5rem 9.5rem minmax(0, 1fr) 5.75rem;
     align-items: end;
-    gap: 0.75rem;
+    gap: 0.85rem;
+    /* El margen negativo deja que el relleno del dia cargado llegue mas alla del
+       texto y se lea como un renglon entero. */
+    margin-inline: -0.85rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-panel);
+    transition: background-color 0.22s ease;
+}
+
+/* Un dia cargado se ve cargado. Antes la unica diferencia entre un dia lleno y
+   uno vacio era que los campos tenian texto adentro. */
+.pl-dia:has(.pl-dia-desc:not(:placeholder-shown)) {
+    background-color: var(--esp-tenue);
+}
+
+/* La ficha de dos letras, como la de un calendario. Le da un eje a la tabla y
+   dice el estado del dia sin sumar un renglon de texto. */
+.pl-dia-id {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding-bottom: 0.5rem;
+}
+
+.pl-dia-chip {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: var(--radius-panel);
+    background-color: var(--field);
+    /* Punteada mientras el dia esta vacio y solida cuando se carga. El relleno
+       solo no alcanza: cuatro de las ocho especialidades tienen un --esp tan
+       claro que contra el relleno del campo no se distingue (Quimica Industrial
+       es casi blanca). Punteado contra solido funciona en las ocho. */
+    border: 1px dashed color-mix(in srgb, var(--ink-soft) 45%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+}
+
+.pl-dia:has(.pl-dia-desc:not(:placeholder-shown)) .pl-dia-chip {
+    background-color: var(--esp);
+    border-style: solid;
+    border-color: var(--esp-edge);
+    color: var(--esp-ink);
 }
 
 /* El nombre del dia se afirma cuando el dia tiene algo escrito. Es tipografia y
    no un punto de color: se ve de un vistazo cuales dias estan cargados sin
    sumarle otro codigo cromatico a la pantalla. */
 .pl-dia-nombre {
-    padding-bottom: 0.62rem;
     font-family: var(--font-display);
     font-size: 0.92rem;
     font-weight: 500;
@@ -4300,14 +4479,19 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     clip-path: inset(50%);
 }
 
+/* El total es el numero que despues sale en el PDF y en el informe. Como
+   renglon de texto al pie no lo miraba nadie; como cifra en su propia chapa,
+   se ve desde el otro lado de la pantalla. */
 .pl-total {
     display: flex;
     align-items: baseline;
     justify-content: flex-end;
-    gap: 0.5rem;
-    margin: 1.35rem 0 0;
-    padding-top: 1.1rem;
-    border-top: 1px solid var(--line);
+    gap: 0.6rem;
+    margin: 1.6rem 0 0;
+    padding: 0.9rem 1.25rem;
+    background-color: var(--esp-tenue);
+    border: 1px solid var(--esp-edge);
+    border-radius: var(--radius-panel);
 }
 
 .pl-total-etiqueta {
@@ -4317,7 +4501,7 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 .pl-total-valor {
     font-family: var(--font-display);
-    font-size: 1.6rem;
+    font-size: 2rem;
     font-weight: 600;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
@@ -4377,7 +4561,7 @@ button:disabled,
 /* ---------- Descargas ---------- */
 
 .pl-descargas {
-    margin-top: 2.5rem;
+    margin-top: 3rem;
 }
 
 .pl-descargas-titulo {
@@ -4498,6 +4682,17 @@ button:disabled,
    declaran despues, asi que con la misma especificidad ganaria el orden de
    fuente y el media query quedaria sin efecto. */
 @media (max-width: 900px) {
+    /* La portada apila: el titulo arriba y la cuenta debajo, alineada a la
+       izquierda como todo lo demas. */
+    .pl-portada {
+        grid-template-columns: 1fr;
+        padding: 1.75rem 1.5rem;
+    }
+
+    .pl-portada-cuenta {
+        justify-self: start;
+    }
+
     /* Seis casilleros no entran a este ancho sin quedar ilegibles: pasan a dos
        filas de tres, que sigue leyendose como las seis semanas. */
     .pl-riel {
@@ -4518,6 +4713,8 @@ button:disabled,
        ya no hay columnas que puedan hacer de encabezado. */
     .pl-dia {
         grid-template-columns: 1fr 6.5rem;
+        margin-inline: -0.75rem;
+        padding: 0.75rem;
         align-items: start;
         gap: 0.6rem 0.75rem;
         padding-bottom: 0.9rem;
@@ -4525,16 +4722,19 @@ button:disabled,
 
     .pl-dia + .pl-dia {
         border-top: 1px solid var(--line);
-        padding-top: 0.9rem;
+        border-radius: 0;
     }
 
     /* Las filas van explicitas: sin esto el auto-placement deja a Fecha con
        media fila vacia al lado y manda Horas a una fila propia, tambien a
        medias. Fecha y Horas son los dos campos cortos, van juntos. */
-    .pl-dia-nombre {
+    .pl-dia-id {
         grid-column: 1 / -1;
         grid-row: 1;
         padding-bottom: 0;
+    }
+
+    .pl-dia-nombre {
         font-size: 1rem;
     }
 

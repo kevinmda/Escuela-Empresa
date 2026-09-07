@@ -36,10 +36,21 @@
         <a th:href="@{/alumno/planilla}" class="nav-links activo">Planilla Semanal</a>
         <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
     </nav>
-    <main id="main-content">
-        <h2>Planilla Semanal</h2>
-        <p class="subtitulo-pagina">La pasantía son seis semanas y cada una se carga por separado.
-            Elegí una ya cargada para revisarla, o abrí la siguiente para completarla.</p>
+    <main id="main-content"
+          th:attr="data-esp=${idEspecialidad != null ? idEspecialidad : ''}">
+        <section class="pl-portada">
+            <div class="pl-portada-texto">
+                <h2 class="pl-portada-titulo">Planilla Semanal</h2>
+                <p class="pl-portada-sub">La pasantía son seis semanas y cada una se carga por
+                    separado. Elegí una ya cargada para revisarla, o abrí la siguiente.</p>
+            </div>
+
+            <p class="pl-portada-cuenta">
+                <span class="pl-portada-cifra" th:text="${planillasAsc.size()}">0</span>
+                <span class="pl-portada-total">de 6</span>
+                <span class="pl-portada-label">semanas cargadas</span>
+            </p>
+        </section>
 
         <div th:if="${error}" class="mensaje-error">
             <p th:text="${error}"></p>
@@ -60,14 +71,7 @@
              Cada casillero es una semana: las cargadas son enlaces a su propia
              planilla, la siguiente es el boton que abre el formulario, y las que
              faltan quedan punteadas. Punteado es vacio en toda la app. -->
-        <section class="pl-semanas" aria-labelledby="pl-semanas-titulo">
-            <div class="pl-semanas-encabezado">
-                <h3 class="pl-semanas-titulo" id="pl-semanas-titulo">Las seis semanas</h3>
-                <p class="pl-semanas-cuenta">
-                    <span th:text="${planillasAsc.size()}">0</span> de 6 cargadas
-                </p>
-            </div>
-
+        <section class="pl-semanas" aria-label="Las seis semanas de la pasantía">
             <ol class="pl-riel">
                 <li class="pl-semana" th:each="n : ${#numbers.sequence(0, 5)}"
                     th:with="p=${n < planillasAsc.size() ? planillasAsc[n] : null}">
@@ -143,7 +147,11 @@
 
                     <div class="pl-dias">
                         <div th:each="dia, iterStat : *{dias}" class="pl-dia dia-bloque">
-                            <span class="pl-dia-nombre" th:text="${dia.nombreDia}">Lunes</span>
+                            <div class="pl-dia-id">
+                                <span class="pl-dia-chip" aria-hidden="true"
+                                      th:text="${#strings.toUpperCase(#strings.substring(dia.nombreDia, 0, 2))}">LU</span>
+                                <span class="pl-dia-nombre" th:text="${dia.nombreDia}">Lunes</span>
+                            </div>
 
                             <label class="pl-campo pl-campo--fecha">
                                 <span class="pl-campo-etiqueta">Fecha</span>
