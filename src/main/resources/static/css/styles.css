@@ -198,7 +198,15 @@ img {
 
 /* Chrome flotante como capa translúcida (Apple §12): el contenido pasa por debajo
    del header en vez de que este se coma una franja opaca fija. El blur mantiene
-   legible el título aunque debajo pase texto o una tabla. */
+   legible el título aunque debajo pase texto o una tabla.
+
+   OJO: es un selector de ELEMENTO, no de clase. Cualquier <header> anidado en
+   cualquier parte de una plantilla se lleva todo esto puesto (flex,
+   space-between, sticky, blur, z-index 20) y aparece como una barra donde uno
+   quería un encabezado de sección. Si necesitás encabezar un bloque, usá un
+   <div> con su clase. No se acota a "body > header" porque fragments/auth.html
+   trae su propio header dentro de un fragmento y habría que verificar dónde
+   termina insertado en cada pantalla que lo usa. */
 header {
     border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
     display: flex;
