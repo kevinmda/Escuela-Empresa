@@ -17,6 +17,37 @@
             document.body.appendChild(indicador);
         }
         indicador.classList.toggle('activo', solicitudesActivas > 0);
+        actualizarGiroMarca();
+    }
+
+    const prefiereMenosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    // El logo de la barra es un engranaje, asi que gira con el mismo estado que
+    // enciende la barra de carga: no es adorno, dice que la maquina esta
+    // trabajando. Enciende al instante; apagar es otra historia, ver mas abajo.
+    function actualizarGiroMarca() {
+        const logo = document.querySelector('.barra-marca-logo');
+        if (!logo) return;
+
+        if (solicitudesActivas > 0) {
+            logo.classList.add('trabajando');
+        } else if (prefiereMenosMovimiento.matches) {
+            // Sin animacion no hay vuelta que esperar: se saca en el momento.
+            logo.classList.remove('trabajando');
+        }
+    }
+
+    // Frena al completar la vuelta, no al terminar la peticion. Si parara donde
+    // esta, el rayo del medio quedaria torcido hasta la proxima vez.
+    function prepararGiroMarca() {
+        const logo = document.querySelector('.barra-marca-logo');
+        if (!logo) return;
+
+        logo.addEventListener('animationiteration', function () {
+            if (solicitudesActivas === 0) {
+                logo.classList.remove('trabajando');
+            }
+        });
     }
 
     const fetchOriginal = window.fetch;
@@ -224,6 +255,7 @@
         document.querySelectorAll('form').forEach(prepararValidacion);
         inicializarTogglesPassword();
         prepararMenuCuenta();
+        prepararGiroMarca();
         actualizarBoton();
         const button = document.getElementById('theme-toggle');
         if (!button) return;

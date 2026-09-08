@@ -268,6 +268,33 @@ img {
     height: 34px;
 }
 
+/* El logo es un engranaje, asi que gira mientras hay una peticion en curso: el
+   mismo estado que enciende #indicador-carga, contado por theme.js. No es
+   adorno; un engranaje que gira dice que la maquina esta trabajando.
+
+   linear y no una curva con entrada y salida: un engranaje que acelera y frena
+   en cada vuelta lee como tironeo, no como giro. Misma duracion que la barra de
+   carga (1.2s) para que las dos senales del mismo estado vayan al mismo ritmo.
+
+   Se detiene al completar la vuelta y no al terminar la peticion, que es cosa de
+   theme.js: si frenara donde esta, el rayo del medio quedaria torcido hasta la
+   proxima carga. */
+.barra-marca-logo.trabajando {
+    animation: marca-gira 1.2s linear infinite;
+}
+
+@keyframes marca-gira {
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .barra-marca-logo.trabajando {
+        animation: none;
+    }
+}
+
 .barra-marca-nombre {
     font-family: var(--font-display);
     font-size: 0.85rem;
