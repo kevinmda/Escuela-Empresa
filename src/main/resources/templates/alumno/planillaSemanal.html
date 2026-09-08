@@ -16,26 +16,7 @@
 </head>
 <body>
     <a href="#main-content" class="skip-link">Saltar al contenido</a>
-    <header>
-        <div class="h-titulo">
-            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
-            <h1>Colegio Técnico Nacional de Asunción</h1>
-        </div>
-        <div class="h-links">
-            <a th:href="@{/home}">Inicio</a>
-            <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
-            <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
-            <a th:href="@{/pdf/Escuela%20Empresa%20-%20Alumnos.pdf}" class="h-links-help" target="_blank" rel="noopener">Ayuda</a>
-            <form th:action="@{/logout}" method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro que quieres cerrar sesión?');">
-                <button type="submit" class="h-links-logout">Cerrar sesión</button>
-            </form>
-        </div>
-    </header>
-    <nav>
-        <a th:href="@{/alumno/imprimir}" class="nav-links">Imprimir</a>
-        <a th:href="@{/alumno/planilla}" class="nav-links activo">Planilla Semanal</a>
-        <a th:href="@{/alumno/subir}" class="nav-links">Subir</a>
-    </nav>
+    <th:block th:replace="~{fragments/chrome :: chrome(${chrome}, ${paginaActual}, true)}"></th:block>
     <main id="main-content"
           th:attr="data-esp=${idEspecialidad != null ? idEspecialidad : ''}">
         <section class="portada">

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    Cromo único de las pantallas autenticadas.
+
+    Uso:
+      <th:block th:replace="~{fragments/chrome :: chrome(${chrome}, ${paginaActual}, true)}"></th:block>
+
+    chrome contiene identidad y rol; paginaActual es el contrato único para la
+    sección activa y conNavegacion permite reutilizar la barra en cambio de contraseña.
+-->
+<th:block th:fragment="chrome(chrome, paginaActual, conNavegacion)">
+    <header class="barra"
+            th:attr="data-esp=${chrome != null and chrome.especialidadId() != null ? chrome.especialidadId() : ''}">
+        <div class="h-titulo">
+            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
+            <h1>Colegio Técnico Nacional de Asunción</h1>
+        </div>
+        <div class="h-links">
+            <a th:href="@{/home}">Inicio</a>
+            <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
+            <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
+            <a th:if="${conNavegacion and chrome != null and chrome.rol() == 'alumno'}"
+               th:href="@{/pdf/Escuela%20Empresa%20-%20Alumnos.pdf}"
+               class="h-links-help" target="_blank" rel="noopener">Ayuda</a>
+            <a th:if="${conNavegacion and chrome != null and chrome.rol() == 'administrador'}"
+               th:href="@{/pdf/Escuela%20Empresa%20-%20Administradores.pdf}"
+               class="h-links-help" target="_blank" rel="noopener">Ayuda</a>
+            <a th:if="${conNavegacion and chrome != null and chrome.rol() == 'coordinador'}"
+               th:href="@{/pdf/Escuela%20Empresa%20-%20Coordinadores.pdf}"
+               class="h-links-help" target="_blank" rel="noopener">Ayuda</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;"
+                  onsubmit="return confirm('¿Estás seguro que quieres cerrar sesión?');">
+                <button type="submit" class="h-links-logout">Cerrar sesión</button>
+            </form>
+        </div>
+    </header>
+
+    <nav th:if="${conNavegacion}" aria-label="Navegación principal">
+        <th:block th:if="${chrome != null and chrome.rol() == 'alumno'}">
+            <a th:href="@{/alumno/imprimir}"
+               th:classappend="${paginaActual == 'imprimir'} ? ' activo'"
+               class="nav-links">Imprimir</a>
+            <a th:href="@{/alumno/planilla}"
+               th:classappend="${paginaActual == 'planilla'} ? ' activo'"
+               class="nav-links">Planilla Semanal</a>
+            <a th:href="@{/alumno/subir}"
+               th:classappend="${paginaActual == 'subir'} ? ' activo'"
+               class="nav-links">Subir</a>
+        </th:block>
+        <th:block th:if="${chrome != null and chrome.rol() == 'administrador'}">
+            <a th:href="@{/admin/alumnos}"
+               th:classappend="${paginaActual == 'alumnos'} ? ' activo'"
+               class="nav-links">Alumnos</a>
+            <a th:href="@{/admin/reportes}"
+               th:classappend="${paginaActual == 'reportes'} ? ' activo'"
+               class="nav-links">Reportes</a>
+        </th:block>
+        <th:block th:if="${chrome != null and chrome.rol() == 'coordinador'}">
+            <a th:href="@{/admin/alumnos}"
+               th:classappend="${paginaActual == 'alumnos'} ? ' activo'"
+               class="nav-links">Alumnos</a>
+            <a th:href="@{/admin/reportes}"
+               th:classappend="${paginaActual == 'reportes'} ? ' activo'"
+               class="nav-links">Reportes</a>
+            <a th:href="@{/admin/supervisores}"
+               th:classappend="${paginaActual == 'supervisores'} ? ' activo'"
+               class="nav-links">Supervisores</a>
+            <a th:href="@{/admin/empresas}"
+               th:classappend="${paginaActual == 'empresas'} ? ' activo'"
+               class="nav-links">Empresas</a>
+        </th:block>
+    </nav>
+</th:block>
+
+</body>
+</html>

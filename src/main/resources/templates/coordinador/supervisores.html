@@ -16,27 +16,7 @@
 </head>
 <body>
     <a href="#main-content" class="skip-link">Saltar al contenido</a>
-    <header>
-        <div class="h-titulo">
-            <img class="h-titulo-logo" th:src="@{/img/ctnLogoDef.png}" alt="CTN Logo">
-            <h1>Colegio Técnico Nacional de Asunción</h1>
-        </div>
-        <div class="h-links">
-            <a th:href="@{/home}">Inicio</a>
-            <a th:href="@{/cambiar-contrasena}">Cambiar contraseña</a>
-            <button type="button" id="theme-toggle" class="theme-toggle">Modo oscuro</button>
-            <a th:href="@{/pdf/Escuela%20Empresa%20-%20Coordinadores.pdf}" class="h-links-help" target="_blank" rel="noopener">Ayuda</a>
-            <form th:action="@{/logout}" method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro que quieres cerrar sesión?');">
-                <button type="submit" class="h-links-logout">Cerrar sesión</button>
-            </form>
-        </div>
-    </header>
-    <nav>
-        <a th:href="@{/admin/alumnos}" class="nav-links">Alumnos</a>
-        <a th:href="@{/admin/reportes}" class="nav-links">Reportes</a>
-        <a th:href="@{/admin/supervisores}" class="nav-links activo">Supervisores</a>
-        <a th:href="@{/admin/empresas}" class="nav-links">Empresas</a>
-    </nav>
+    <th:block th:replace="~{fragments/chrome :: chrome(${chrome}, ${paginaActual}, true)}"></th:block>
 
     <!-- data-esp: mismo hilo de color que el home y el resto de las pantallas
          del coordinador. Se hereda una sola vez para toda la página. -->
