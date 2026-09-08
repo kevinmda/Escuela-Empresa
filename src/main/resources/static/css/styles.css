@@ -1063,6 +1063,53 @@ main h3 {
     width: 76%;
     background: url("../img/auth-ilustracion.webp") left center / auto 100% no-repeat;
     pointer-events: none;
+
+    /* La ilustración es una imagen plana: CSS anima la capa entera, no las cintas
+       por separado (para eso haría falta un SVG). Dos movimientos, los dos sobre
+       transform y opacity, que van al compositor y no repintan.
+
+       Entra una vez, asentándose desde un 4% más grande: la pantalla llega en vez
+       de estar ya puesta. Después respira, 34s por ciclo y 3% de amplitud. A esa
+       velocidad no se ve moverse, se ve viva. Es una pantalla de espera y no una
+       superficie de trabajo, pero el formulario está al lado: cualquier cosa más
+       rápida o más amplia competiría con el campo donde se escribe la contraseña.
+
+       El origen va en el borde izquierdo, que es por donde la ilustración sangra.
+       Escalando desde el centro se despegaría de ese borde y aparecería una franja
+       de --bg. Por lo mismo solo escala hacia arriba, nunca por debajo de 1: lo
+       que sobra lo recorta el overflow:hidden de .auth-split. */
+    transform-origin: left center;
+    animation:
+        ilustracion-entra 1s cubic-bezier(0.16, 1, 0.3, 1) both,
+        ilustracion-respira 34s ease-in-out 1s infinite;
+}
+
+@keyframes ilustracion-entra {
+    from {
+        opacity: 0;
+        transform: scale(1.04);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes ilustracion-respira {
+    0%, 100% {
+        transform: scale(1) translateY(0);
+    }
+    50% {
+        transform: scale(1.03) translateY(-6px);
+    }
+}
+
+/* Se conserva el fundido, que ayuda a entender que la pantalla cargó, y se va
+   todo el movimiento. Mismo criterio que el resto del archivo. */
+@media (prefers-reduced-motion: reduce) {
+    .auth-split::before {
+        animation: aparecer 0.3s ease both;
+    }
 }
 
 /* --- Columna del formulario (empujada a la derecha sobre la misma superficie) --- */
