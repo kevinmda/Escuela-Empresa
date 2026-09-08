@@ -180,9 +180,41 @@
         if (!button) return;
 
         const darkMode = root.dataset.theme === 'dark';
-        button.textContent = darkMode ? 'Modo claro' : 'Modo oscuro';
-        button.setAttribute('aria-label', darkMode ? 'Activar modo claro' : 'Activar modo oscuro');
-        button.setAttribute('title', darkMode ? 'Activar modo claro' : 'Activar modo oscuro');
+        const etiqueta = darkMode ? 'Activar modo claro' : 'Activar modo oscuro';
+
+        // El toggle de la barra es un icono, y el par sol/luna lo elige el CSS a
+        // partir de data-theme. Escribirle textContent le borraria los dos <svg>
+        // de adentro, asi que ahi la etiqueta va solo por aria-label. El de las
+        // pantallas de acceso (.theme-toggle-standalone) sigue siendo texto.
+        if (!button.classList.contains('theme-toggle-icono')) {
+            button.textContent = darkMode ? 'Modo claro' : 'Modo oscuro';
+        }
+
+        button.setAttribute('aria-label', etiqueta);
+        button.setAttribute('title', etiqueta);
+    }
+
+    // Mejora encima de <details>, no el mecanismo: el menu de la cuenta abre y
+    // cierra sin JavaScript, que es lo que garantiza que cerrar sesion y cambiar
+    // la contraseña sigan estando al alcance con el JS caido. Esto solo agrega lo
+    // que el elemento nativo no trae: cerrar con Escape y al tocar afuera.
+    function prepararMenuCuenta() {
+        const cuenta = document.querySelector('.cuenta');
+        if (!cuenta) return;
+
+        document.addEventListener('click', function (evento) {
+            if (cuenta.open && !cuenta.contains(evento.target)) {
+                cuenta.open = false;
+            }
+        });
+
+        document.addEventListener('keydown', function (evento) {
+            if (evento.key === 'Escape' && cuenta.open) {
+                cuenta.open = false;
+                const resumen = cuenta.querySelector('summary');
+                if (resumen) resumen.focus();
+            }
+        });
     }
 
     window.addEventListener('pageshow', restaurarBotones);
@@ -191,6 +223,7 @@
         actualizarIndicadorCarga();
         document.querySelectorAll('form').forEach(prepararValidacion);
         inicializarTogglesPassword();
+        prepararMenuCuenta();
         actualizarBoton();
         const button = document.getElementById('theme-toggle');
         if (!button) return;

@@ -202,25 +202,34 @@ img {
     display: block;
 }
 
-/* ---------------- Header / Nav ---------------- */
+/* ---------------- Barra (cromo de las pantallas autenticadas) ---------------- */
 
-/* Chrome flotante como capa translúcida (Apple §12): el contenido pasa por debajo
-   del header en vez de que este se coma una franja opaca fija. El blur mantiene
-   legible el título aunque debajo pase texto o una tabla.
+/* Antes esto eran dos barras apiladas: el membrete (logo de 56x63 y el nombre del
+   colegio en un <h1>) y, debajo, el riel de secciones pegado con "top: 96px", un
+   numero atado al alto del logo que se rompia solo. Juntas se comian ~140px fijos
+   en todas las pantallas, y como las dos traian su propio fondo leian como dos
+   materiales pegados en vez de una capa.
 
-   OJO: es un selector de ELEMENTO, no de clase. Cualquier <header> anidado en
-   cualquier parte de una plantilla se lleva todo esto puesto (flex,
-   space-between, sticky, blur, z-index 20) y aparece como una barra donde uno
-   quería un encabezado de sección. Si necesitás encabezar un bloque, usá un
-   <div> con su clase. No se acota a "body > header" porque fragments/auth.html
-   trae su propio header dentro de un fragmento y habría que verificar dónde
-   termina insertado en cada pantalla que lo usa. */
-header {
-    border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+   Ahora es una sola capa translucida de 56px con las tres cosas en linea: marca,
+   secciones y cuenta. El alto vive en un token porque hay mas de un calculo que
+   depende de el (ver .auth-main). */
+:root {
+    --barra-alto: 56px;
+}
+
+/* Selector de CLASE, no de elemento. La version anterior estilaba "header" a
+   secas, asi que cualquier <header> anidado en una plantilla se llevaba puesto el
+   flex, el sticky y el blur, y aparecia como una barra donde uno queria un
+   encabezado de seccion. El comentario de entonces decia que no se podia acotar
+   porque fragments/auth.html traia su propio header: hoy ese fragmento aporta
+   head y logoTarjeta, ningun header. La trampa se va junto con el selector. */
+.barra {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    gap: 1.25rem;
+    min-height: var(--barra-alto);
+    padding: 0 1.25rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
     background-color: color-mix(in srgb, var(--surface) 72%, transparent);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     backdrop-filter: blur(20px) saturate(180%);
@@ -229,9 +238,9 @@ header {
     z-index: 20;
 }
 
-/* Sin translucidez: el header vuelve a ser sólido (mismo alto, misma posición). */
+/* Sin translucidez: la barra vuelve a ser solida, mismo alto y misma posicion. */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-    header {
+    .barra {
         background-color: var(--surface);
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
@@ -239,182 +248,350 @@ header {
     }
 }
 
-.h-titulo {
+/* --- Marca --- */
+
+/* El nombre del colegio era un <h1> a 1.15rem: en las once pantallas competia con
+   el h1 real de la pagina, y ninguna de las once trata "del colegio". Baja a
+   marca, se achica y pasa a ser un enlace al inicio, que es lo que un logo de
+   barra hace en cualquier aplicacion. */
+.barra-marca {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 0.6rem;
+    flex-shrink: 0;
+    text-decoration: none;
+    color: var(--ink);
 }
 
-.h-titulo-logo {
-    width: 56px;
-    height: 63px;
+.barra-marca-logo {
+    width: 30px;
+    height: 34px;
 }
 
-.h-titulo h1 {
+.barra-marca-nombre {
     font-family: var(--font-display);
-    font-size: 1.15rem;
+    font-size: 0.85rem;
     font-weight: 600;
     letter-spacing: 0.01em;
+    white-space: nowrap;
 }
 
-.h-links {
+/* La version corta solo aparece cuando el ancho no da para la larga. */
+.barra-marca-corto {
+    display: none;
+}
+
+/* --- Riel de secciones --- */
+
+/* El riel repite el vocabulario de materiales que la aplicacion ya usa en los
+   formularios: el canal es un hueco, con el mismo hundido que los campos, y la
+   seccion activa es un chip con volumen, con la misma luz de arriba que los
+   botones. No hay nada nuevo que aprender: hundido = contenedor, relieve =
+   elegido.
+
+   Se pierde el subrayado que crecia desde el centro. No es una perdida real: la
+   aplicacion es multi-pagina, cada navegacion recarga, y ese indicador nunca
+   viajaba entre secciones; solo se veia en hover. El hover ahora enciende el
+   hueco del chip, que es el mismo gesto en el vocabulario nuevo. */
+.barra-riel {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    font-size: 0.9rem;
-}
-
-.h-links a {
-    color: var(--ink-soft);
-    text-decoration: none;
-    transition: color 0.15s ease;
-}
-
-.h-links a:hover {
-    color: var(--accent-ink);
-}
-
-.h-links-help {
-    border: 1px solid var(--accent);
+    gap: 0.15rem;
+    padding: 0.22rem;
     border-radius: var(--radius-btn);
-    padding: 0.35rem 0.7rem;
-    color: var(--accent-ink) !important;
-    background-color: var(--accent-soft);
-}
-
-.h-links-help:hover {
-    color: var(--ink) !important;
-    background-color: var(--accent);
-    text-decoration: none;
-}
-
-.theme-toggle {
-    font-family: var(--font-body);
-    font-size: 0.85rem;
-    color: var(--ink-soft);
-    background: transparent;
-    border: 1px solid var(--line);
-    padding: 0.35rem 0.7rem;
-}
-
-.theme-toggle:hover {
-    color: var(--ink);
-    border-color: var(--accent);
-}
-
-/* En las pantallas de acceso no hay header donde alojar el toggle, así que flota
-   sobre la ilustración. Siguiendo el uso de materiales de Apple, no es una ficha
-   opaca sino una capa translúcida: deja ver el color que tiene detrás, con blur
-   para mantener el texto legible y un borde superior claro que simula la luz
-   pegando en el material. Fixed y no absolute para que no se desplace si el
-   contenido llega a desbordar. */
-.theme-toggle-standalone {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 30;
-    background-color: color-mix(in srgb, var(--surface) 65%, transparent);
-    -webkit-backdrop-filter: blur(18px) saturate(180%);
-    backdrop-filter: blur(18px) saturate(180%);
-    border-color: color-mix(in srgb, var(--ink) 12%, transparent);
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent),
-        0 6px 20px -8px rgba(var(--shadow-tint), 0.28);
-}
-
-/* Sin translucidez disponible o pedida: material sólido, mismo sitio. */
-@media (prefers-reduced-transparency: reduce) {
-    .theme-toggle-standalone {
-        background-color: var(--surface);
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-    }
-}
-
-@media (prefers-contrast: more) {
-    .theme-toggle-standalone {
-        background-color: var(--surface);
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-        border-color: var(--ink);
-    }
-}
-
-.h-links-logout {
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    color: var(--ink-soft);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-}
-
-/* Selector mas especifico que "button[type='submit']" (que le da fondo oscuro a los
-   botones de formulario), necesario porque el logout es un <button type="submit">
-   dentro de un <form>, y sin esto el estilo oscuro le ganaba a .h-links-logout */
-.h-links button[type="submit"].h-links-logout {
-    background: none;
-    color: var(--ink-soft);
-}
-
-.h-links-logout:hover {
-    color: var(--danger);
-}
-
-nav {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    gap: 0.25rem;
-    background-color: var(--surface);
-    border-bottom: 1px solid var(--line);
-    position: sticky;
-    top: 96px; /* alto aproximado del header (logo + padding + borde) */
-    z-index: 19;
-    box-shadow: 0 4px 8px -6px rgba(var(--shadow-tint), 0.15);
+    background-color: color-mix(in srgb, var(--ink) 5%, transparent);
+    box-shadow: inset 0 1px 2px rgba(var(--shadow-tint), 0.06);
 }
 
 .nav-links {
-    position: relative;
     font-family: var(--font-display);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
     color: var(--ink-soft);
-    padding: 0.9rem 1.25rem;
-    transition: color 0.15s ease;
-}
-
-.nav-links::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    right: 50%;
-    bottom: 0;
-    height: 2px;
-    background-color: var(--accent);
-    transition: left 0.2s cubic-bezier(0.16, 1, 0.3, 1), right 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-btn);
+    border: 1px solid transparent;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .nav-links:hover {
     color: var(--ink);
+    background-color: color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
-.nav-links:hover::after {
-    left: 0;
-    right: 0;
-}
+/* El estado no puede depender solo del relleno: cuatro de las ocho especialidades
+   son casi blancas (Quimica Industrial es #F9FAFB) y contra la barra clara el chip
+   desapareceria. Por eso lleva las tres senales juntas: relleno --esp, borde
+   --esp-edge (la formula ya calibrada, 3.91:1 en el peor caso) y el brillo
+   superior de los botones. Funciona en las ocho y en el neutro.
 
+   El var() con respaldo cubre las pantallas sin data-esp: administracion y
+   coordinacion trabajan sobre varias especialidades y su chip es --ink, que es un
+   estado propio y no un color que falto. */
 .nav-links.activo {
-    color: var(--ink);
+    background-color: var(--esp, var(--ink));
+    color: var(--esp-ink, var(--text-on-ink));
+    border-color: var(--esp-edge, transparent);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.17),
+        0 1px 2px rgba(var(--shadow-tint), 0.28);
 }
 
-.nav-links.activo::after {
-    left: 0;
-    right: 0;
+.nav-links.activo:hover {
+    color: var(--esp-ink, var(--text-on-ink));
 }
+
+/* --- Cuenta --- */
+
+.barra-cuenta {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* El toggle se queda fuera del menu: es una preferencia que se cambia seguido y
+   esconderla costaria un clic cada vez. Pasa a icono porque el texto "Modo
+   oscuro" pesaba lo mismo que una seccion sin serlo. El par de iconos lo elige el
+   CSS a partir de data-theme, asi que no hace falta JavaScript para dibujarlo;
+   theme.js solo mantiene la etiqueta accesible. */
+.barra .theme-toggle {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-color: transparent;
+    background: transparent;
+}
+
+.barra .theme-toggle:hover {
+    color: var(--ink);
+    border-color: transparent;
+    background-color: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.barra .theme-toggle svg {
+    width: 17px;
+    height: 17px;
+    display: block;
+}
+
+/* Se muestra el icono del tema al que se va, no el del actual. */
+.barra .theme-toggle .ico-sol {
+    display: none;
+}
+
+:root[data-theme="dark"] .barra .theme-toggle .ico-luna {
+    display: none;
+}
+
+:root[data-theme="dark"] .barra .theme-toggle .ico-sol {
+    display: block;
+}
+
+.cuenta {
+    position: relative;
+}
+
+/* list-style y ::marker: sin esto el navegador dibuja el triangulito de
+   <details> a la izquierda del disco. */
+.cuenta-boton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0.5rem 0.2rem 0.2rem;
+    border-radius: var(--radius-btn);
+    border: 1px solid transparent;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+
+.cuenta-boton::-webkit-details-marker {
+    display: none;
+}
+
+.cuenta-boton::marker {
+    content: "";
+}
+
+.cuenta-boton:hover {
+    background-color: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.cuenta[open] > .cuenta-boton {
+    background-color: color-mix(in srgb, var(--ink) 8%, transparent);
+    border-color: var(--line);
+}
+
+/* El disco es el otro sitio donde entra la especialidad. Es un objeto chico, asi
+   que tambien lleva borde: sin el, Quimica Industrial seria un hueco blanco. */
+.cuenta-inicial {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background-color: var(--esp, var(--ink));
+    color: var(--esp-ink, var(--text-on-ink));
+    border: 1px solid var(--esp-edge, transparent);
+}
+
+.cuenta-nombre {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink);
+    max-width: 14ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cuenta-chevron {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--ink-soft);
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cuenta[open] .cuenta-chevron {
+    transform: rotate(180deg);
+}
+
+.cuenta-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.45rem);
+    z-index: 25;
+    min-width: 250px;
+    max-width: min(300px, calc(100vw - 2rem));
+    padding: 0.35rem;
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-field);
+    box-shadow: 0 14px 32px -14px rgba(var(--shadow-tint), 0.38);
+    animation: cuenta-abre 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: top right;
+}
+
+@keyframes cuenta-abre {
+    from {
+        opacity: 0;
+        transform: translateY(-5px) scale(0.97);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cuenta-menu {
+        animation: none;
+    }
+
+    .cuenta-chevron {
+        transition: none;
+    }
+}
+
+/* La barra no decia quien estaba adentro. Con tres roles y ocho especialidades,
+   cerrabas sesion sin saber de quien. */
+.cuenta-ficha {
+    padding: 0.55rem 0.7rem 0.65rem;
+    margin-bottom: 0.35rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.cuenta-ficha-nombre {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.cuenta-ficha-email {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    word-break: break-all;
+}
+
+.cuenta-ficha-rol {
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+}
+
+.cuenta-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.55rem 0.7rem;
+    border-radius: 8px;
+    border: none;
+    background: none;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.cuenta-item:hover {
+    background-color: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.cuenta-item-nota {
+    margin-left: 0.35rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+}
+
+.cuenta-salida {
+    margin-top: 0.25rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--line);
+}
+
+/* Mismo motivo que el rescate que tenia el logout anterior: es un
+   button[type="submit"] dentro de un <form>, y ese selector (0,1,1) le gana a la
+   clase (0,1,0). El degradado del primario se pinta con background-image, asi que
+   no alcanza con pisar background-color. */
+.cuenta-menu button[type="submit"].cuenta-item-salir {
+    background-color: transparent;
+    background-image: none;
+    color: var(--ink);
+    box-shadow: none;
+}
+
+/* Rojo solo al ir a ejecutarla: cerrar sesion es una accion destructiva, pero no
+   es un error, asi que en reposo no puede estar pintada de rojo. */
+.cuenta-menu button[type="submit"].cuenta-item-salir:hover {
+    background-color: var(--danger-soft);
+    color: var(--danger);
+}
+
+/* Texto que solo leen los lectores de pantalla: el disco de iniciales es
+   aria-hidden y el nombre no dice, por si solo, que abre la cuenta. */
+.oculto-visual {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
 
 main {
     padding: 2rem;
@@ -836,7 +1013,7 @@ main h3 {
        (3 campos + header) desborda hacia arriba en pantallas bajas y ese tramo
        queda inalcanzable. Los márgenes auto centran sin ese efecto. */
     align-items: flex-start;
-    min-height: calc(100dvh - 96px);
+    min-height: calc(100dvh - var(--barra-alto));
     padding: 3rem 2rem;
 }
 
@@ -3673,26 +3850,59 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 /* ---------------- Responsive ---------------- */
 
 @media (max-width: 720px) {
-    header {
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 1rem;
-    }
-
-    .h-links {
+    /* La barra sigue pegada arriba. Antes en movil pasaba a static, o sea que
+       justo donde el scroll es mas largo se perdia la navegacion, y encima el
+       header apilado en columna se comia media pantalla. */
+    .barra {
         flex-wrap: wrap;
-        justify-content: center;
-        gap: 1rem;
+        gap: 0.4rem 0.75rem;
+        padding: 0.35rem 0.9rem;
     }
 
-    nav {
-        flex-wrap: wrap;
-        top: 0; /* en mobile el header ya no es sticky, así que el nav puede pegarse arriba del todo */
-        position: static;
+    .barra-marca-largo {
+        display: none;
     }
 
-    header {
-        position: static;
+    .barra-marca-corto {
+        display: inline;
+    }
+
+    /* El riel baja a su propia linea y se desplaza en horizontal: con cinco
+       secciones (coordinacion) no entran en el ancho de un telefono, y
+       apilarlas verticalmente devolveria la columna que se acaba de sacar. */
+    .barra-riel {
+        order: 3;
+        flex-basis: 100%;
+        padding: 0.15rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .barra-riel::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* 44px de alto real para el dedo: los enlaces no heredan el line-height del
+       body, asi que el relleno hay que calcularlo, no asumirlo. */
+    .nav-links {
+        padding: 0.7rem 0.9rem;
+    }
+
+    /* overflow-x: auto en el riel hace que overflow-y tambien recorte, asi que el
+       anillo de foco a +3px saldria cortado arriba y abajo. Hacia adentro del chip
+       no se recorta y se sigue viendo entero. */
+    .nav-links:focus-visible {
+        outline-offset: -3px;
+    }
+
+    .cuenta-inicial {
+        width: 28px;
+        height: 28px;
+    }
+
+    .cuenta-nombre {
+        display: none;
     }
 
     main {
