@@ -353,6 +353,63 @@ img {
     flex-shrink: 0;
 }
 
+/* Base del toggle de tema, compartida por los dos sitios donde aparece: la barra
+   y las pantallas de acceso, que no tienen barra donde alojarlo. Vivia dentro del
+   bloque del header viejo y se fue con el; sin ella el standalone perdia el fixed
+   y caia dentro del flujo, encima de la ilustracion, con el relleno del boton
+   generico. */
+.theme-toggle {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 0.35rem 0.7rem;
+}
+
+.theme-toggle:hover {
+    color: var(--ink);
+    border-color: var(--accent);
+}
+
+/* En las pantallas de acceso no hay header donde alojar el toggle, así que flota
+   sobre la ilustración. Siguiendo el uso de materiales de Apple, no es una ficha
+   opaca sino una capa translúcida: deja ver el color que tiene detrás, con blur
+   para mantener el texto legible y un borde superior claro que simula la luz
+   pegando en el material. Fixed y no absolute para que no se desplace si el
+   contenido llega a desbordar. */
+.theme-toggle-standalone {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 30;
+    background-color: color-mix(in srgb, var(--surface) 65%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+    border-color: color-mix(in srgb, var(--ink) 12%, transparent);
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent),
+        0 6px 20px -8px rgba(var(--shadow-tint), 0.28);
+}
+
+/* Sin translucidez disponible o pedida: material sólido, mismo sitio. */
+@media (prefers-reduced-transparency: reduce) {
+    .theme-toggle-standalone {
+        background-color: var(--surface);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .theme-toggle-standalone {
+        background-color: var(--surface);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border-color: var(--ink);
+    }
+}
+
 /* El toggle se queda fuera del menu: es una preferencia que se cambia seguido y
    esconderla costaria un clic cada vez. Pasa a icono porque el texto "Modo
    oscuro" pesaba lo mismo que una seccion sin serlo. El par de iconos lo elige el
