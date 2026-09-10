@@ -35,7 +35,12 @@ build/
 ### Archivos de configuración con credenciales ###
 # La plantilla (application.properties.ejemplo) SI se versiona: es lo unico que
 # le dice a quien clone el repo que claves necesita para que la app arranque.
-application.properties
+#
+# La regla nombra la ruta completa a proposito. Escrita como "application.properties"
+# a secas, git la aplicaba a CUALQUIER archivo con ese nombre en cualquier carpeta,
+# y eso tambien tapaba src/test/resources/application.properties, que no tiene una
+# sola credencial y si tiene que viajar en el repositorio.
+/src/main/resources/application.properties
 application-local.properties
 
 ### Sistema operativo (Windows) ###
