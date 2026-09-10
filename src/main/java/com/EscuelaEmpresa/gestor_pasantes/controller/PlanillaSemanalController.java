@@ -1,6 +1,5 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -29,6 +28,8 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalPdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalService;
 import com.EscuelaEmpresa.gestor_pasantes.service.InformePasantiaService;
+import com.EscuelaEmpresa.gestor_pasantes.service.NombresDeArchivo;
+import com.EscuelaEmpresa.gestor_pasantes.service.Plantillas;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -179,8 +180,7 @@ public class PlanillaSemanalController {
     public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/CONTROL_SEMANAL_PEL_2025.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = Plantillas.abrirPdf("CONTROL_SEMANAL_PEL_2025.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -230,7 +230,10 @@ public class PlanillaSemanalController {
         documento.close();
 
         response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        response.setHeader("Content-Disposition", "attachment; filename=Informe_Pasantia_" + alumno.getNombres()+ alumno.getApellidos() + ".docx");
+        response.setHeader("Content-Disposition", NombresDeArchivo.contentDisposition(
+                "attachment",
+                "Informe_Pasantia_" + alumno.getNombres() + alumno.getApellidos() + ".docx",
+                "Informe_Pasantia.docx"));
         response.getOutputStream().write(salida.toByteArray());
         response.getOutputStream().flush();
     }
