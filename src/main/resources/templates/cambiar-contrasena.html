@@ -23,6 +23,9 @@
             <p th:if="${param.errorMismaContrasena}" class="mensaje-error" role="alert">
                 La contraseña nueva no puede ser igual a la actual.
             </p>
+            <p th:if="${param.errorConfirmacion}" class="mensaje-error" role="alert">
+                Las dos contraseñas nuevas no coinciden.
+            </p>
             <p th:if="${param.exito}" class="mensaje-exito">
                 Contraseña actualizada correctamente.
             </p>
@@ -50,9 +53,9 @@
                 <div>
                     <label for="confirmarNueva">Confirmar contraseña nueva</label>
                     <div class="campo-password">
-                        <!-- data-confirma lo lee theme.js para comparar contra el campo
-                             indicado. El controlador no recibe este campo: la validación
-                             es solo de conveniencia en el navegador. -->
+                        <!-- data-confirma lo lee theme.js para avisar del error sin
+                             recargar. El controlador vuelve a comparar los dos campos
+                             por su cuenta: esto es comodidad, no la validación. -->
                         <input id="confirmarNueva" type="password" name="confirmarNueva"
                                autocomplete="new-password" minlength="6" required
                                data-confirma="nueva">

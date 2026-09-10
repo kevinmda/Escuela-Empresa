@@ -3,6 +3,7 @@ package com.EscuelaEmpresa.gestor_pasantes.config;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.EmailService;
+import com.EscuelaEmpresa.gestor_pasantes.service.LimitadorEnvioCodigosService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,6 +35,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 
     private static final int MAX_INTENTOS_LOGIN = 5;
     private static final int MINUTOS_BLOQUEO = 15;
+    private static final int MINUTOS_VIGENCIA_CODIGO = 5;
 
     // clave de sesion donde se guarda el email de la cuenta que se esta activando,
     // para que /verificar-codigo no lo tome de un parametro manipulable
@@ -42,11 +44,14 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final LimitadorEnvioCodigosService limitadorEnvioCodigos;
 
-    public LoginFailureHandler(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
+    public LoginFailureHandler(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
+                               EmailService emailService, LimitadorEnvioCodigosService limitadorEnvioCodigos) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.limitadorEnvioCodigos = limitadorEnvioCodigos;
     }
 
     @Override
@@ -87,18 +92,38 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
         }
 
         Usuario usuario = usuarioOpt.get();
-        String codigo = generarCodigoNumerico();
 
-        usuario.setTokenActivacion(codigo);
-        usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(5));
-        usuario.setIntentosCodigo(0); // codigo nuevo, el contador de intentos arranca de cero
-        usuarioRepository.save(usuario);
+        // Mismo techo que el flujo de recuperacion: hay un maximo de codigos por
+        // cuenta y por hora, y el contador de intentos se reinicia SOLO cuando el
+        // codigo anterior vencio. Sin eso, alcanzaba con volver a loguearse para
+        // que los 5 intentos del codigo arrancaran de cero otra vez.
+        // Se llego al tope: no se manda un correo mas, pero la pantalla que sigue es
+        // la misma de siempre. Que el limite se note desde afuera seria contar cuales
+        // cuentas ya pidieron codigos.
+        // El atributo de sesion va ANTES del redirect: sendRedirect cierra la
+        // respuesta, y una sesion creada despues ya no puede mandar su cookie.
+        if (!limitadorEnvioCodigos.registrarEnvioSiHayCupo(email)) {
+            request.getSession().setAttribute(ATRIBUTO_SESION_EMAIL_ACTIVACION, email);
+            response.sendRedirect("/verificar-codigo");
+            return;
+        }
+
+        String codigo = codigoTodaviaVigente(usuario);
+
+        if (codigo == null) {
+            codigo = generarCodigoNumerico();
+            usuario.setTokenActivacion(codigo);
+            usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(MINUTOS_VIGENCIA_CODIGO));
+            usuario.setIntentosCodigo(0); // codigo nuevo, el contador de intentos arranca de cero
+            usuarioRepository.save(usuario);
+        }
 
         try {
             emailService.enviarCorreoCodigoActivacion(usuario.getEmail(), codigo);
         } catch (MailException e) {
             // el correo no se pudo enviar (Gmail caido, mal configurado, etc.)
             // evitamos que esto termine en un error 500 generico
+            limitadorEnvioCodigos.devolverCupo(email);
             response.sendRedirect(urlLogin("errorCorreo", email));
             return;
         }
@@ -136,6 +161,16 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
         } catch (UnsupportedEncodingException e) {
             return valor; // UTF-8 siempre esta disponible, esto no deberia pasar nunca
         }
+    }
+
+    // El codigo que el usuario ya tiene, si todavia no vencio. null significa que
+    // hay que emitir uno nuevo (y recien ahi se reinicia el contador de intentos).
+    private String codigoTodaviaVigente(Usuario usuario) {
+        boolean vigente = usuario.getTokenActivacion() != null
+                && usuario.getTokenExpiracion() != null
+                && usuario.getTokenExpiracion().isAfter(LocalDateTime.now());
+
+        return vigente ? usuario.getTokenActivacion() : null;
     }
 
     private String generarCodigoNumerico() {

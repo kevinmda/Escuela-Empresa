@@ -3,6 +3,7 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.EmailService;
+import com.EscuelaEmpresa.gestor_pasantes.service.LimitadorEnvioCodigosService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.mail.MailException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,16 +28,20 @@ import java.util.Optional;
 public class OlvideContrasenaController {
 
     private static final int MAX_INTENTOS_CODIGO = 5;
+    private static final int MINUTOS_VIGENCIA_CODIGO = 5;
     private static final String ATRIBUTO_SESION_EMAIL = "email_recuperacion";
 
     private final UsuarioRepository usuarioRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final LimitadorEnvioCodigosService limitadorEnvioCodigos;
 
-    public OlvideContrasenaController(UsuarioRepository usuarioRepository, EmailService emailService, PasswordEncoder passwordEncoder) {
+    public OlvideContrasenaController(UsuarioRepository usuarioRepository, EmailService emailService,
+            PasswordEncoder passwordEncoder, LimitadorEnvioCodigosService limitadorEnvioCodigos) {
         this.usuarioRepository = usuarioRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
+        this.limitadorEnvioCodigos = limitadorEnvioCodigos;
     }
 
     @GetMapping("/olvide-contrasena")
@@ -68,25 +73,51 @@ public class OlvideContrasenaController {
 
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
 
-        if (usuarioOpt.isPresent()) {
+        // El limitador va primero y corta antes de tocar la base: es el techo de
+        // cuantos codigos se le pueden mandar a una misma cuenta por hora.
+        if (usuarioOpt.isPresent() && limitadorEnvioCodigos.registrarEnvioSiHayCupo(email)) {
             Usuario usuario = usuarioOpt.get();
-            String codigo = generarCodigoNumerico();
+            String codigo = codigoTodaviaVigente(usuario);
 
-            usuario.setTokenActivacion(codigo);
-            usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(5));
-            usuario.setIntentosCodigo(0);
-            usuarioRepository.save(usuario);
+            // Se emite un codigo nuevo SOLO cuando el anterior ya vencio, y recien
+            // ahi se reinicia el contador de intentos. Antes cada pedido generaba uno
+            // nuevo y ponia intentosCodigo en 0, asi que los 5 intentos se renovaban
+            // a voluntad: se probaban 5, se pedia otro codigo, y otros 5, sin techo.
+            // Mientras el codigo siga vivo se reenvia el mismo y el contador queda
+            // donde estaba, que es lo que hace que el maximo signifique algo.
+            if (codigo == null) {
+                codigo = generarCodigoNumerico();
+                usuario.setTokenActivacion(codigo);
+                usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(MINUTOS_VIGENCIA_CODIGO));
+                usuario.setIntentosCodigo(0);
+                usuarioRepository.save(usuario);
+            }
 
             try {
                 emailService.enviarCorreoRecuperacion(usuario.getEmail(), codigo);
             } catch (MailException e) {
+                // el correo no salio por un problema nuestro, no le gastamos el cupo
+                limitadorEnvioCodigos.devolverCupo(email);
                 model.addAttribute("email", email);
                 model.addAttribute("error", "No pudimos enviar el correo. Intentá de nuevo en unos minutos.");
                 return "olvide-contrasena";
             }
         }
 
+        // Siempre la misma salida: exista o no la cuenta, y se haya llegado a mandar
+        // el correo o no. Cualquier diferencia visible desde afuera seria una forma
+        // de averiguar que emails estan registrados.
         return "redirect:/restablecer-contrasena";
+    }
+
+    // El codigo que el usuario ya tiene, si todavia no vencio. null significa que
+    // hay que emitir uno nuevo.
+    private String codigoTodaviaVigente(Usuario usuario) {
+        boolean vigente = usuario.getTokenActivacion() != null
+                && usuario.getTokenExpiracion() != null
+                && usuario.getTokenExpiracion().isAfter(LocalDateTime.now());
+
+        return vigente ? usuario.getTokenActivacion() : null;
     }
 
     @GetMapping("/restablecer-contrasena")
@@ -135,7 +166,7 @@ public class OlvideContrasenaController {
         int intentos = usuario.getIntentosCodigo() == null ? 0 : usuario.getIntentosCodigo();
         if (intentos >= MAX_INTENTOS_CODIGO) {
             model.addAttribute("email", email);
-            model.addAttribute("error", "Superaste el máximo de intentos. Pedí un código nuevo.");
+            model.addAttribute("error", "Superaste el máximo de intentos con este código. Esperá a que venza y pedí uno nuevo.");
             return "restablecer-contrasena";
         }
 
@@ -166,6 +197,11 @@ public class OlvideContrasenaController {
 
         // todo correcto: guardamos la nueva contraseña y limpiamos todo rastro del proceso
         usuario.setContrasena(passwordEncoder.encode(nuevaContrasena));
+        // La eligio el usuario, asi que ya no es la contraseña compartida que le
+        // asignaron. Sin esto, quien recuperaba su contraseña por correo sin haberla
+        // cambiado nunca seguia igual de atrapado por ContrasenaPorDefectoInterceptor:
+        // apenas entraba, lo mandaba de nuevo a /cambiar-contrasena.
+        usuario.setContrasenaPorDefecto(false);
         usuario.setTokenActivacion(null);
         usuario.setTokenExpiracion(null);
         usuario.setIntentosCodigo(0);

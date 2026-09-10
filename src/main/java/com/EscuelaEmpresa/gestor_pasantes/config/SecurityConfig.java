@@ -5,7 +5,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration //con esta anotacion dice que esta clase se encarga de definir beans (objetos que Spring crea y gestiona por su cuenta) Sin esto Spring no sabria que hay metodos con anotacion Bean (@Bean)
 @EnableWebSecurity //esto activa el modulo de seguridad de Spring (Spring Security) pero aclarandole que vas a personalizar la seguridad por tu cuenta
@@ -28,8 +31,25 @@ public class SecurityConfig {
     // el PasswordEncoder ahora vive en PasswordEncoderConfig.java, para evitar dependencia circular
     // con LoginFailureHandler (que tambien lo necesita)
 
+    // Lleva la cuenta de que sesiones tiene abiertas cada usuario. Lo necesita
+    // /cambiar-contrasena para cerrar las demas cuando alguien cambia su contraseña:
+    // sin este registro no hay forma de alcanzar a las sesiones abiertas en otros
+    // navegadores, y la contraseña vieja seguiria sirviendo hasta que vencieran solas.
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { //esto define cuales son las cadenas de filtros de seguridad por las cuales pasa cada peticion HTTP antes de llegar al Controlador. http es un objeto de la clase "HttpSecurity" que te proporciona una API fluida (especificamente Build Pattern) con la cual vas a ir configurando las reglas
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    // El registro de arriba se entera de que una sesion se destruyo solo si alguien
+    // publica el evento del contenedor. Sin esto, las sesiones cerradas quedarian
+    // figurando como abiertas para siempre.
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, SessionRegistry sessionRegistry) throws Exception { //esto define cuales son las cadenas de filtros de seguridad por las cuales pasa cada peticion HTTP antes de llegar al Controlador. http es un objeto de la clase "HttpSecurity" que te proporciona una API fluida (especificamente Build Pattern) con la cual vas a ir configurando las reglas
         http                                                                             //estos son una lista de reglas evaluadas en orden de arriba hacia abajo y se aplica la primera que coincida con la URL pedida. El orden y la complitud son muy importantes
             .authorizeHttpRequests(auth -> auth                                          //con .authorizeHttpRequests() lo que se hace es definir que rutas puede ver quien. auth es un objeto configurador de tipo "AuthorizeHttpRequestsConfigurer" que te da Spring Security para configurar el formulario, lo que esta despues de la flecha es lo que haces con ese form
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/login", "/login-check", "/error", "/verificar-codigo", "/olvide-contrasena", "/restablecer-contrasena").permitAll()    //esta regla dice que cualquiera puede entrar (logueado o no) si son las rutas /css/, /js/, /img/, /login, /login-check, /error, /verificar-codigo, /olvide-contrasena o /restablecer-contrasena
@@ -50,6 +70,10 @@ public class SecurityConfig {
             .rememberMe(remember -> remember
             .key(rememberMeKey)
             .tokenValiditySeconds(1209600) // 14 dias en segundos
+            )
+            .sessionManagement(session -> session
+                .maximumSessions(-1)                    // -1: no limitamos cuantas sesiones puede tener un usuario,
+                .sessionRegistry(sessionRegistry)       // solo queremos que queden anotadas para poder cerrarlas
             )
             .logout(logout -> logout.permitAll()); //esto activa la funcion de logout que viene de Spring Security en la URL "/logout". Permitiendo que cualquiera pueda acceder a esa URL para cerrar sesion
 
