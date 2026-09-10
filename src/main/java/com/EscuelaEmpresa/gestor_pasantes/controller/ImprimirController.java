@@ -1,6 +1,5 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -25,6 +24,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import com.EscuelaEmpresa.gestor_pasantes.service.Plantillas;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -55,8 +55,7 @@ public class ImprimirController {
             planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
 
         // 2. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/CONTRATO_PEL_2025.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = Plantillas.abrirPdf("CONTRATO_PEL_2025.pdf");
         PDPage pagina = document.getPage(0);
 
         // 3. Abrir el "lienzo" para escribir encima del PDF
@@ -107,8 +106,7 @@ public class ImprimirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 2. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/AUTORIZACION_PADRES_PEL_25.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = Plantillas.abrirPdf("AUTORIZACION_PADRES_PEL_25.pdf");
         PDPage pagina = document.getPage(0);
 
         // 3. Abrir el "lienzo" para escribir encima del PDF
@@ -172,8 +170,7 @@ public class ImprimirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 2. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/FICHA_FINAL_PEL_2025.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = Plantillas.abrirPdf("FICHA_FINAL_PEL_2025.pdf");
         PDPage pagina = document.getPage(0);
 
         // 3. Abrir el "lienzo" para escribir encima del PDF
@@ -243,8 +240,7 @@ public class ImprimirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 2. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = Plantillas.abrirPdf("FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
         PDPage pagina = document.getPage(3);
 
         // 3. Abrir el "lienzo" para escribir encima del PDF
@@ -274,8 +270,7 @@ public class ImprimirController {
     public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/CONTRATO_PEL_2025.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = Plantillas.abrirPdf("CONTRATO_PEL_2025.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -290,8 +285,7 @@ public class ImprimirController {
     public void generarPdfAutorizacionVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/AUTORIZACION_PADRES_PEL_25.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = Plantillas.abrirPdf("AUTORIZACION_PADRES_PEL_25.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -306,8 +300,7 @@ public class ImprimirController {
     public void generarPdfFichaFinalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/FICHA_FINAL_PEL_2025.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = Plantillas.abrirPdf("FICHA_FINAL_PEL_2025.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -322,8 +315,7 @@ public class ImprimirController {
     public void generarPdfFichaFinalEvalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = Plantillas.abrirPdf("FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");

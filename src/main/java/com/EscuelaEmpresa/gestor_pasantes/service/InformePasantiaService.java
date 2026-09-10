@@ -9,9 +9,8 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -60,7 +59,7 @@ public class InformePasantiaService {
     public XWPFDocument generarInforme(Alumno alumno, List<PlanillaSemanal> planillasOrdenadas) throws IOException {
 
         XWPFDocument documento;
-        try (FileInputStream fis = new FileInputStream(new File("src/main/resources/plantillas/Informe_Pasantia_Plantilla.docx"))) {
+        try (InputStream fis = Plantillas.abrir("Informe_Pasantia_Plantilla.docx")) {
             documento = new XWPFDocument(fis);
         }
 
