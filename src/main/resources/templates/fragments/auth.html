@@ -44,5 +44,17 @@
 <img th:fragment="logoTarjeta" class="auth-card-logo" th:src="@{/img/ctnLogoDef.png}"
      alt="Colegio Técnico Nacional de Asunción">
 
+<!-- Pie con los enlaces legales. Va DEBAJO de la tarjeta y no adentro: son
+     enlaces de consulta, no parte del formulario, y adentro competirían con el
+     botón que la pantalla quiere que toques.
+     Aparece en las pantallas de acceso porque es donde alguien puede querer leer
+     qué se guarda sobre él antes de entrar; estando adentro, los mismos dos
+     enlaces viven en el menú de cuenta de la barra. -->
+<nav th:fragment="pieLegal" class="pie-legal" aria-label="Información legal">
+    <a th:href="@{/privacidad}">Privacidad</a>
+    <span class="pie-legal-sep" aria-hidden="true">·</span>
+    <a th:href="@{/terminos}">Condiciones de uso</a>
+</nav>
+
 </body>
 </html>

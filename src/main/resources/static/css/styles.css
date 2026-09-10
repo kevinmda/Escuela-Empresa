@@ -5871,3 +5871,229 @@ button:disabled,
 .skip-link:focus {
     left: 0;
 }
+/* ======================= Privacidad y condiciones de uso =======================
+
+   Las dos unicas pantallas del sistema pensadas para LEERSE de corrido. Todas las
+   demas son formularios o tablas: se miran, se completan, se cierran. Aca alguien
+   -un alumno, un padre- se sienta a leer varios minutos, y eso cambia las
+   decisiones: una sola columna angosta, interlineado mas abierto que en el resto
+   de la app, y jerarquia clara para poder saltar al titulo que interesa.
+
+   No llevan el cromo a proposito. Son publicas: quien las abre puede no tener
+   sesion, y la barra necesita una identidad que ahi no existe. Por eso .legal-main
+   mide contra 100dvh entero y no descuenta --barra-alto como .auth-main. */
+
+.legal-main {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100dvh;
+    padding: 3rem 1.5rem;
+}
+
+.legal-hoja {
+    width: 100%;
+    /* Ancho de linea, no ancho de pantalla: pasadas las ~75 caracteres el ojo
+       pierde el renglon al volver. Con este cuerpo, 40rem caen cerca de 70. */
+    max-width: 40rem;
+    padding: 2.5rem;
+    margin: auto;
+}
+
+.legal-volver {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: var(--ink-soft);
+    font-size: 0.875rem;
+    text-decoration: none;
+}
+
+.legal-volver:hover {
+    color: var(--ink);
+    text-decoration: underline;
+}
+
+.legal-titulo {
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.375rem;
+}
+
+.legal-fecha {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--ink-soft);
+    margin-bottom: 2rem;
+}
+
+/* El parrafo de apertura: dice de que va la pagina entera. Un poco mas grande
+   que el cuerpo para que se lea primero, sin llegar a competir con el titulo. */
+.legal-entrada {
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    padding-bottom: 1.75rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 0.5rem;
+}
+
+.legal-hoja h2 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    /* Mucho aire arriba y poco abajo: el titulo tiene que quedar pegado a SU
+       texto y separado del anterior, o al barrer la pagina no se sabe donde
+       empieza cada tema. */
+    margin: 2.25rem 0 0.75rem;
+}
+
+.legal-hoja h3 {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin: 1.5rem 0 0.5rem;
+}
+
+.legal-hoja p,
+.legal-hoja li {
+    line-height: 1.7;
+}
+
+.legal-hoja p {
+    margin-bottom: 0.875rem;
+}
+
+.legal-hoja ul {
+    /* El sangrado alcanza para la vineta sin abrir una columna vacia */
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.legal-hoja li {
+    margin-bottom: 0.5rem;
+}
+
+.legal-hoja a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* La frase que la gente vino a buscar: que sus datos no se venden. Se marca con
+   el dorado de la casa, que es justamente el color de los realces. */
+.legal-enfasis {
+    background-color: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 0.875rem 1.125rem;
+    border-radius: 0 var(--radius-panel) var(--radius-panel) 0;
+    font-weight: 500;
+}
+
+/* Los tramos que dependen de una decision de la institucion y todavia no estan
+   escritos. Van en rojo y en monoespaciada a proposito: tienen que MOLESTAR
+   mientras sigan ahi, para que nadie publique la pagina sin verlos. Cuando se
+   completen, se borra el parrafo entero junto con la clase. */
+.legal-completar {
+    background-color: var(--danger-soft);
+    border: 1px dashed var(--danger);
+    border-radius: var(--radius-panel);
+    padding: 0.875rem 1.125rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--danger);
+}
+
+.legal-pie {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.875rem;
+}
+
+/* --- Pie de las pantallas de acceso --- */
+
+/* .auth-panel y .auth-main son flex EN FILA. Sin esto el pie se acomoda como
+   segunda columna, al lado de la tarjeta y arriba a la derecha, que es
+   exactamente donde no va. flex-basis:100% lo manda a su propia linea; el wrap
+   es lo que permite que esa linea exista. */
+.auth-panel,
+.auth-main {
+    flex-wrap: wrap;
+}
+
+.auth-panel > .pie-legal,
+.auth-main > .pie-legal {
+    flex-basis: 100%;
+}
+
+/* Anclado abajo a la derecha, en espejo del toggle de tema que vive fijo arriba
+   a la derecha: las dos esquinas de ese lado quedan para lo que no es la tarea de
+   la pantalla. Discreto, porque son enlaces de consulta y no pueden competir con
+   el boton que la pantalla quiere que toques. */
+.pie-legal {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1rem;
+    z-index: 10;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.8125rem;
+}
+
+.pie-legal a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    /* 44px de alto tactil sin ocupar 44px visuales: el padding vertical hace el
+       area, el margen negativo se la devuelve al layout. */
+    padding: 0.75rem 0.25rem;
+    margin: -0.75rem 0;
+}
+
+.pie-legal a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+}
+
+/* --line sobre el fondo de las pantallas de acceso daba ~1.4:1 y el punto
+   directamente no se veia. Es decorativo (va aria-hidden), asi que no le aplica
+   el minimo de texto, pero un separador que no se ve no separa nada. */
+.pie-legal-sep {
+    color: var(--ink-soft);
+    opacity: 0.5;
+}
+
+/* En movil la hoja usa el ancho completo: con 2.5rem de padding a cada lado, en
+   360px quedaban 15 caracteres por renglon. */
+@media (max-width: 720px) {
+    .legal-main {
+        padding: 1.5rem 0.75rem;
+    }
+
+    .legal-hoja {
+        padding: 1.75rem 1.25rem;
+    }
+
+    .legal-titulo {
+        font-size: 1.5rem;
+    }
+
+    /* En movil vuelve al flujo. Fijo en la esquina se le sienta encima al boton
+       de enviar cuando aparece el teclado, y ahi el pie pasa de ser un enlace de
+       consulta a un estorbo justo en el unico momento que importa. */
+    .pie-legal {
+        position: static;
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+}

@@ -50,6 +50,8 @@
                     <a th:href="@{/login(volver=true, email=${email})}">← Usar otro email</a>
                 </div>
             </div>
+
+            <th:block th:replace="~{fragments/auth :: pieLegal}"></th:block>
         </main>
     </div>
 </body>

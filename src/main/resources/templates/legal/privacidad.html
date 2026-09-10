@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<!--
+    Política de privacidad.
+
+    El contenido describe lo que el sistema hace DE VERDAD: cada dato de la lista
+    sale de una columna que existe en la base, y cada afirmación sobre quién ve
+    qué sale de los controles de acceso que están escritos en AdminController.
+    Si mañana se agrega un campo o se cambia quién puede ver qué, esta página hay
+    que actualizarla: una política que no coincide con el sistema es peor que no
+    tener ninguna.
+
+    Los tramos marcados con la clase "legal-completar" son los que dependen de una
+    decisión de la institución y no del código. Están así a propósito, para que se
+    vean y no pasen por publicados.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/auth :: head('Política de privacidad')}"></head>
+<body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
+
+    <main id="main-content" class="legal-main">
+        <article class="panel legal-hoja">
+
+            <a class="legal-volver" th:href="@{/login}">← Volver</a>
+
+            <h1 class="legal-titulo">Política de privacidad</h1>
+            <p class="legal-fecha">Última actualización: 10 de septiembre de 2026</p>
+
+            <p class="legal-entrada">
+                Este sistema guarda datos personales de estudiantes, en su mayoría
+                menores de edad, y de sus padres o tutores. Esta página explica
+                exactamente qué se guarda, para qué, quién puede verlo y qué podés
+                hacer al respecto. Está escrita para que la entienda cualquiera, no
+                para cubrirnos.
+            </p>
+
+            <h2>Quién es responsable</h2>
+            <p>
+                El responsable de los datos es el
+                <strong>Colegio Técnico Nacional</strong>, como institución que organiza
+                las pasantías y decide qué información hace falta para gestionarlas.
+            </p>
+            <p>
+                El sistema fue desarrollado y es mantenido por
+                <strong>Facundo Vera</strong> y <strong>Kevin Dure</strong>, que se ocupan
+                del funcionamiento técnico. No usan estos datos para nada propio ni los
+                comparten con nadie.
+            </p>
+
+            <h2>Qué datos se guardan</h2>
+
+            <h3>De tu cuenta</h3>
+            <ul>
+                <li>Tu correo electrónico y tu número de cédula.</li>
+                <li>
+                    Tu contraseña, cifrada. Se guarda pasada por una función que no se
+                    puede revertir (bcrypt): ni siquiera quien administra el sistema puede
+                    leerla. Por eso, cuando te la olvidás, la única salida es cambiarla por
+                    una nueva.
+                </li>
+                <li>
+                    Los intentos fallidos de ingreso y, si son demasiados, hasta cuándo
+                    queda bloqueada la cuenta. Sirve para que nadie pueda adivinar tu
+                    contraseña probando una y otra vez.
+                </li>
+                <li>
+                    Los códigos de seis dígitos que se te envían por correo para activar la
+                    cuenta o recuperar la contraseña. Vencen a los cinco minutos y se
+                    borran apenas se usan.
+                </li>
+            </ul>
+
+            <h3>Si sos alumno o alumna</h3>
+            <ul>
+                <li>Nombres, apellidos, cédula, sexo y fecha de nacimiento.</li>
+                <li>Teléfono y correo electrónico.</li>
+                <li>Curso, sección y especialidad.</li>
+                <li>La empresa y el supervisor que te asignaron.</li>
+                <li>Nombres, apellidos, cédula y correo de tu padre, madre o tutor.</li>
+            </ul>
+
+            <h3>Los documentos que subís</h3>
+            <ul>
+                <li>
+                    Los archivos PDF que cargás: contrato firmado, autorización de tus
+                    padres, fichas de evaluación y comprobantes de planilla.
+                </li>
+                <li>
+                    El nombre original del archivo y la fecha y hora exactas en que lo
+                    subiste.
+                </li>
+                <li>
+                    Una huella digital del archivo (SHA-256). Es un código que cambia
+                    entero si el archivo se modifica aunque sea en un carácter, y sirve
+                    para comprobar que el documento sigue siendo el mismo que entregaste.
+                    No permite reconstruir el contenido.
+                </li>
+            </ul>
+
+            <h3>Tus planillas semanales</h3>
+            <ul>
+                <li>Qué hiciste cada día, cuántas horas y en qué fechas.</li>
+                <li>
+                    Lo que escribas sobre los conocimientos que aplicaste, tu experiencia y
+                    lo que aprendiste. <strong>Esto lo lee tu coordinador</strong>, y sale
+                    impreso en el informe final de la pasantía.
+                </li>
+            </ul>
+
+            <h2>Para qué se usan</h2>
+            <p>
+                Únicamente para gestionar tu pasantía: emitir los formularios que tenés que
+                presentar, llevar el control de lo que entregaste, asignarte empresa y
+                supervisor, y generar el informe final.
+            </p>
+            <p class="legal-enfasis">
+                Estos datos no se venden, no se ceden a terceros, no se usan para
+                publicidad y no se cruzan con ninguna otra base.
+            </p>
+
+            <h2>Quién puede ver tus datos</h2>
+            <ul>
+                <li>
+                    <strong>Vos</strong> ves solamente lo tuyo. El sistema comprueba en cada
+                    pedido que el documento o la planilla que estás abriendo sea tuya, aunque
+                    cambies el número en la dirección del navegador.
+                </li>
+                <li>
+                    <strong>El coordinador de tu especialidad</strong> ve a los alumnos de su
+                    especialidad, con sus documentos y sus entregas. No ve a los de las otras.
+                </li>
+                <li>
+                    <strong>Administración</strong> ve a los alumnos de todas las
+                    especialidades.
+                </li>
+                <li>
+                    <strong>Nadie más.</strong> Ni las empresas ni los supervisores tienen
+                    cuenta en el sistema: sus datos figuran para poder asignarlos, pero no
+                    entran a ver nada.
+                </li>
+            </ul>
+
+            <h2>Los correos que te llegan</h2>
+            <p>
+                El sistema te escribe solo por dos motivos: mandarte el código para activar
+                tu cuenta la primera vez, y mandarte el código para recuperar tu contraseña
+                cuando lo pedís. No hay ningún otro correo, ni boletines, ni avisos
+                comerciales.
+            </p>
+            <p>
+                Esos correos salen a través de Gmail, de Google, que es el servicio que los
+                entrega. Eso significa que tu dirección de correo pasa por sus servidores
+                para poder llegarte.
+            </p>
+
+            <h2>Cómo se protegen</h2>
+            <ul>
+                <li>Las contraseñas nunca se guardan en texto legible.</li>
+                <li>La sesión se cierra sola después de treinta minutos sin actividad.</li>
+                <li>
+                    Después de cinco intentos fallidos, la cuenta queda bloqueada quince
+                    minutos.
+                </li>
+                <li>
+                    La contraseña que te dan al principio es compartida entre varios alumnos,
+                    así que el sistema te obliga a cambiarla por una propia antes de dejarte
+                    usar cualquier pantalla.
+                </li>
+                <li>
+                    Cuando cambiás tu contraseña, se cierran todas las demás sesiones abiertas
+                    con la anterior.
+                </li>
+            </ul>
+            <p class="legal-completar">
+                COMPLETAR: si el sistema se publica en internet, tiene que servirse por HTTPS
+                y hay que decirlo acá. Sin HTTPS, todo lo anterior viaja legible por la red.
+            </p>
+
+            <h2>Cuánto tiempo se conservan</h2>
+            <p class="legal-completar">
+                COMPLETAR: cuánto tiempo conserva la institución los datos y los documentos
+                después de que termina la pasantía, y qué pasa con ellos cuando el alumno
+                egresa. Es una decisión del colegio, no del sistema.
+            </p>
+
+            <h2>Qué podés hacer</h2>
+            <p>
+                Podés pedir que te muestren qué datos tienen sobre vos, que corrijan los que
+                estén mal y que borren los que ya no hagan falta. La Constitución de la
+                República del Paraguay reconoce este derecho en su artículo 135, el
+                <em>habeas data</em>: toda persona puede acceder a la información que exista
+                sobre sí misma en registros públicos o privados y exigir su actualización,
+                su rectificación o su destrucción.
+            </p>
+            <p>
+                Si sos menor de edad, tu padre, madre o tutor puede hacerlo en tu nombre.
+            </p>
+            <p class="legal-completar">
+                COMPLETAR: correo o teléfono al que hay que escribir para pedir esto, y quién
+                lo atiende.
+            </p>
+
+            <h2>Si esto cambia</h2>
+            <p>
+                Cuando se modifique algo de esta política, cambia la fecha de arriba. Si el
+                cambio afecta a qué datos se guardan o a quién puede verlos, se avisa dentro
+                del sistema.
+            </p>
+
+            <nav class="legal-pie">
+                <a th:href="@{/terminos}">Condiciones de uso</a>
+                <a th:href="@{/login}">Ir a ingresar</a>
+            </nav>
+        </article>
+    </main>
+</body>
+</html>

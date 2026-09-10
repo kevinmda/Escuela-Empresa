@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--
+    Condiciones de uso.
+
+    Mismo criterio que la política de privacidad: cada regla que dice esta página
+    corresponde a algo que el sistema efectivamente hace o efectivamente registra.
+    No se prometen cosas que el código no cumple.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/auth :: head('Condiciones de uso')}"></head>
+<body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
+
+    <main id="main-content" class="legal-main">
+        <article class="panel legal-hoja">
+
+            <a class="legal-volver" th:href="@{/login}">← Volver</a>
+
+            <h1 class="legal-titulo">Condiciones de uso</h1>
+            <p class="legal-fecha">Última actualización: 10 de septiembre de 2026</p>
+
+            <p class="legal-entrada">
+                Este es el sistema con el que el Colegio Técnico Nacional gestiona las
+                pasantías. No es una red social ni un servicio abierto: se entra con una
+                cuenta que da la institución y se usa para lo que la pasantía necesita.
+                Al usarlo, aceptás lo que sigue.
+            </p>
+
+            <h2>Tu cuenta es tuya</h2>
+            <ul>
+                <li>
+                    La cuenta es personal. No la prestes ni la compartas, ni siquiera con un
+                    compañero que "solo necesita imprimir una cosa".
+                </li>
+                <li>
+                    La contraseña que te dan la primera vez es la misma para varios alumnos,
+                    así que no es secreta. Por eso el sistema te obliga a cambiarla apenas
+                    entrás. Hasta que no la cambies, no vas a poder usar ninguna otra pantalla.
+                </li>
+                <li>
+                    Elegí una contraseña que no uses en otro lado. Todo lo que pase desde tu
+                    cuenta va a figurar como hecho por vos.
+                </li>
+                <li>
+                    Si creés que alguien más sabe tu contraseña, cambiala. Al cambiarla se
+                    cierran todas las sesiones abiertas con la anterior.
+                </li>
+            </ul>
+
+            <h2>Lo que subís</h2>
+            <ul>
+                <li>
+                    Subí únicamente tus propios documentos, y que sean verdaderos. Presentar
+                    un documento falso o de otra persona es un problema académico, no una
+                    travesura informática.
+                </li>
+                <li>
+                    De cada archivo se guarda una huella digital y la hora exacta en que lo
+                    subiste. Sirve para demostrar que entregaste, y también para notar si un
+                    archivo fue cambiado después.
+                </li>
+                <li>
+                    Los archivos tienen que ser PDF y pesar menos de 10 MB. Hay un límite de
+                    cuántos podés subir de cada tipo.
+                </li>
+                <li>
+                    Podés borrar un documento que subiste. Se borra de verdad, del registro y
+                    del servidor, y no se puede recuperar.
+                </li>
+            </ul>
+
+            <h2>Lo que escribís en la planilla</h2>
+            <p>
+                La planilla semanal es un documento académico: lo que cargues ahí lo lee tu
+                coordinador y sale impreso en el informe final de tu pasantía. Cargá lo que
+                efectivamente hiciste, con las horas que efectivamente cumpliste.
+            </p>
+
+            <h2>Lo que no se puede hacer</h2>
+            <ul>
+                <li>
+                    Intentar ver datos, documentos o planillas de otras personas, por
+                    cualquier medio, incluido cambiar números en la dirección del navegador.
+                    El sistema lo impide y lo registra.
+                </li>
+                <li>Entrar con la cuenta de otro, aunque te haya dado permiso.</li>
+                <li>
+                    Intentar tumbar el sistema, sobrecargarlo o buscarle fallas para
+                    aprovecharlas.
+                </li>
+            </ul>
+            <p>
+                Si encontrás una falla de seguridad, avisá en vez de usarla. Es la diferencia
+                entre ayudar y causar un daño.
+            </p>
+
+            <h2>Qué puede hacer la institución</h2>
+            <ul>
+                <li>
+                    Suspender o cerrar una cuenta que se use de alguna de las formas de arriba.
+                </li>
+                <li>
+                    Corregir datos que estén mal cargados y rehacer asignaciones de empresa o
+                    supervisor.
+                </li>
+                <li>Cambiar estas condiciones. La fecha de arriba dice cuándo fue la última vez.</li>
+            </ul>
+
+            <h2>Hasta dónde llega el sistema</h2>
+            <p>
+                El sistema se ofrece tal como está y puede tener interrupciones: mantenimiento,
+                cortes de luz, problemas de conexión. No dejes la entrega de un documento para
+                último momento contando con que va a estar disponible.
+            </p>
+            <p>
+                Los formularios que genera son una ayuda para completar el trámite, no un
+                reemplazo de lo que la institución o la empresa te pidan en papel.
+            </p>
+
+            <h2>Tus datos</h2>
+            <p>
+                Qué se guarda sobre vos, para qué y quién puede verlo está explicado aparte,
+                en la <a th:href="@{/privacidad}">política de privacidad</a>.
+            </p>
+
+            <h2>Dudas</h2>
+            <p class="legal-completar">
+                COMPLETAR: a quién escribir ante una duda sobre estas condiciones o un problema
+                con la cuenta.
+            </p>
+
+            <nav class="legal-pie">
+                <a th:href="@{/privacidad}">Política de privacidad</a>
+                <a th:href="@{/login}">Ir a ingresar</a>
+            </nav>
+        </article>
+    </main>
+</body>
+</html>
