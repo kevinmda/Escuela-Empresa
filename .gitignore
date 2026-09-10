@@ -42,3 +42,7 @@ desktop.ini
 
 ### Logs ###
 *.log
+
+### Documentos que suben los alumnos ###
+# Son datos personales: no van al repositorio ni aunque el repo sea privado.
+uploads/
