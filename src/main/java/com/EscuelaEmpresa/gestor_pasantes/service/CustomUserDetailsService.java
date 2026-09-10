@@ -44,9 +44,27 @@ public class CustomUserDetailsService implements UserDetailsService { //UserDeta
         //GrantedAuthority es para indicarle a Spring Security que se trata de permisos o mas bien roles
         List<GrantedAuthority> authorities = new ArrayList<>(); //se crea una lista vacia que luego se va a ir llenando de acuerdo a los roles que se le da al usuario. En nuestro caso no es tannn importante porque cada usuario va a tener un rol unico, pero en el dia de mañana si un usuario necesita tener mas de un rol entonces se va a poder incluir en la lista nms y ya
 
-        if (administradorRepository.findByUsuario_IdUsr(usuario.getIdUsr()).isPresent()) { //aca se pregunta si existe una fila en adminsitrador vinculada a este usuario
+        administradorRepository.findByUsuario_IdUsr(usuario.getIdUsr()).ifPresent(administrador -> { //aca se pregunta si existe una fila en adminsitrador vinculada a este usuario
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN")); //en caso de que si entonces se le asigna el rol de ADMIN (si o si tiene que ser con el "ROLE_" porque es una convencion de Spring Security)
-        }                                                              //por lo que entiendo new SimpleGrantedAuthority("ROLE_ADMIN") seria la manera de agregar un rol, al parecer es un objeto de clase "SimpleGrantedAuthority" que tambien viene de Spring Security
+                                                                       //por lo que entiendo new SimpleGrantedAuthority("ROLE_ADMIN") seria la manera de agregar un rol, al parecer es un objeto de clase "SimpleGrantedAuthority" que tambien viene de Spring Security
+
+            // Coordinacion y Administracion comparten la tabla administrador y hasta
+            // ahora compartian tambien el unico rol que habia, ROLE_ADMIN. La
+            // diferencia entre los dos se hacia despues, adentro de cada metodo de
+            // AdminController, leyendo el cargo a mano. Funcionaba, pero era una regla
+            // que no sostenia nada: el primer metodo nuevo que se olvidara de mirar el
+            // cargo le abria a un coordinador todas las especialidades.
+            //
+            // Con el cargo convertido en rol, SecurityConfig puede cerrar las pantallas
+            // de Coordinacion antes de que la peticion llegue al controlador. El
+            // chequeo por especialidad sigue siendo necesario -- esto es la segunda
+            // barrera, no el reemplazo de la primera.
+            if ("coordinador".equalsIgnoreCase(administrador.getCargo())) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_COORDINADOR"));
+            } else if ("administrativo".equalsIgnoreCase(administrador.getCargo())) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_ADMINISTRATIVO"));
+            }
+        });
         if (alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr()).isPresent()) { //aca se pregunta si existe una fila en alumno vinculada a este usuario
             authorities.add(new SimpleGrantedAuthority("ROLE_ALUMNO")); //en caso de que si entonces se le asigna el rol de ALUMNO
         }
