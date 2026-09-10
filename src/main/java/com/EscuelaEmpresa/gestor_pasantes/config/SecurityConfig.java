@@ -17,15 +17,20 @@ public class SecurityConfig {
     private final LoginFailureHandler loginFailureHandler; // detecta cuenta inactiva/bloqueada y actua en consecuencia
     private final LoginSuccessHandler loginSuccessHandler; // resetea contadores de intentos al loguear con exito
     private final String rememberMeKey;
+    private final boolean cookiesSeguras;
 
     public SecurityConfig(LoginFailureHandler loginFailureHandler,
                           LoginSuccessHandler loginSuccessHandler,
-                          @Value("${REMEMBER_ME_KEY:}") String rememberMeKey) {
+                          @Value("${REMEMBER_ME_KEY:}") String rememberMeKey,
+                          @Value("${server.servlet.session.cookie.secure:false}") boolean cookiesSeguras) {
         this.loginFailureHandler = loginFailureHandler;
         this.loginSuccessHandler = loginSuccessHandler;
         this.rememberMeKey = rememberMeKey.isBlank()
                 ? java.util.UUID.randomUUID().toString()
                 : rememberMeKey;
+        // La misma decision que toma la cookie de sesion en application.properties:
+        // asi las dos cookies no pueden quedar con criterios distintos.
+        this.cookiesSeguras = cookiesSeguras;
     }
 
     // el PasswordEncoder ahora vive en PasswordEncoderConfig.java, para evitar dependencia circular
@@ -70,6 +75,11 @@ public class SecurityConfig {
             .rememberMe(remember -> remember
             .key(rememberMeKey)
             .tokenValiditySeconds(1209600) // 14 dias en segundos
+            // Esta cookie dura 14 dias y sirve para entrar sin contraseña, asi que
+            // es la que MENOS puede viajar en claro. Acompaña a la cookie de sesion:
+            // secure en produccion, no en desarrollo, donde sobre http el navegador
+            // directamente no la mandaria.
+            .useSecureCookie(cookiesSeguras)
             )
             .sessionManagement(session -> session
                 .maximumSessions(-1)                    // -1: no limitamos cuantas sesiones puede tener un usuario,

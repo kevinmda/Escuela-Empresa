@@ -33,6 +33,8 @@ build/
 .vscode/
 
 ### Archivos de configuración con credenciales ###
+# La plantilla (application.properties.ejemplo) SI se versiona: es lo unico que
+# le dice a quien clone el repo que claves necesita para que la app arranque.
 application.properties
 application-local.properties
 
