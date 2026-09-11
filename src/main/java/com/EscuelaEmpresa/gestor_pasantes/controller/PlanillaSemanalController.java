@@ -1,10 +1,8 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -28,6 +26,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalPdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalService;
+import com.EscuelaEmpresa.gestor_pasantes.service.PlantillaService;
 import com.EscuelaEmpresa.gestor_pasantes.service.InformePasantiaService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -47,13 +46,15 @@ public class PlanillaSemanalController {
     private final PlanillaSemanalService planillaSemanalService;
     private final PlanillaSemanalPdfService planillaSemanalPdfService;
     private final InformePasantiaService informePasantiaService;
+    private final PlantillaService plantillaService;
 
     public PlanillaSemanalController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository,
                                     PlanillaSemanalRepository planillaSemanalRepository,
                                     PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
                                     PlanillaSemanalService planillaSemanalService,
                                     PlanillaSemanalPdfService planillaSemanalPdfService,
-                                    InformePasantiaService informePasantiaService) {
+                                    InformePasantiaService informePasantiaService,
+                                    PlantillaService plantillaService) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
@@ -61,6 +62,7 @@ public class PlanillaSemanalController {
         this.planillaSemanalService = planillaSemanalService;
         this.planillaSemanalPdfService = planillaSemanalPdfService;
         this.informePasantiaService = informePasantiaService;
+        this.plantillaService = plantillaService;
     }
 
     @GetMapping("/alumno/planilla")
@@ -179,8 +181,7 @@ public class PlanillaSemanalController {
     public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        File archivoOriginal = new File("src/main/resources/plantillas/CONTROL_SEMANAL_PEL_2025.pdf");
-        PDDocument document = Loader.loadPDF(archivoOriginal);
+        PDDocument document = plantillaService.cargarPdf("CONTROL_SEMANAL_PEL_2025.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
