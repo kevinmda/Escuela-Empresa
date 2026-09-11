@@ -30,6 +30,7 @@ import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalPdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlantillaService;
 import com.EscuelaEmpresa.gestor_pasantes.service.InformePasantiaService;
+import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -233,7 +234,9 @@ public class PlanillaSemanalController {
         documento.close();
 
         response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        response.setHeader("Content-Disposition", "attachment; filename=Informe_Pasantia_" + alumno.getNombres()+ alumno.getApellidos() + ".docx");
+        response.setHeader("Content-Disposition",
+                Descarga.adjunto("Informe_Pasantia_" + alumno.getNombres() + "_" + alumno.getApellidos() + ".docx",
+                        "Informe_Pasantia.docx"));
         response.getOutputStream().write(salida.toByteArray());
         response.getOutputStream().flush();
     }

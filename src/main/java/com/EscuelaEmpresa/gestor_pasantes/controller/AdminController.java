@@ -40,6 +40,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
 import com.EscuelaEmpresa.gestor_pasantes.dto.ResumenDocumentoTipoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
+import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -239,11 +240,9 @@ public class AdminController {
             throw new RecursoNoEncontradoException("El archivo ya no está disponible en el servidor");
         }
 
-        String nombreArchivo = documento.getNombreArchivo() == null
-                ? "documento_" + documento.getIdDs() + ".pdf"
-                : new File(documento.getNombreArchivo()).getName();
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=" + nombreArchivo);
+        response.setHeader("Content-Disposition",
+                Descarga.inline(documento.getNombreArchivo(), "documento_" + documento.getIdDs() + ".pdf"));
         Files.copy(archivo.toPath(), response.getOutputStream());
     }
 

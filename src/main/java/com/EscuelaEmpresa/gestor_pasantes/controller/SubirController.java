@@ -34,6 +34,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService;
 import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService.ValidacionResultado;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
+import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -217,7 +218,8 @@ public class SubirController {
         response.setContentType("application/pdf");
         // "inline" (no "attachment") para que el navegador lo abra en la misma pestaña/visor
         // de PDF, en vez de forzar la descarga
-        response.setHeader("Content-Disposition", "inline; filename=" + documento.getNombreArchivo());
+        response.setHeader("Content-Disposition",
+                Descarga.inline(documento.getNombreArchivo(), "documento_" + documento.getIdDs() + ".pdf"));
 
         Files.copy(archivo.toPath(), response.getOutputStream());
     }
