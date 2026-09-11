@@ -21,7 +21,7 @@
     <!-- data-esp una sola vez acá arriba: --esp/--esp-ink/--esp-edge/--esp-tenue
          son variables CSS y se heredan, así que las tres secciones de abajo
          las usan sin repetir la lógica de color. -->
-    <main id="main-content" th:attr="data-esp=${admin.especialidades[0].idEsp}">
+    <main id="main-content" th:attr="data-esp=${admin.especialidad.idEsp}">
 
         <!-- Fila 1: la placa técnica de la especialidad + el dato que cambia
              semana a semana, como una regla de progreso en vez del anillo
@@ -31,7 +31,7 @@
             <div>
                 <p class="chub-campo-etiqueta">Especialidad a tu cargo</p>
                 <h2 class="chub-placa-nombre" id="chub-especialidad"
-                    th:text="${admin.especialidades[0].nombre}">Especialidad</h2>
+                    th:text="${admin.especialidad.nombre}">Especialidad</h2>
                 <p class="chub-placa-sub">Resumen de la semana,
                     <strong th:text="${admin.nombres.trim().split(' ')[0]}">Nombre</strong>.</p>
             </div>

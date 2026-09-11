@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Optional;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -85,11 +84,9 @@ public class HomeController {
     }
 
     private void cargarEstadisticas(Model model, Administrador admin) {
-        List<Integer> idsEspecialidad = admin.getEspecialidades() == null
+        List<Integer> idsEspecialidad = admin.getEspecialidad() == null
                 ? List.of()
-                : admin.getEspecialidades().stream()
-                        .map(especialidad -> especialidad.getIdEsp())
-                        .collect(Collectors.toList());
+                : List.of(admin.getEspecialidad().getIdEsp());
 
         if ("administrativo".equalsIgnoreCase(admin.getCargo())) {
             idsEspecialidad = null;

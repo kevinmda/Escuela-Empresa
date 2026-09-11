@@ -25,10 +25,10 @@ public class AlumnoService {
         }
 
         if ("coordinador".equalsIgnoreCase(admin.getCargo())) {
-            if (admin.getEspecialidades() == null || admin.getEspecialidades().isEmpty()) {
+            if (admin.getEspecialidad() == null) {
                 throw new ReglaNegocioException("El coordinador no tiene especialidad asignada");
             }
-            Integer idEsp = admin.getEspecialidades().get(0).getIdEsp();
+            Integer idEsp = admin.getEspecialidad().getIdEsp();
             return alumnoRepository.findByEspecialidad_IdEspIn(List.of(idEsp));
         }
 

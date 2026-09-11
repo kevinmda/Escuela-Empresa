@@ -99,11 +99,7 @@ public class AdminController {
         if (esAdministrativo) {
             model.addAttribute("especialidades", especialidadRepository.findAll());
         } else {
-            if (admin.getEspecialidades() == null || admin.getEspecialidades().isEmpty()) {
-                throw new ReglaNegocioException("El coordinador no tiene especialidad asignada");
-            }
-            Especialidad especialidadFija = admin.getEspecialidades().get(0);
-            model.addAttribute("especialidadFija", especialidadFija);
+            model.addAttribute("especialidadFija", obtenerEspecialidadDeCoordinador(admin));
         }
     }
 
@@ -479,11 +475,11 @@ public class AdminController {
             throw new AccessDeniedException("Esta pantalla es solo para coordinadores");
         }
 
-        if (admin.getEspecialidades() == null || admin.getEspecialidades().isEmpty()) {
+        if (admin.getEspecialidad() == null) {
             throw new ReglaNegocioException("El coordinador no tiene especialidad asignada");
         }
 
-        return admin.getEspecialidades().get(0);
+        return admin.getEspecialidad();
     }
 
     // --- Gestión de Empresas (solo Coordinador) ---

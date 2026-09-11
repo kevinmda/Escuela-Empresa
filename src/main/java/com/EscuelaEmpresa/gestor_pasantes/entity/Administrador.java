@@ -1,7 +1,5 @@
 package com.EscuelaEmpresa.gestor_pasantes.entity;
 
-import java.util.List;
-
 import jakarta.persistence.*;
 
 @Entity
@@ -35,8 +33,13 @@ public class Administrador {
     @JoinColumn(name = "id_Usr")        //la columna id_Usr de esta tabla apunta a una fila de usuario
     private Usuario usuario;            //esto dice quiero poder acceder a ese Usuario completo como un objeto, no solo como un número
 
-    @OneToMany(mappedBy = "administrador")
-    private List<Especialidad> especialidades;
+    // Un coordinador tiene UNA especialidad a cargo, y una especialidad tiene un solo
+    // coordinador: la FK esta del lado de especialidad (id_Ad) y este es el lado
+    // inverso. Antes era una List<Especialidad> con @OneToMany mientras Especialidad
+    // declaraba @OneToOne, y todo el codigo tomaba .get(0): el modelo no se decidia.
+    // Para un administrativo queda en null.
+    @OneToOne(mappedBy = "administrador")
+    private Especialidad especialidad;
 
     public Administrador() {} //constructor vacio, necesario porque internamente se crea un objeto vacio que luego recien se va llenando
     //getter y los setter. Estos son usados activamente por Hibernate para leer y escribir los valores de cada campo al convertir entre el objeto Java y la fila SQL
@@ -64,6 +67,6 @@ public class Administrador {
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 
-    public List<Especialidad> getEspecialidades() { return especialidades; }
-    public void setEspecialidades(List<Especialidad> especialidades) { this.especialidades = especialidades; }
+    public Especialidad getEspecialidad() { return especialidad; }
+    public void setEspecialidad(Especialidad especialidad) { this.especialidad = especialidad; }
 }
