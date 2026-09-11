@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.dto.PlanillaSemanalForm;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
@@ -81,7 +83,7 @@ public class PlanillaSemanalController {
 
         if (idPs != null) {
             PlanillaSemanal planilla = planillaSemanalRepository.findById(idPs)
-                .orElseThrow(() -> new RuntimeException("Planilla no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Planilla no encontrada"));
 
             // Seguridad: que el alumno no pueda ver planillas ajenas cambiando el idPs en la URL
             if (!planilla.getAlumno().getIdAl().equals(alumno.getIdAl())) {
@@ -111,7 +113,7 @@ public class PlanillaSemanalController {
             model.addAttribute("exito", "Planilla guardada correctamente.");
             model.addAttribute("planillaForm", new PlanillaSemanalForm());
             model.addAttribute("habilitado", false);
-        } catch (RuntimeException e) {
+        } catch (ReglaNegocioException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("planillaForm", form);
             model.addAttribute("habilitado", true);
@@ -134,7 +136,7 @@ public class PlanillaSemanalController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         PlanillaSemanal planilla = planillaSemanalRepository.findById(idPs)
-                .orElseThrow(() -> new RuntimeException("Planilla no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Planilla no encontrada"));
 
         // seguridad: que el alumno no pueda borrar planillas ajenas cambiando el idPs en la URL
         if (!planilla.getAlumno().getIdAl().equals(alumno.getIdAl())) {
@@ -155,7 +157,7 @@ public class PlanillaSemanalController {
 
         // 2. Buscar la planilla y validar que sea del alumno logueado
         PlanillaSemanal planilla = planillaSemanalRepository.findById(idPs)
-                .orElseThrow(() -> new RuntimeException("Planilla no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Planilla no encontrada"));
 
         if (!planilla.getAlumno().getIdAl().equals(alumno.getIdAl())) {
             throw new AccessDeniedException("No tenés permiso para generar esta planilla");
@@ -270,9 +272,9 @@ public class PlanillaSemanalController {
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
         return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
-            .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
     }
 }

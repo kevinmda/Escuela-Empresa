@@ -16,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PadreTutor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
@@ -198,7 +200,7 @@ public class ImprimirController {
 
         if (todasLasPlanillas.isEmpty()) {
             // el alumno todavía no cargó ninguna planilla semanal
-            throw new RuntimeException("El alumno no tiene planillas cargadas, no se puede generar el documento");
+            throw new ReglaNegocioException("El alumno no tiene planillas cargadas, no se puede generar el documento");
         }
 
         LocalDate fechaInicioPasantia = todasLasPlanillas.stream()
@@ -332,10 +334,10 @@ public class ImprimirController {
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
         return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
-            .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
     }
 
     // Método reutilizable para centrar texto en una coordenada X específica

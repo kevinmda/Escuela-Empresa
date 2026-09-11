@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
@@ -201,7 +202,7 @@ public class SubirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         DocumentoSubido documento = documentoSubidoRepository.findById(idDs)
-                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Documento no encontrado"));
 
         // seguridad: que el alumno no pueda ver documentos ajenos cambiando el idDs en la URL
         if (!documento.getAlumno().getIdAl().equals(alumno.getIdAl())) {
@@ -210,7 +211,7 @@ public class SubirController {
 
         File archivo = new File(documento.getRutaArchivo());
         if (!archivo.exists()) {
-            throw new RuntimeException("El archivo ya no está disponible en el servidor");
+            throw new RecursoNoEncontradoException("El archivo ya no está disponible en el servidor");
         }
 
         response.setContentType("application/pdf");
@@ -229,7 +230,7 @@ public class SubirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         DocumentoSubido documento = documentoSubidoRepository.findById(idDs)
-                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Documento no encontrado"));
 
         // seguridad: que el alumno no pueda borrar documentos ajenos cambiando el idDs en la URL
         if (!documento.getAlumno().getIdAl().equals(alumno.getIdAl())) {
@@ -252,9 +253,9 @@ public class SubirController {
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
         return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
     }
 }

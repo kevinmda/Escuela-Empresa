@@ -1339,6 +1339,32 @@ main h3 {
     line-height: 1.5;
 }
 
+/* --- Pagina de error (templates/error.html) ---
+   Va sobre la misma tarjeta de las pantallas de acceso. El codigo HTTP en mono
+   y chico, arriba del titulo: es un dato tecnico util para reportar, no el
+   protagonista. El titulo y el detalle dicen que paso en palabras. */
+.error-card {
+    text-align: center;
+}
+
+.error-codigo {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin: 0 0 0.5rem;
+}
+
+.error-detalle {
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0 0 1.5rem;
+}
+
+.error-card .btn {
+    display: inline-block;
+}
+
 /* --- Colapso móvil: la ilustración se retira (una franja vertical angosta no le
    hace justicia y encima pesa), el formulario toma todo el ancho. El preload de
    la imagen lleva el mismo media query, así que en móvil ni se descarga. --- */

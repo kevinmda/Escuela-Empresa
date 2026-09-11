@@ -12,6 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
@@ -51,7 +53,7 @@ public class HomeController {
 
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Usuario no Encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no Encontrado"));
 
         Optional<Administrador> adminOpt = administradorRepository.findByUsuario_IdUsr(usuario.getIdUsr());
 
@@ -79,7 +81,7 @@ public class HomeController {
             return "alumno/index";
         }
 
-        throw new RuntimeException("El usuario no está asociado a ningún rol");
+        throw new ReglaNegocioException("El usuario no está asociado a ningún rol");
     }
 
     private void cargarEstadisticas(Model model, Administrador admin) {

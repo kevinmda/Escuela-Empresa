@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 
@@ -36,7 +37,7 @@ public class CambiarContrasenaController {
         String email = authentication.getName(); //primero hay que saber quien esta logueado
 
         Usuario usuario = usuarioRepository.findByEmail(email)            //luego se busca al usuario que esta logueado por su email en la base de datos
-            .orElseThrow(() -> new RuntimeException("Usuario no Encontrado"));    //sino se encuentra entonces da el mensaje
+            .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no Encontrado"));    //sino se encuentra entonces da el mensaje
 
         if (!passwordEncoder.matches(actual, usuario.getContrasena())) {    //se verifica que la contrasena actual que coloco sea la correcta (devuelve true o false)
             return "redirect:/cambiar-contrasena?error";                    //sino te manda a ?error

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
@@ -25,12 +26,12 @@ public class AlumnoService {
 
         if ("coordinador".equalsIgnoreCase(admin.getCargo())) {
             if (admin.getEspecialidades() == null || admin.getEspecialidades().isEmpty()) {
-                throw new RuntimeException("El coordinador no tiene especialidad asignada");
+                throw new ReglaNegocioException("El coordinador no tiene especialidad asignada");
             }
             Integer idEsp = admin.getEspecialidades().get(0).getIdEsp();
             return alumnoRepository.findByEspecialidad_IdEspIn(List.of(idEsp));
         }
 
-        throw new RuntimeException("Cargo de administrador no reconocido: " + admin.getCargo());
+        throw new ReglaNegocioException("Cargo de administrador no reconocido: " + admin.getCargo());
     }
 }
