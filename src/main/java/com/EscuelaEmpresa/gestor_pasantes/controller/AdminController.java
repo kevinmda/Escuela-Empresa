@@ -450,16 +450,10 @@ public class AdminController {
         }
 
         // Antes de borrar, hay que desasignarlo de cualquier alumno que lo tenga puesto,
-        // porque la FK en la base no permite borrar un supervisor que todavía está en uso
-        List<Alumno> alumnosConEsteSupervisor = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp())
-                .stream()
-                .filter(alumno -> alumno.getSupervisor() != null && alumno.getSupervisor().getIdSup().equals(idSup))
-                .toList();
-
-        for (Alumno alumno : alumnosConEsteSupervisor) {
-            alumno.setSupervisor(null);
-            alumnoRepository.save(alumno);
-        }
+        // porque la FK en la base no permite borrar un supervisor que todavía está en uso.
+        // Un solo UPDATE: antes se traían todos los alumnos de la especialidad para
+        // filtrarlos en memoria y guardarlos de a uno.
+        alumnoRepository.desasignarSupervisor(idSup);
 
         supervisorRepository.delete(supervisor);
 
@@ -576,16 +570,8 @@ public class AdminController {
         }
 
         // Antes de borrar, desasignamos esta empresa de cualquier alumno que la tenga puesta,
-        // porque la FK en la base no permite borrar una empresa que todavía está en uso
-        List<Alumno> alumnosConEstaEmpresa = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp())
-                .stream()
-                .filter(alumno -> alumno.getEmpresa() != null && alumno.getEmpresa().getIdEmp().equals(idEmp))
-                .toList();
-
-        for (Alumno alumno : alumnosConEstaEmpresa) {
-            alumno.setEmpresa(null);
-            alumnoRepository.save(alumno);
-        }
+        // porque la FK en la base no permite borrar una empresa que todavía está en uso.
+        alumnoRepository.desasignarEmpresa(idEmp);
 
         empresaRepository.delete(empresa);
 
