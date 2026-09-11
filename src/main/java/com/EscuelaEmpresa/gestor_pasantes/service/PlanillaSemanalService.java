@@ -1,5 +1,7 @@
 package com.EscuelaEmpresa.gestor_pasantes.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
@@ -77,12 +79,7 @@ public class PlanillaSemanalService {
 
         validarSuperposicion(fechaDesde, fechaHasta, planillasExistentes);
 
-        float totalHoras = 0f;
-        for (DiaForm dia : diasCargados) {
-            if (dia.getHoras() != null) {
-                totalHoras += dia.getHoras();
-            }
-        }
+        BigDecimal totalHoras = sumarHoras(diasCargados);
 
         //valida el tamano de lo introducido en los campos de texto
         if (form.getSupervisor() == null || form.getSupervisor().trim().isEmpty()) {
@@ -137,7 +134,7 @@ public class PlanillaSemanalService {
             detalle.setPlanillaSemanal(planilla);
             detalle.setFecha(dia.getFecha());
             detalle.setDescripcion(dia.getDescripcion());
-            detalle.setHoras(dia.getHoras());
+            detalle.setHoras(normalizarHoras(dia.getHoras()));
 
             planillaSemanalDetalleRepository.save(detalle);
 
@@ -153,6 +150,24 @@ public class PlanillaSemanalService {
             planillaSemanalDetalleRepository.findByPlanillaSemanal_IdPs(planilla.getIdPs());
         planillaSemanalDetalleRepository.deleteAll(detalles);
         planillaSemanalRepository.delete(planilla);
+    }
+
+    // La suma se hace en BigDecimal con dos decimales fijos. Con float, 7.5 + 8.25
+    // podia dar 15.749999 y eso era lo que terminaba en la base y en el PDF.
+    static BigDecimal sumarHoras(List<DiaForm> dias) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (DiaForm dia : dias) {
+            if (dia.getHoras() != null) {
+                total = total.add(normalizarHoras(dia.getHoras()));
+            }
+        }
+        return total;
+    }
+
+    // El campo del formulario acepta step 0.01 y la columna es DECIMAL(5,2): se
+    // redondea aca, de forma explicita, en vez de dejar que MySQL lo haga en silencio.
+    static BigDecimal normalizarHoras(BigDecimal horas) {
+        return horas.setScale(2, RoundingMode.HALF_UP);
     }
 
     private void validarOrdenYRango(List<DiaForm> diasCargados) {
@@ -213,7 +228,7 @@ public class PlanillaSemanalService {
             throw new ReglaNegocioException("La descripción de " + dia.getNombreDia() + " supera el máximo de 65 caracteres");
         }
 
-        if (dia.getHoras() <= 0) {
+        if (dia.getHoras().signum() <= 0) {
             throw new ReglaNegocioException("Las horas deben ser mayores a 0 en " + dia.getNombreDia());
         }
 

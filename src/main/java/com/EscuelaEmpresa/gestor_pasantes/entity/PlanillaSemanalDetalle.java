@@ -1,6 +1,7 @@
 package com.EscuelaEmpresa.gestor_pasantes.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -20,7 +21,8 @@ public class PlanillaSemanalDetalle {
     @Column(length = 65)
     private String descripcion;
 
-    private Float horas;
+    @Column(precision = 5, scale = 2) // DECIMAL(5,2), mismo motivo que total_horas
+    private BigDecimal horas;
 
     public PlanillaSemanalDetalle() {}
 
@@ -36,6 +38,6 @@ public class PlanillaSemanalDetalle {
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public Float getHoras() { return horas; }
-    public void setHoras(Float horas) { this.horas = horas; }
+    public BigDecimal getHoras() { return horas; }
+    public void setHoras(BigDecimal horas) { this.horas = horas; }
 }

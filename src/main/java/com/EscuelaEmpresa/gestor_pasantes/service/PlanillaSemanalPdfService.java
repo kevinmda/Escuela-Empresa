@@ -1,6 +1,7 @@
 package com.EscuelaEmpresa.gestor_pasantes.service;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.format.DateTimeFormatter;
@@ -131,11 +132,10 @@ public class PlanillaSemanalPdfService {
         escribirTexto(contentStream, fuente, 10, horas, 499, y);
     }
 
-    private String formatearHoras(Float horas) {
+    private String formatearHoras(BigDecimal horas) {
         if (horas == null) return "-";
-        if (horas == Math.floor(horas)) {
-            return String.valueOf(horas.intValue()); // 8.0 -> "8"
-        }
-        return String.format("%.1f", horas); // 7.5 -> "7.5"
+        // 8.00 -> "8", 7.50 -> "7.5", 7.25 -> "7.25": sin ceros de relleno
+        BigDecimal sinCeros = horas.stripTrailingZeros();
+        return sinCeros.scale() <= 0 ? sinCeros.toBigInteger().toString() : sinCeros.toPlainString();
     }
 }
