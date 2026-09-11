@@ -1,6 +1,5 @@
 package com.EscuelaEmpresa.gestor_pasantes.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,22 +41,6 @@ public class ValidacionDocumentoService {
         }
 
         return true;
-    }
-
-    /**
-     * Valida la integridad de un archivo ya guardado en el filesystem
-     * usando SHA-256
-     */
-    public boolean validarIntegridadArchivo(File archivo, String hashEsperado) throws IOException {
-        String hashCalculado = calcularSHA256(archivo);
-        return hashCalculado.equalsIgnoreCase(hashEsperado);
-    }
-
-    /**
-     * Calcula el hash SHA-256 de un archivo
-     */
-    public String calcularSHA256(File archivo) throws IOException {
-        return calcularSHA256(archivo.toPath());
     }
 
     /**

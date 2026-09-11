@@ -11,7 +11,6 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 
 public interface AlumnoRepository extends JpaRepository<Alumno, Integer> {
     Optional<Alumno> findByUsuario_IdUsr(Integer idUsr); //el guion dice "navegá a través de la relación Usuario de Alumno, y mirá su campo idUsr"
-    List<Alumno> findByEspecialidad_IdEspIn(List<Integer> idsEsp); //el guion dice "navegá a través de la relación Especialidad de Alumno, y mirá su campo idEsp", y In significa "que esté dentro de esta lista de valores". Es el equivalente a WHERE id_Esp IN (?, ?, ?, ...) en SQL. Al final devuelve una lista de los alumnos que cumplen eso
     List<Alumno> findByEspecialidad_IdEsp(Integer idEsp); // todos los alumnos de una especialidad, sin filtrar por curso/sección (usado en la asignación de supervisores)
 
     long countByEspecialidad_IdEspIn(List<Integer> idsEsp);
