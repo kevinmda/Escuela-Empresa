@@ -1205,6 +1205,37 @@ main h3 {
     max-width: 460px;
 }
 
+/* Términos y condiciones: mismo layout de acceso, pero con una tarjeta más
+   ancha y texto alineado a la izquierda, porque es prosa larga y no un
+   formulario corto centrado. */
+.auth-panel .auth-card--legal {
+    max-width: 640px;
+    text-align: left;
+}
+
+.auth-panel .auth-card--legal .auth-titulo {
+    text-align: center;
+}
+
+.legal-texto {
+    text-align: left;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.legal-texto h2 {
+    font-size: 1.05rem;
+    margin: 1.5rem 0 0.5rem;
+}
+
+.legal-texto h2:first-child {
+    margin-top: 0;
+}
+
+.legal-texto p {
+    margin-bottom: 0.75rem;
+}
+
 .auth-panel .auth-card-logo {
     width: 100px;
     margin-bottom: 1.75rem;
