@@ -43,6 +43,9 @@ build/
 /src/main/resources/application.properties
 application-local.properties
 
+### Documentos subidos por los alumnos (datos personales, viven solo en el servidor) ###
+uploads/
+
 ### Sistema operativo (Windows) ###
 Thumbs.db
 desktop.ini

@@ -16,7 +16,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${titulo}">Acceso</title>
+    <meta name="description" content="Sistema de gestión de pasantías del Colegio Técnico Nacional de Asunción.">
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
+
+    <!-- Vista previa al compartir el link (WhatsApp, Slack, etc). og:image necesita
+         URL absoluta: las redes no resuelven "/img/..." relativo a nada. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="CTN Pasantías">
+    <meta property="og:title" th:content="${titulo}">
+    <meta property="og:description" content="Sistema de gestión de pasantías del Colegio Técnico Nacional de Asunción.">
+    <meta property="og:image" th:content="${(baseUrl ?: '')} + '/img/ctnLogoDef.png'">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" th:content="${titulo}">
+    <meta name="twitter:description" content="Sistema de gestión de pasantías del Colegio Técnico Nacional de Asunción.">
+    <meta name="twitter:image" th:content="${(baseUrl ?: '')} + '/img/ctnLogoDef.png'">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +48,7 @@
           th:href="@{/img/auth-ilustracion.webp}">
 
     <script th:src="@{/js/theme.js}" defer></script>
+    <script th:src="@{/js/cookie-consent.js}" defer></script>
 </head>
 
 <body>

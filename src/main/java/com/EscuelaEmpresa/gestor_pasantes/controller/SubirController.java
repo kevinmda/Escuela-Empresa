@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
@@ -34,7 +35,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService;
 import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService.ValidacionResultado;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
-import com.EscuelaEmpresa.gestor_pasantes.service.NombresDeArchivo;
+import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -209,7 +210,7 @@ public class SubirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         DocumentoSubido documento = documentoSubidoRepository.findById(idDs)
-                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Documento no encontrado"));
 
         // seguridad: que el alumno no pueda ver documentos ajenos cambiando el idDs en la URL
         if (!documento.getAlumno().getIdAl().equals(alumno.getIdAl())) {
@@ -218,16 +219,16 @@ public class SubirController {
 
         File archivo = new File(documento.getRutaArchivo());
         if (!archivo.exists()) {
-            throw new RuntimeException("El archivo ya no está disponible en el servidor");
+            throw new RecursoNoEncontradoException("El archivo ya no está disponible en el servidor");
         }
 
         response.setContentType("application/pdf");
         // "inline" (no "attachment") para que el navegador lo abra en la misma pestaña/visor
-        // de PDF, en vez de forzar la descarga.
-        // El nombre lo eligio el alumno al subir el archivo, asi que va sanitizado y
-        // entre comillas: pegado crudo, uno con comillas o punto y coma partia la cabecera.
-        response.setHeader("Content-Disposition", NombresDeArchivo.contentDisposition(
-                "inline", documento.getNombreArchivo(), "documento_" + documento.getIdDs() + ".pdf"));
+        // de PDF, en vez de forzar la descarga. El nombre lo eligio el alumno al subir
+        // el archivo, asi que va sanitizado y codificado: pegado crudo, uno con comillas,
+        // punto y coma o acentos partia la cabecera o llegaba mal al navegador.
+        response.setHeader("Content-Disposition",
+                Descarga.inline(documento.getNombreArchivo(), "documento_" + documento.getIdDs() + ".pdf"));
 
         Files.copy(archivo.toPath(), response.getOutputStream());
     }
@@ -240,7 +241,7 @@ public class SubirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         DocumentoSubido documento = documentoSubidoRepository.findById(idDs)
-                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Documento no encontrado"));
 
         // seguridad: que el alumno no pueda borrar documentos ajenos cambiando el idDs en la URL
         if (!documento.getAlumno().getIdAl().equals(alumno.getIdAl())) {
@@ -263,9 +264,9 @@ public class SubirController {
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
         return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
     }
 }

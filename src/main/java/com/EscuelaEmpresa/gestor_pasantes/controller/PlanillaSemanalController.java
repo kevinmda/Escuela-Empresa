@@ -3,7 +3,6 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -16,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.dto.PlanillaSemanalForm;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
@@ -27,9 +28,9 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalPdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalService;
+import com.EscuelaEmpresa.gestor_pasantes.service.PlantillaService;
 import com.EscuelaEmpresa.gestor_pasantes.service.InformePasantiaService;
-import com.EscuelaEmpresa.gestor_pasantes.service.NombresDeArchivo;
-import com.EscuelaEmpresa.gestor_pasantes.service.Plantillas;
+import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -48,13 +49,15 @@ public class PlanillaSemanalController {
     private final PlanillaSemanalService planillaSemanalService;
     private final PlanillaSemanalPdfService planillaSemanalPdfService;
     private final InformePasantiaService informePasantiaService;
+    private final PlantillaService plantillaService;
 
     public PlanillaSemanalController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository,
                                     PlanillaSemanalRepository planillaSemanalRepository,
                                     PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
                                     PlanillaSemanalService planillaSemanalService,
                                     PlanillaSemanalPdfService planillaSemanalPdfService,
-                                    InformePasantiaService informePasantiaService) {
+                                    InformePasantiaService informePasantiaService,
+                                    PlantillaService plantillaService) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
@@ -62,6 +65,7 @@ public class PlanillaSemanalController {
         this.planillaSemanalService = planillaSemanalService;
         this.planillaSemanalPdfService = planillaSemanalPdfService;
         this.informePasantiaService = informePasantiaService;
+        this.plantillaService = plantillaService;
     }
 
     @GetMapping("/alumno/planilla")
@@ -80,7 +84,7 @@ public class PlanillaSemanalController {
 
         if (idPs != null) {
             PlanillaSemanal planilla = planillaSemanalRepository.findById(idPs)
-                .orElseThrow(() -> new RuntimeException("Planilla no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Planilla no encontrada"));
 
             // Seguridad: que el alumno no pueda ver planillas ajenas cambiando el idPs en la URL
             if (!planilla.getAlumno().getIdAl().equals(alumno.getIdAl())) {
@@ -110,7 +114,7 @@ public class PlanillaSemanalController {
             model.addAttribute("exito", "Planilla guardada correctamente.");
             model.addAttribute("planillaForm", new PlanillaSemanalForm());
             model.addAttribute("habilitado", false);
-        } catch (RuntimeException e) {
+        } catch (ReglaNegocioException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("planillaForm", form);
             model.addAttribute("habilitado", true);
@@ -133,7 +137,7 @@ public class PlanillaSemanalController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         PlanillaSemanal planilla = planillaSemanalRepository.findById(idPs)
-                .orElseThrow(() -> new RuntimeException("Planilla no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Planilla no encontrada"));
 
         // seguridad: que el alumno no pueda borrar planillas ajenas cambiando el idPs en la URL
         if (!planilla.getAlumno().getIdAl().equals(alumno.getIdAl())) {
@@ -154,7 +158,7 @@ public class PlanillaSemanalController {
 
         // 2. Buscar la planilla y validar que sea del alumno logueado
         PlanillaSemanal planilla = planillaSemanalRepository.findById(idPs)
-                .orElseThrow(() -> new RuntimeException("Planilla no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Planilla no encontrada"));
 
         if (!planilla.getAlumno().getIdAl().equals(alumno.getIdAl())) {
             throw new AccessDeniedException("No tenés permiso para generar esta planilla");
@@ -180,7 +184,7 @@ public class PlanillaSemanalController {
     public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("CONTROL_SEMANAL_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("CONTROL_SEMANAL_PEL_2025.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -230,10 +234,9 @@ public class PlanillaSemanalController {
         documento.close();
 
         response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        response.setHeader("Content-Disposition", NombresDeArchivo.contentDisposition(
-                "attachment",
-                "Informe_Pasantia_" + alumno.getNombres() + alumno.getApellidos() + ".docx",
-                "Informe_Pasantia.docx"));
+        response.setHeader("Content-Disposition",
+                Descarga.adjunto("Informe_Pasantia_" + alumno.getNombres() + "_" + alumno.getApellidos() + ".docx",
+                        "Informe_Pasantia.docx"));
         response.getOutputStream().write(salida.toByteArray());
         response.getOutputStream().flush();
     }
@@ -272,9 +275,9 @@ public class PlanillaSemanalController {
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
         return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
-            .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
     }
 }

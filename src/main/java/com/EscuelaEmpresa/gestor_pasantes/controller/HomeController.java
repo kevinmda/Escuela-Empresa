@@ -5,13 +5,14 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Optional;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
@@ -51,7 +52,7 @@ public class HomeController {
 
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Usuario no Encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no Encontrado"));
 
         Optional<Administrador> adminOpt = administradorRepository.findByUsuario_IdUsr(usuario.getIdUsr());
 
@@ -79,15 +80,13 @@ public class HomeController {
             return "alumno/index";
         }
 
-        throw new RuntimeException("El usuario no está asociado a ningún rol");
+        throw new ReglaNegocioException("El usuario no está asociado a ningún rol");
     }
 
     private void cargarEstadisticas(Model model, Administrador admin) {
-        List<Integer> idsEspecialidad = admin.getEspecialidades() == null
+        List<Integer> idsEspecialidad = admin.getEspecialidad() == null
                 ? List.of()
-                : admin.getEspecialidades().stream()
-                        .map(especialidad -> especialidad.getIdEsp())
-                        .collect(Collectors.toList());
+                : List.of(admin.getEspecialidad().getIdEsp());
 
         if ("administrativo".equalsIgnoreCase(admin.getCargo())) {
             idsEspecialidad = null;

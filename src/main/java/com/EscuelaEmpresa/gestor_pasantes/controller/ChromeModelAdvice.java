@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * Contrato único para el cromo autenticado. Así las once vistas no tienen que
@@ -75,6 +76,13 @@ public class ChromeModelAdvice {
         }
 
         return new ChromeContext("cuenta", usuario.getEmail(), usuario.getEmail(), null, null);
+    }
+
+    // usado por fragments/auth.html para armar og:image con URL absoluta: las
+    // vistas previas de redes sociales no resuelven rutas relativas como "/img/..."
+    @ModelAttribute("baseUrl")
+    public String cargarBaseUrl() {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
     }
 
     @ModelAttribute("paginaActual")

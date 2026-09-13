@@ -1,5 +1,7 @@
 package com.EscuelaEmpresa.gestor_pasantes.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.dto.DiaForm;
 import com.EscuelaEmpresa.gestor_pasantes.dto.PlanillaSemanalForm;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
@@ -34,7 +37,7 @@ public class PlanillaSemanalService {
         // Maximo 6 planillas por alumno (una pasantia dura exactamente 6 semanas)
         List<PlanillaSemanal> planillasExistentes = planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         if (planillasExistentes.size() >= 6) {
-            throw new RuntimeException("Ya cargaste las 6 semanas de planilla. No se pueden cargar más.");
+            throw new ReglaNegocioException("Ya cargaste las 6 semanas de planilla. No se pueden cargar más.");
         }
 
         // Validar cada día ANTES de filtrar
@@ -46,7 +49,7 @@ public class PlanillaSemanalService {
         // Validar cada día ANTES de filtrar
         List<DiaForm> dias = form.getDias();
         if (dias == null || dias.size() != diasEsperados.length) {
-            throw new RuntimeException("La planilla debe contener los seis días de la semana");
+            throw new ReglaNegocioException("La planilla debe contener los seis días de la semana");
         }
         for (int i = 0; i < dias.size(); i++) {
             validarDia(dias.get(i), diasEsperados[i]);
@@ -58,7 +61,7 @@ public class PlanillaSemanalService {
                 .toList();
 
         if (diasCargados.isEmpty()) {
-            throw new RuntimeException("Debe cargar al menos un día trabajado");
+            throw new ReglaNegocioException("Debe cargar al menos un día trabajado");
         }
 
         validarOrdenYRango(diasCargados);
@@ -76,41 +79,36 @@ public class PlanillaSemanalService {
 
         validarSuperposicion(fechaDesde, fechaHasta, planillasExistentes);
 
-        float totalHoras = 0f;
-        for (DiaForm dia : diasCargados) {
-            if (dia.getHoras() != null) {
-                totalHoras += dia.getHoras();
-            }
-        }
+        BigDecimal totalHoras = sumarHoras(diasCargados);
 
         //valida el tamano de lo introducido en los campos de texto
         if (form.getSupervisor() == null || form.getSupervisor().trim().isEmpty()) {
-        throw new RuntimeException("El campo Supervisor es obligatorio.");
+        throw new ReglaNegocioException("El campo Supervisor es obligatorio.");
         }
         if (form.getConocimientos() == null || form.getConocimientos().trim().isEmpty()) {
-            throw new RuntimeException("El campo Conocimientos es obligatorio.");
+            throw new ReglaNegocioException("El campo Conocimientos es obligatorio.");
         }
         if (form.getExperiencia() == null || form.getExperiencia().trim().isEmpty()) {
-            throw new RuntimeException("El campo Experiencia es obligatorio.");
+            throw new ReglaNegocioException("El campo Experiencia es obligatorio.");
         }
         if (form.getAprendizaje() == null || form.getAprendizaje().trim().isEmpty()) {
-            throw new RuntimeException("El campo Aprendizaje es obligatorio.");
+            throw new ReglaNegocioException("El campo Aprendizaje es obligatorio.");
         }
 
         if (form.getSupervisor() != null && form.getSupervisor().length() > 100) {
-            throw new RuntimeException("El nombre del supervisor supera el máximo de 100 caracteres");
+            throw new ReglaNegocioException("El nombre del supervisor supera el máximo de 100 caracteres");
         }
 
         if (form.getConocimientos() != null && form.getConocimientos().length() > 265) {
-            throw new RuntimeException("El campo Conocimientos supera el máximo de 265 caracteres");
+            throw new ReglaNegocioException("El campo Conocimientos supera el máximo de 265 caracteres");
         }
 
         if (form.getExperiencia() != null && form.getExperiencia().length() > 200) {
-            throw new RuntimeException("El campo Experiencia supera el máximo de 200 caracteres");
+            throw new ReglaNegocioException("El campo Experiencia supera el máximo de 200 caracteres");
         }
 
         if (form.getAprendizaje() != null && form.getAprendizaje().length() > 200) {
-            throw new RuntimeException("El campo Aprendizaje supera el máximo de 200 caracteres");
+            throw new ReglaNegocioException("El campo Aprendizaje supera el máximo de 200 caracteres");
         }
 
         // 3. Armar y guardar la PlanillaSemanal (cabecera)
@@ -136,7 +134,7 @@ public class PlanillaSemanalService {
             detalle.setPlanillaSemanal(planilla);
             detalle.setFecha(dia.getFecha());
             detalle.setDescripcion(dia.getDescripcion());
-            detalle.setHoras(dia.getHoras());
+            detalle.setHoras(normalizarHoras(dia.getHoras()));
 
             planillaSemanalDetalleRepository.save(detalle);
 
@@ -154,6 +152,24 @@ public class PlanillaSemanalService {
         planillaSemanalRepository.delete(planilla);
     }
 
+    // La suma se hace en BigDecimal con dos decimales fijos. Con float, 7.5 + 8.25
+    // podia dar 15.749999 y eso era lo que terminaba en la base y en el PDF.
+    static BigDecimal sumarHoras(List<DiaForm> dias) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (DiaForm dia : dias) {
+            if (dia.getHoras() != null) {
+                total = total.add(normalizarHoras(dia.getHoras()));
+            }
+        }
+        return total;
+    }
+
+    // El campo del formulario acepta step 0.01 y la columna es DECIMAL(5,2): se
+    // redondea aca, de forma explicita, en vez de dejar que MySQL lo haga en silencio.
+    static BigDecimal normalizarHoras(BigDecimal horas) {
+        return horas.setScale(2, RoundingMode.HALF_UP);
+    }
+
     private void validarOrdenYRango(List<DiaForm> diasCargados) {
         // Opción 1: orden cronológico -- cada día cargado tiene que tener una fecha
         // posterior al día anterior (evita "Martes antes que Lunes")
@@ -161,7 +177,7 @@ public class PlanillaSemanalService {
             LocalDate anterior = diasCargados.get(i - 1).getFecha();
             LocalDate actual = diasCargados.get(i).getFecha();
             if (!actual.isAfter(anterior)) {
-                throw new RuntimeException("Las fechas cargadas no siguen el orden correcto de los días de la semana.");
+                throw new ReglaNegocioException("Las fechas cargadas no siguen el orden correcto de los días de la semana.");
             }
         }
 
@@ -170,7 +186,7 @@ public class PlanillaSemanalService {
         LocalDate minFecha = diasCargados.get(0).getFecha();
         LocalDate maxFecha = diasCargados.get(diasCargados.size() - 1).getFecha();
         if (java.time.temporal.ChronoUnit.DAYS.between(minFecha, maxFecha) > 5) {
-            throw new RuntimeException("Las fechas cargadas abarcan más de una semana. Revisá que todas correspondan a la misma semana.");
+            throw new ReglaNegocioException("Las fechas cargadas abarcan más de una semana. Revisá que todas correspondan a la misma semana.");
         }
     }
 
@@ -179,7 +195,7 @@ public class PlanillaSemanalService {
         for (PlanillaSemanal existente : planillasExistentes) {
             boolean seSuperponen = !fechaHasta.isBefore(existente.getFechaDesde()) && !fechaDesde.isAfter(existente.getFechaHasta());
             if (seSuperponen) {
-                throw new RuntimeException("Las fechas se superponen con una planilla ya cargada (semana del "
+                throw new ReglaNegocioException("Las fechas se superponen con una planilla ya cargada (semana del "
                         + existente.getFechaDesde() + " al " + existente.getFechaHasta() + ").");
             }
         }
@@ -197,27 +213,27 @@ public class PlanillaSemanalService {
 
         // Si tiene AL MENOS un dato, entonces TODOS son obligatorios
         if (dia.getFecha() == null) {
-            throw new RuntimeException("Falta la fecha en " + dia.getNombreDia());
+            throw new ReglaNegocioException("Falta la fecha en " + dia.getNombreDia());
         }
 
         if (dia.getDescripcion() == null || dia.getDescripcion().isBlank()) {
-            throw new RuntimeException("Falta la descripción en " + dia.getNombreDia());
+            throw new ReglaNegocioException("Falta la descripción en " + dia.getNombreDia());
         }
 
         if (dia.getHoras() == null) {
-            throw new RuntimeException("Faltan las horas en " + dia.getNombreDia());
+            throw new ReglaNegocioException("Faltan las horas en " + dia.getNombreDia());
         }
 
         if (dia.getDescripcion() != null && dia.getDescripcion().length() > 65) {
-            throw new RuntimeException("La descripción de " + dia.getNombreDia() + " supera el máximo de 65 caracteres");
+            throw new ReglaNegocioException("La descripción de " + dia.getNombreDia() + " supera el máximo de 65 caracteres");
         }
 
-        if (dia.getHoras() <= 0) {
-            throw new RuntimeException("Las horas deben ser mayores a 0 en " + dia.getNombreDia());
+        if (dia.getHoras().signum() <= 0) {
+            throw new ReglaNegocioException("Las horas deben ser mayores a 0 en " + dia.getNombreDia());
         }
 
         if (dia.getFecha() != null && dia.getFecha().getDayOfWeek() != diaEsperado) {
-            throw new RuntimeException(
+            throw new ReglaNegocioException(
                 "La fecha ingresada en la fila '" + dia.getNombreDia() + "' no corresponde a ese día de la semana. " +
                 "Verificá el calendario e intentá de nuevo."
             );

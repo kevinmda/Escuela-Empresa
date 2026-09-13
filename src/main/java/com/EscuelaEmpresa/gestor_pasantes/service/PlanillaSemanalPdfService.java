@@ -1,12 +1,12 @@
 package com.EscuelaEmpresa.gestor_pasantes.service;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -21,10 +21,16 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanalDetalle;
 @Service
 public class PlanillaSemanalPdfService {
 
+    private final PlantillaService plantillaService;
+
+    public PlanillaSemanalPdfService(PlantillaService plantillaService) {
+        this.plantillaService = plantillaService;
+    }
+
     public byte[] generarPdf(Alumno alumno, PlanillaSemanal planilla, List<PlanillaSemanalDetalle> detalles) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("CONTROL_SEMANAL_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("CONTROL_SEMANAL_PEL_2025.pdf");
         PDPage pagina = document.getPage(0);
 
         // 2. Abrir el "lienzo" para escribir encima del PDF
@@ -126,11 +132,10 @@ public class PlanillaSemanalPdfService {
         escribirTexto(contentStream, fuente, 10, horas, 499, y);
     }
 
-    private String formatearHoras(Float horas) {
+    private String formatearHoras(BigDecimal horas) {
         if (horas == null) return "-";
-        if (horas == Math.floor(horas)) {
-            return String.valueOf(horas.intValue()); // 8.0 -> "8"
-        }
-        return String.format("%.1f", horas); // 7.5 -> "7.5"
+        // 8.00 -> "8", 7.50 -> "7.5", 7.25 -> "7.25": sin ceros de relleno
+        BigDecimal sinCeros = horas.stripTrailingZeros();
+        return sinCeros.scale() <= 0 ? sinCeros.toBigInteger().toString() : sinCeros.toPlainString();
     }
 }

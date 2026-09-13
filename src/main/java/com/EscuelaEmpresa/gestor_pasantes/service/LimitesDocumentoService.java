@@ -32,17 +32,6 @@ public class LimitesDocumentoService {
     }
 
     /**
-     * Obtiene la descripción del límite para mostrar al usuario
-     */
-    public String obtenerDescripcionLimite(TipoDocumento tipo) {
-        int limite = obtenerLimitePorTipo(tipo);
-        if (limite == 6) {
-            return "Máximo 6 subidas";
-        }
-        return "Máximo 1 subida";
-    }
-
-    /**
      * Cuenta cuántos documentos de un tipo ya subió el alumno
      */
     public long contarDocumentosSubidos(Integer idAlumno, TipoDocumento tipo) {
@@ -70,16 +59,6 @@ public class LimitesDocumentoService {
                    + "'. Para subir otro, debes eliminar el anterior.";
         }
         return "Ya alcanzaste el límite de " + limite + " documentos de tipo '" 
-               + tipo.getDescripcion() + "'.";
-    }
-
-    /**
-     * Obtiene un mensaje informativo con el estado actual
-     */
-    public String obtenerMensajeInfo(Integer idAlumno, TipoDocumento tipo) {
-        long subidos = contarDocumentosSubidos(idAlumno, tipo);
-        int limite = obtenerLimitePorTipo(tipo);
-        return "Has subido " + subidos + " de " + limite + " documentos de tipo '" 
                + tipo.getDescripcion() + "'.";
     }
 }

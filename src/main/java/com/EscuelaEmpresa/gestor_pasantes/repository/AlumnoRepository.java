@@ -4,14 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 
 public interface AlumnoRepository extends JpaRepository<Alumno, Integer> {
     Optional<Alumno> findByUsuario_IdUsr(Integer idUsr); //el guion dice "navegá a través de la relación Usuario de Alumno, y mirá su campo idUsr"
-    List<Alumno> findByEspecialidad_IdEspIn(List<Integer> idsEsp); //el guion dice "navegá a través de la relación Especialidad de Alumno, y mirá su campo idEsp", y In significa "que esté dentro de esta lista de valores". Es el equivalente a WHERE id_Esp IN (?, ?, ?, ...) en SQL. Al final devuelve una lista de los alumnos que cumplen eso
     List<Alumno> findByEspecialidad_IdEsp(Integer idEsp); // todos los alumnos de una especialidad, sin filtrar por curso/sección (usado en la asignación de supervisores)
 
     long countByEspecialidad_IdEspIn(List<Integer> idsEsp);
@@ -37,4 +38,20 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Integer> {
             + "OR LOWER(a.apellidos) LIKE LOWER(CONCAT('%', :texto, '%')) "
             + "OR a.ci LIKE CONCAT('%', :texto, '%'))")
     List<Alumno> buscarPorNombreApellidoOCi(@Param("idsEsp") List<Integer> idsEsp, @Param("texto") String texto);
+
+    // --- Desasignación masiva antes de borrar un supervisor / una empresa ---
+    // La FK no deja borrar mientras algún alumno los tenga puestos. Un UPDATE
+    // resuelve todos los alumnos de una vez, sin cargarlos ni guardarlos uno a uno.
+    // El supervisor/empresa ya pertenece a la especialidad del coordinador (lo
+    // verifica el controlador), así que sus alumnos también.
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE Alumno a SET a.supervisor = null WHERE a.supervisor.idSup = :idSup")
+    void desasignarSupervisor(@Param("idSup") Integer idSup);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("UPDATE Alumno a SET a.empresa = null WHERE a.empresa.idEmp = :idEmp")
+    void desasignarEmpresa(@Param("idEmp") Integer idEmp);
 }

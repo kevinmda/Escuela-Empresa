@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    Unica pagina de error de la aplicacion. La usan dos caminos:
+
+      1. ManejoErroresGlobal (excepciones lanzadas desde un controlador): llega
+         con status, titulo y detalle ya decididos.
+      2. El BasicErrorController de Spring Boot (errores anteriores al controlador:
+         una URL que no existe, un 403 del filtro de seguridad, una sesion vencida):
+         llega solo con status y error, sin titulo ni detalle.
+
+    Por eso cada texto tiene un valor por defecto segun el codigo HTTP: la pagina
+    tiene que verse completa venga de donde venga.
+
+    Usa el layout de las pantallas de acceso (no el cromo autenticado) a proposito:
+    el error puede saltarle tanto a alguien logueado como a alguien que no lo esta,
+    y el cromo necesita datos del usuario que en un @ExceptionHandler no se cargan.
+-->
+<head th:replace="~{fragments/auth :: head('Error')}"></head>
+<body>
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
+
+    <div class="auth-split">
+        <main class="auth-panel">
+            <div class="auth-card error-card" th:with="codigo=${status != null ? status : 500}">
+                <img th:replace="~{fragments/auth :: logoTarjeta}">
+
+                <p class="error-codigo" th:text="${codigo}">500</p>
+
+                <h1 class="auth-titulo" th:text="${titulo != null ? titulo
+                        : (codigo == 404 ? 'Esta página no existe'
+                        : (codigo == 403 ? 'No tenés permiso para esto'
+                        : (codigo == 401 ? 'Tenés que iniciar sesión'
+                        : 'Algo salió mal')))}">Algo salió mal</h1>
+
+                <p class="error-detalle" th:text="${detalle != null ? detalle
+                        : (codigo == 404 ? 'Revisá la dirección o volvé al inicio.'
+                        : (codigo == 403 ? 'Esta pantalla no corresponde a tu cuenta.'
+                        : (codigo == 401 ? 'Tu sesión venció o todavía no ingresaste.'
+                        : 'Ocurrió un error inesperado. Si se repite, avisale a coordinación.')))}">
+                    Ocurrió un error inesperado.
+                </p>
+
+                <!-- /home decide a donde va cada rol; si no hay sesion, Security lo
+                     manda al login. No hace falta saber quien es desde aca. -->
+                <a class="btn btn-primary" th:href="@{/home}">Volver al inicio</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

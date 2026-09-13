@@ -1,5 +1,6 @@
 package com.EscuelaEmpresa.gestor_pasantes.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,7 +13,9 @@ public class DiaForm {
     private LocalDate fecha;
 
     private String descripcion;
-    private Float horas;
+    // BigDecimal y no Float: las horas se suman, y en binario 7.5 + 8.25 no da
+    // 15.75 exacto. Con dos decimales fijos la cuenta cierra siempre.
+    private BigDecimal horas;
 
     public DiaForm() {}
 
@@ -29,6 +32,6 @@ public class DiaForm {
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public Float getHoras() { return horas; }
-    public void setHoras(Float horas) { this.horas = horas; }
+    public BigDecimal getHoras() { return horas; }
+    public void setHoras(BigDecimal horas) { this.horas = horas; }
 }

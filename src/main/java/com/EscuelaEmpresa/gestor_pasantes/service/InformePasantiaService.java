@@ -33,6 +33,7 @@ import java.util.Locale;
 public class InformePasantiaService {
 
     private final PlanillaSemanalDetalleRepository detalleRepository;
+    private final PlantillaService plantillaService;
 
     // "femenino" para las semanas (primera, segunda...) y "masculino" para los dias (primer, segundo...)
     // porque asi estan armados los nombres de los bookmarks en la plantilla
@@ -49,8 +50,9 @@ public class InformePasantiaService {
     private static final Locale LOCALE_ES = new Locale.Builder().setLanguage("es").setRegion("ES").build();
     private static final DateTimeFormatter FORMATO_FECHA_CORTA = DateTimeFormatter.ofPattern("dd/MM");
 
-    public InformePasantiaService(PlanillaSemanalDetalleRepository detalleRepository) {
+    public InformePasantiaService(PlanillaSemanalDetalleRepository detalleRepository, PlantillaService plantillaService) {
         this.detalleRepository = detalleRepository;
+        this.plantillaService = plantillaService;
     }
 
     /**
@@ -59,8 +61,8 @@ public class InformePasantiaService {
     public XWPFDocument generarInforme(Alumno alumno, List<PlanillaSemanal> planillasOrdenadas) throws IOException {
 
         XWPFDocument documento;
-        try (InputStream fis = Plantillas.abrir("Informe_Pasantia_Plantilla.docx")) {
-            documento = new XWPFDocument(fis);
+        try (InputStream entrada = plantillaService.abrir("Informe_Pasantia_Plantilla.docx")) {
+            documento = new XWPFDocument(entrada);
         }
 
         completarEncabezado(documento, alumno, planillasOrdenadas);

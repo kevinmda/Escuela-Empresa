@@ -12,6 +12,7 @@
 
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <script th:src="@{/js/theme.js}" defer></script>
+    <script th:src="@{/js/cookie-consent.js}" defer></script>
 
 </head>
 <body>
@@ -173,23 +174,23 @@
                     <div class="pl-resumen">
                         <label class="pl-campo pl-campo--supervisor">
                             <span class="pl-campo-etiqueta">Supervisor</span>
-                            <input type="text" th:field="*{supervisor}" maxlength="100"
+                            <input type="text" th:field="*{supervisor}" maxlength="100" required
                                    placeholder="Nombre de tu supervisor en la empresa">
                         </label>
 
                         <label class="pl-campo">
                             <span class="pl-campo-etiqueta">Conocimientos adquiridos</span>
-                            <textarea th:field="*{conocimientos}" maxlength="265"></textarea>
+                            <textarea th:field="*{conocimientos}" maxlength="265" required></textarea>
                         </label>
 
                         <label class="pl-campo">
                             <span class="pl-campo-etiqueta">Experiencia</span>
-                            <textarea th:field="*{experiencia}" maxlength="200"></textarea>
+                            <textarea th:field="*{experiencia}" maxlength="200" required></textarea>
                         </label>
 
                         <label class="pl-campo">
                             <span class="pl-campo-etiqueta">Aprendizaje</span>
-                            <textarea th:field="*{aprendizaje}" maxlength="200"></textarea>
+                            <textarea th:field="*{aprendizaje}" maxlength="200" required></textarea>
                         </label>
                     </div>
                 </section>

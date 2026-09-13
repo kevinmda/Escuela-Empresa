@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/auth :: head('Términos y condiciones')}"></head>
+<body>
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-standalone">Modo oscuro</button>
+
+    <div class="auth-split">
+        <main class="auth-panel">
+            <div class="auth-card auth-card--legal">
+                <img th:replace="~{fragments/auth :: logoTarjeta}">
+
+                <h1 class="auth-titulo">Términos y condiciones</h1>
+
+                <div class="legal-texto">
+                    <p>
+                        Este sistema es una herramienta interna del Colegio Técnico Nacional de Asunción
+                        para la gestión de pasantías de sus alumnos. Al utilizarlo aceptás las siguientes
+                        condiciones de uso.
+                    </p>
+
+                    <h2>1. Uso de la cuenta</h2>
+                    <p>
+                        El acceso es personal e intransferible. Sos responsable de mantener la
+                        confidencialidad de tu contraseña y de todas las actividades realizadas desde tu
+                        cuenta. Ante cualquier sospecha de uso indebido, comunicate con coordinación para
+                        que se bloquee el acceso.
+                    </p>
+
+                    <h2>2. Datos y documentación</h2>
+                    <p>
+                        La información y los documentos que cargues (planillas semanales, informes,
+                        autorizaciones y demás archivos requeridos por la pasantía) se utilizan
+                        exclusivamente con fines administrativos y de seguimiento académico de la
+                        pasantía, y son accedidos únicamente por el personal autorizado del colegio.
+                    </p>
+
+                    <h2>3. Responsabilidad del alumno</h2>
+                    <p>
+                        Sos responsable de la veracidad de la información que cargues y de cumplir con
+                        los plazos de entrega establecidos por la coordinación de pasantías.
+                    </p>
+
+                    <h2>4. Modificaciones</h2>
+                    <p>
+                        Estos términos pueden actualizarse cuando sea necesario. El uso continuado del
+                        sistema implica la aceptación de los cambios vigentes.
+                    </p>
+
+                    <h2>5. Contacto</h2>
+                    <p>
+                        Ante cualquier duda sobre estos términos, comunicate con la coordinación de
+                        pasantías del colegio.
+                    </p>
+                </div>
+
+                <div class="auth-links">
+                    <a th:href="@{/login}">← Volver al inicio</a>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

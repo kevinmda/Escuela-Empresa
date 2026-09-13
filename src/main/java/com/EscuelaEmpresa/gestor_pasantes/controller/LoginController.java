@@ -61,6 +61,12 @@ public class LoginController {
         model.addAttribute("email", email);
         return "login";
     }
+
+    // pantalla publica, no requiere sesion (ver SecurityConfig)
+    @GetMapping("/terminos-y-condiciones")
+    public String mostrarTerminos() {
+        return "terminos-y-condiciones";
+    }
 }
 //HTTP tiene varios verbos (o metodos) que indican la intencion de la peticion:
 //GET           Pedir/leer informacion (ej: cargar una pagina)          @GetMapping

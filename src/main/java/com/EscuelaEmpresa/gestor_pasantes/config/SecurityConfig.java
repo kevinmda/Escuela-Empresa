@@ -3,6 +3,7 @@ package com.EscuelaEmpresa.gestor_pasantes.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.session.SessionRegistry;
@@ -18,11 +19,16 @@ public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler; // resetea contadores de intentos al loguear con exito
     private final String rememberMeKey;
     private final boolean cookiesSeguras;
+    private final boolean forzarHttps;
 
     public SecurityConfig(LoginFailureHandler loginFailureHandler,
                           LoginSuccessHandler loginSuccessHandler,
                           @Value("${REMEMBER_ME_KEY:}") String rememberMeKey,
-                          @Value("${server.servlet.session.cookie.secure:false}") boolean cookiesSeguras) {
+                          @Value("${server.servlet.session.cookie.secure:false}") boolean cookiesSeguras,
+                          // apagado por defecto: en local (http://localhost) forzar https
+                          // dejaria a cualquiera afuera. Se prende en produccion, ver
+                          // application.properties.example
+                          @Value("${app.security.forzar-https:false}") boolean forzarHttps) {
         this.loginFailureHandler = loginFailureHandler;
         this.loginSuccessHandler = loginSuccessHandler;
         this.rememberMeKey = rememberMeKey.isBlank()
@@ -31,6 +37,7 @@ public class SecurityConfig {
         // La misma decision que toma la cookie de sesion en application.properties:
         // asi las dos cookies no pueden quedar con criterios distintos.
         this.cookiesSeguras = cookiesSeguras;
+        this.forzarHttps = forzarHttps;
     }
 
     // el PasswordEncoder ahora vive en PasswordEncoderConfig.java, para evitar dependencia circular
@@ -55,12 +62,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, SessionRegistry sessionRegistry) throws Exception { //esto define cuales son las cadenas de filtros de seguridad por las cuales pasa cada peticion HTTP antes de llegar al Controlador. http es un objeto de la clase "HttpSecurity" que te proporciona una API fluida (especificamente Build Pattern) con la cual vas a ir configurando las reglas
+        if (forzarHttps) {                                                              // si esta prendido, cualquier pedido por http se redirige a https en vez de servirse
+            http.redirectToHttps(Customizer.withDefaults());
+        }
         http                                                                             //estos son una lista de reglas evaluadas en orden de arriba hacia abajo y se aplica la primera que coincida con la URL pedida. El orden y la complitud son muy importantes
             .authorizeHttpRequests(auth -> auth                                          //con .authorizeHttpRequests() lo que se hace es definir que rutas puede ver quien. auth es un objeto configurador de tipo "AuthorizeHttpRequestsConfigurer" que te da Spring Security para configurar el formulario, lo que esta despues de la flecha es lo que haces con ese form
-                // /privacidad y /terminos son publicas a proposito: hay que poder leerlas
-                // ANTES de entrar, y un padre o una madre que quiere saber que guarda el
-                // sistema sobre su hijo no tiene cuenta con la que iniciar sesion.
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/login", "/login-check", "/error", "/verificar-codigo", "/olvide-contrasena", "/restablecer-contrasena", "/privacidad", "/terminos").permitAll()    //esta regla dice que cualquiera puede entrar (logueado o no) si son las rutas /css/, /js/, /img/, /login, /login-check, /error, /verificar-codigo, /olvide-contrasena, /restablecer-contrasena, /privacidad o /terminos
+                // /privacidad, /terminos y /terminos-y-condiciones son publicas a proposito: hay
+                // que poder leerlas ANTES de entrar, y un padre o una madre que quiere saber que
+                // guarda el sistema sobre su hijo no tiene cuenta con la que iniciar sesion.
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/robots.txt", "/login", "/login-check", "/error", "/verificar-codigo", "/olvide-contrasena", "/restablecer-contrasena", "/privacidad", "/terminos", "/terminos-y-condiciones").permitAll()    //esta regla dice que cualquiera puede entrar (logueado o no) si son las rutas /css/, /js/, /img/, /robots.txt, /login, /login-check, /error, /verificar-codigo, /olvide-contrasena, /restablecer-contrasena, /privacidad, /terminos o /terminos-y-condiciones
                 // Supervisores y Empresas son pantallas de Coordinacion: un administrativo
                 // que las abra recibe un 403 aca, sin llegar al controlador. Van ANTES que
                 // la regla general de /admin/** porque se aplica la primera que coincide.

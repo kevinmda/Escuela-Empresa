@@ -7,7 +7,6 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -17,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PadreTutor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
@@ -24,7 +25,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
-import com.EscuelaEmpresa.gestor_pasantes.service.Plantillas;
+import com.EscuelaEmpresa.gestor_pasantes.service.PlantillaService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -33,11 +34,14 @@ public class ImprimirController {
     private final UsuarioRepository usuarioRepository;
     private final AlumnoRepository alumnoRepository;
     private final PlanillaSemanalRepository planillaSemanalRepository;
+    private final PlantillaService plantillaService;
 
-    public ImprimirController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository, PlanillaSemanalRepository planillaSemanalRepository) {
+    public ImprimirController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository,
+                              PlanillaSemanalRepository planillaSemanalRepository, PlantillaService plantillaService) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
+        this.plantillaService = plantillaService;
     }
 
     @GetMapping("/alumno/imprimir")
@@ -55,7 +59,7 @@ public class ImprimirController {
             planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
 
         // 2. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("CONTRATO_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2025.pdf");
         PDPage pagina = document.getPage(0);
 
         // 3. Abrir el "lienzo" para escribir encima del PDF
@@ -106,7 +110,7 @@ public class ImprimirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 2. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("AUTORIZACION_PADRES_PEL_25.pdf");
+        PDDocument document = plantillaService.cargarPdf("AUTORIZACION_PADRES_PEL_25.pdf");
         PDPage pagina = document.getPage(0);
 
         // 3. Abrir el "lienzo" para escribir encima del PDF
@@ -170,7 +174,7 @@ public class ImprimirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 2. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("FICHA_FINAL_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL_2025.pdf");
         PDPage pagina = document.getPage(0);
 
         // 3. Abrir el "lienzo" para escribir encima del PDF
@@ -196,7 +200,7 @@ public class ImprimirController {
 
         if (todasLasPlanillas.isEmpty()) {
             // el alumno todavía no cargó ninguna planilla semanal
-            throw new RuntimeException("El alumno no tiene planillas cargadas, no se puede generar el documento");
+            throw new ReglaNegocioException("El alumno no tiene planillas cargadas, no se puede generar el documento");
         }
 
         LocalDate fechaInicioPasantia = todasLasPlanillas.stream()
@@ -240,7 +244,7 @@ public class ImprimirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 2. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
         PDPage pagina = document.getPage(3);
 
         // 3. Abrir el "lienzo" para escribir encima del PDF
@@ -270,7 +274,7 @@ public class ImprimirController {
     public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("CONTRATO_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2025.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -285,7 +289,7 @@ public class ImprimirController {
     public void generarPdfAutorizacionVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("AUTORIZACION_PADRES_PEL_25.pdf");
+        PDDocument document = plantillaService.cargarPdf("AUTORIZACION_PADRES_PEL_25.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -300,7 +304,7 @@ public class ImprimirController {
     public void generarPdfFichaFinalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("FICHA_FINAL_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL_2025.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -315,7 +319,7 @@ public class ImprimirController {
     public void generarPdfFichaFinalEvalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = Plantillas.abrirPdf("FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -330,10 +334,10 @@ public class ImprimirController {
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
         return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
-            .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+            .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
     }
 
     // Método reutilizable para centrar texto en una coordenada X específica

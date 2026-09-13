@@ -1,6 +1,7 @@
 package com.EscuelaEmpresa.gestor_pasantes.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -21,8 +22,10 @@ public class PlanillaSemanal {
     @Column(name = "fecha_hasta")
     private LocalDate fechaHasta;
 
-    @Column(name = "total_horas")
-    private Float totalHoras;
+    // DECIMAL(5,2) en la base: dos decimales exactos, hasta 999.99. Antes era FLOAT
+    // y la suma de los dias podia dar 15.749999 (ver DiaForm).
+    @Column(name = "total_horas", precision = 5, scale = 2)
+    private BigDecimal totalHoras;
     
     @Column(length = 265)
     private String conocimientos;
@@ -51,8 +54,8 @@ public class PlanillaSemanal {
     public LocalDate getFechaHasta() { return fechaHasta; }
     public void setFechaHasta(LocalDate fechaHasta) { this.fechaHasta = fechaHasta; }
 
-    public Float getTotalHoras() { return totalHoras; }
-    public void setTotalHoras(Float totalHoras) { this.totalHoras = totalHoras; }
+    public BigDecimal getTotalHoras() { return totalHoras; }
+    public void setTotalHoras(BigDecimal totalHoras) { this.totalHoras = totalHoras; }
 
     public String getConocimientos() { return conocimientos; }
     public void setConocimientos(String conocimientos) { this.conocimientos = conocimientos; }

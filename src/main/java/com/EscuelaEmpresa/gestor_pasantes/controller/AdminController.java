@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.dto.AlumnoFiltradoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.dto.DocumentoSubidoAdminDTO;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
@@ -39,6 +41,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
 import com.EscuelaEmpresa.gestor_pasantes.dto.ResumenDocumentoTipoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
 import com.EscuelaEmpresa.gestor_pasantes.service.NombresDeArchivo;
+import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -97,11 +100,7 @@ public class AdminController {
         if (esAdministrativo) {
             model.addAttribute("especialidades", especialidadRepository.findAll());
         } else {
-            if (admin.getEspecialidades() == null || admin.getEspecialidades().isEmpty()) {
-                throw new RuntimeException("El coordinador no tiene especialidad asignada");
-            }
-            Especialidad especialidadFija = admin.getEspecialidades().get(0);
-            model.addAttribute("especialidadFija", especialidadFija);
+            model.addAttribute("especialidadFija", obtenerEspecialidadDeCoordinador(admin));
         }
     }
 
@@ -227,7 +226,7 @@ public class AdminController {
                                    HttpServletResponse response) throws IOException {
         Alumno alumno = verificarAccesoAlumno(idAl, authentication);
         DocumentoSubido documento = documentoSubidoRepository.findById(idDs)
-                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Documento no encontrado"));
 
         if (!documento.getAlumno().getIdAl().equals(alumno.getIdAl())) {
             throw new AccessDeniedException("Ese documento no pertenece al alumno indicado");
@@ -235,12 +234,12 @@ public class AdminController {
 
         File archivo = new File(documento.getRutaArchivo());
         if (!archivo.exists()) {
-            throw new RuntimeException("El archivo ya no está disponible en el servidor");
+            throw new RecursoNoEncontradoException("El archivo ya no está disponible en el servidor");
         }
 
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", NombresDeArchivo.contentDisposition(
-                "inline", documento.getNombreArchivo(), "documento_" + documento.getIdDs() + ".pdf"));
+        response.setHeader("Content-Disposition",
+                Descarga.inline(documento.getNombreArchivo(), "documento_" + documento.getIdDs() + ".pdf"));
         Files.copy(archivo.toPath(), response.getOutputStream());
     }
 
@@ -381,7 +380,7 @@ public class AdminController {
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
         Alumno alumno = alumnoRepository.findById(idAl)
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
 
         // Seguridad: el coordinador solo puede tocar alumnos de su propia especialidad
         if (!alumno.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
@@ -392,7 +391,7 @@ public class AdminController {
             alumno.setSupervisor(null); // se puede desasignar eligiendo "-- Sin asignar --"
         } else {
             Supervisor supervisor = supervisorRepository.findById(idSup)
-                    .orElseThrow(() -> new RuntimeException("Supervisor no encontrado"));
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Supervisor no encontrado"));
 
             if (!supervisor.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
                 throw new AccessDeniedException("Ese supervisor no pertenece a tu especialidad");
@@ -419,7 +418,7 @@ public class AdminController {
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
         Supervisor supervisor = supervisorRepository.findById(idSup)
-                .orElseThrow(() -> new RuntimeException("Supervisor no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Supervisor no encontrado"));
 
         // Seguridad: el coordinador solo puede editar supervisores de su propia especialidad
         if (!supervisor.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
@@ -444,7 +443,7 @@ public class AdminController {
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
         Supervisor supervisor = supervisorRepository.findById(idSup)
-                .orElseThrow(() -> new RuntimeException("Supervisor no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Supervisor no encontrado"));
 
         // Seguridad: el coordinador solo puede eliminar supervisores de su propia especialidad
         if (!supervisor.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
@@ -452,16 +451,10 @@ public class AdminController {
         }
 
         // Antes de borrar, hay que desasignarlo de cualquier alumno que lo tenga puesto,
-        // porque la FK en la base no permite borrar un supervisor que todavía está en uso
-        List<Alumno> alumnosConEsteSupervisor = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp())
-                .stream()
-                .filter(alumno -> alumno.getSupervisor() != null && alumno.getSupervisor().getIdSup().equals(idSup))
-                .toList();
-
-        for (Alumno alumno : alumnosConEsteSupervisor) {
-            alumno.setSupervisor(null);
-            alumnoRepository.save(alumno);
-        }
+        // porque la FK en la base no permite borrar un supervisor que todavía está en uso.
+        // Un solo UPDATE: antes se traían todos los alumnos de la especialidad para
+        // filtrarlos en memoria y guardarlos de a uno.
+        alumnoRepository.desasignarSupervisor(idSup);
 
         supervisorRepository.delete(supervisor);
 
@@ -477,11 +470,11 @@ public class AdminController {
             throw new AccessDeniedException("Esta pantalla es solo para coordinadores");
         }
 
-        if (admin.getEspecialidades() == null || admin.getEspecialidades().isEmpty()) {
-            throw new RuntimeException("El coordinador no tiene especialidad asignada");
+        if (admin.getEspecialidad() == null) {
+            throw new ReglaNegocioException("El coordinador no tiene especialidad asignada");
         }
 
-        return admin.getEspecialidades().get(0);
+        return admin.getEspecialidad();
     }
 
     // --- Gestión de Empresas (solo Coordinador) ---
@@ -543,7 +536,7 @@ public class AdminController {
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
         Empresa empresa = empresaRepository.findById(idEmp)
-                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Empresa no encontrada"));
 
         // Seguridad: el coordinador solo puede editar empresas de su propia especialidad
         if (empresa.getEspecialidad() == null || !empresa.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
@@ -570,7 +563,7 @@ public class AdminController {
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
         Empresa empresa = empresaRepository.findById(idEmp)
-                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Empresa no encontrada"));
 
         // Seguridad: el coordinador solo puede eliminar empresas de su propia especialidad
         if (empresa.getEspecialidad() == null || !empresa.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
@@ -578,16 +571,8 @@ public class AdminController {
         }
 
         // Antes de borrar, desasignamos esta empresa de cualquier alumno que la tenga puesta,
-        // porque la FK en la base no permite borrar una empresa que todavía está en uso
-        List<Alumno> alumnosConEstaEmpresa = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp())
-                .stream()
-                .filter(alumno -> alumno.getEmpresa() != null && alumno.getEmpresa().getIdEmp().equals(idEmp))
-                .toList();
-
-        for (Alumno alumno : alumnosConEstaEmpresa) {
-            alumno.setEmpresa(null);
-            alumnoRepository.save(alumno);
-        }
+        // porque la FK en la base no permite borrar una empresa que todavía está en uso.
+        alumnoRepository.desasignarEmpresa(idEmp);
 
         empresaRepository.delete(empresa);
 
@@ -605,7 +590,7 @@ public class AdminController {
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
         Alumno alumno = alumnoRepository.findById(idAl)
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
 
         // Seguridad: el coordinador solo puede tocar alumnos de su propia especialidad
         if (!alumno.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
@@ -616,7 +601,7 @@ public class AdminController {
             alumno.setEmpresa(null); // se puede desasignar eligiendo "-- Sin asignar --"
         } else {
             Empresa empresa = empresaRepository.findById(idEmp)
-                    .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Empresa no encontrada"));
 
             if (empresa.getEspecialidad() == null || !empresa.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
                 throw new AccessDeniedException("Esa empresa no pertenece a tu especialidad");
@@ -634,7 +619,7 @@ public class AdminController {
     private Alumno verificarAccesoAlumno(Integer idAl, Authentication authentication) {
         Administrador admin = obtenerAdminAutenticado(authentication);
         Alumno alumno = alumnoRepository.findById(idAl)
-                .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
 
         Integer idEspecialidad = alumno.getEspecialidad() == null
                 ? null
@@ -661,9 +646,9 @@ public class AdminController {
     private Administrador obtenerAdminAutenticado(Authentication authentication) {
         String email = authentication.getName();
         Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
         return administradorRepository.findByUsuario_IdUsr(usuario.getIdUsr())
-                .orElseThrow(() -> new RuntimeException("Administrador no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Administrador no encontrado"));
     }
 }
