@@ -21,10 +21,15 @@ import java.util.Set;
 public class ContrasenaPorDefectoInterceptor implements HandlerInterceptor {
 
     // Rutas a las que sí se puede llegar aunque tengas la contraseña por defecto:
-    // la propia pantalla de cambio y el logout.
+    // la propia pantalla de cambio, el logout, y las dos páginas legales. Estas
+    // últimas porque el pie de la pantalla de cambio de contraseña las enlaza: sin
+    // esta excepción, el alumno que quisiera leer qué se guarda sobre él antes de
+    // seguir usando el sistema sería rebotado de vuelta a cambiar la contraseña.
     private static final Set<String> RUTAS_PERMITIDAS = Set.of(
             "/cambiar-contrasena",
-            "/logout"
+            "/logout",
+            "/privacidad",
+            "/terminos"
     );
 
     // Una vez que se confirma que el usuario ya NO tiene la contraseña por defecto,

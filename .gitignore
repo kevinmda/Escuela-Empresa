@@ -33,7 +33,14 @@ build/
 .vscode/
 
 ### Archivos de configuración con credenciales ###
-application.properties
+# La plantilla (application.properties.ejemplo) SI se versiona: es lo unico que
+# le dice a quien clone el repo que claves necesita para que la app arranque.
+#
+# La regla nombra la ruta completa a proposito. Escrita como "application.properties"
+# a secas, git la aplicaba a CUALQUIER archivo con ese nombre en cualquier carpeta,
+# y eso tambien tapaba src/test/resources/application.properties, que no tiene una
+# sola credencial y si tiene que viajar en el repositorio.
+/src/main/resources/application.properties
 application-local.properties
 
 ### Documentos subidos por los alumnos (datos personales, viven solo en el servidor) ###
@@ -45,3 +52,7 @@ desktop.ini
 
 ### Logs ###
 *.log
+
+### Documentos que suben los alumnos ###
+# Son datos personales: no van al repositorio ni aunque el repo sea privado.
+uploads/

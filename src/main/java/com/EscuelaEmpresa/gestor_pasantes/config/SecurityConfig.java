@@ -3,9 +3,13 @@ package com.EscuelaEmpresa.gestor_pasantes.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration //con esta anotacion dice que esta clase se encarga de definir beans (objetos que Spring crea y gestiona por su cuenta) Sin esto Spring no sabria que hay metodos con anotacion Bean (@Bean)
 @EnableWebSecurity //esto activa el modulo de seguridad de Spring (Spring Security) pero aclarandole que vas a personalizar la seguridad por tu cuenta
@@ -14,11 +18,13 @@ public class SecurityConfig {
     private final LoginFailureHandler loginFailureHandler; // detecta cuenta inactiva/bloqueada y actua en consecuencia
     private final LoginSuccessHandler loginSuccessHandler; // resetea contadores de intentos al loguear con exito
     private final String rememberMeKey;
+    private final boolean cookiesSeguras;
     private final boolean forzarHttps;
 
     public SecurityConfig(LoginFailureHandler loginFailureHandler,
                           LoginSuccessHandler loginSuccessHandler,
                           @Value("${REMEMBER_ME_KEY:}") String rememberMeKey,
+                          @Value("${server.servlet.session.cookie.secure:false}") boolean cookiesSeguras,
                           // apagado por defecto: en local (http://localhost) forzar https
                           // dejaria a cualquiera afuera. Se prende en produccion, ver
                           // application.properties.example
@@ -28,22 +34,48 @@ public class SecurityConfig {
         this.rememberMeKey = rememberMeKey.isBlank()
                 ? java.util.UUID.randomUUID().toString()
                 : rememberMeKey;
+        // La misma decision que toma la cookie de sesion en application.properties:
+        // asi las dos cookies no pueden quedar con criterios distintos.
+        this.cookiesSeguras = cookiesSeguras;
         this.forzarHttps = forzarHttps;
     }
 
     // el PasswordEncoder ahora vive en PasswordEncoderConfig.java, para evitar dependencia circular
     // con LoginFailureHandler (que tambien lo necesita)
 
+    // Lleva la cuenta de que sesiones tiene abiertas cada usuario. Lo necesita
+    // /cambiar-contrasena para cerrar las demas cuando alguien cambia su contraseña:
+    // sin este registro no hay forma de alcanzar a las sesiones abiertas en otros
+    // navegadores, y la contraseña vieja seguiria sirviendo hasta que vencieran solas.
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { //esto define cuales son las cadenas de filtros de seguridad por las cuales pasa cada peticion HTTP antes de llegar al Controlador. http es un objeto de la clase "HttpSecurity" que te proporciona una API fluida (especificamente Build Pattern) con la cual vas a ir configurando las reglas
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    // El registro de arriba se entera de que una sesion se destruyo solo si alguien
+    // publica el evento del contenedor. Sin esto, las sesiones cerradas quedarian
+    // figurando como abiertas para siempre.
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, SessionRegistry sessionRegistry) throws Exception { //esto define cuales son las cadenas de filtros de seguridad por las cuales pasa cada peticion HTTP antes de llegar al Controlador. http es un objeto de la clase "HttpSecurity" que te proporciona una API fluida (especificamente Build Pattern) con la cual vas a ir configurando las reglas
+        if (forzarHttps) {                                                              // si esta prendido, cualquier pedido por http se redirige a https en vez de servirse
+            http.redirectToHttps(Customizer.withDefaults());
+        }
         http                                                                             //estos son una lista de reglas evaluadas en orden de arriba hacia abajo y se aplica la primera que coincida con la URL pedida. El orden y la complitud son muy importantes
-            .requiresChannel(channel -> {                                                // si esta prendido, cualquier pedido por http se redirige a https en vez de servirse
-                if (forzarHttps) {
-                    channel.anyRequest().requiresSecure();
-                }
-            })
-            .authorizeHttpRequests(auth -> auth                                       //con .authorizeHttpRequests() lo que se hace es definir que rutas puede ver quien. auth es un objeto configurador de tipo "AuthorizeHttpRequestsConfigurer" que te da Spring Security para configurar el formulario, lo que esta despues de la flecha es lo que haces con ese form
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/robots.txt", "/login", "/login-check", "/error", "/verificar-codigo", "/olvide-contrasena", "/restablecer-contrasena", "/terminos-y-condiciones").permitAll()    //esta regla dice que cualquiera puede entrar (logueado o no) si son las rutas /css/, /js/, /img/, /robots.txt, /login, /login-check, /error, /verificar-codigo, /olvide-contrasena o /restablecer-contrasena
+            .authorizeHttpRequests(auth -> auth                                          //con .authorizeHttpRequests() lo que se hace es definir que rutas puede ver quien. auth es un objeto configurador de tipo "AuthorizeHttpRequestsConfigurer" que te da Spring Security para configurar el formulario, lo que esta despues de la flecha es lo que haces con ese form
+                // /privacidad, /terminos y /terminos-y-condiciones son publicas a proposito: hay
+                // que poder leerlas ANTES de entrar, y un padre o una madre que quiere saber que
+                // guarda el sistema sobre su hijo no tiene cuenta con la que iniciar sesion.
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/robots.txt", "/login", "/login-check", "/error", "/verificar-codigo", "/olvide-contrasena", "/restablecer-contrasena", "/privacidad", "/terminos", "/terminos-y-condiciones").permitAll()    //esta regla dice que cualquiera puede entrar (logueado o no) si son las rutas /css/, /js/, /img/, /robots.txt, /login, /login-check, /error, /verificar-codigo, /olvide-contrasena, /restablecer-contrasena, /privacidad, /terminos o /terminos-y-condiciones
+                // Supervisores y Empresas son pantallas de Coordinacion: un administrativo
+                // que las abra recibe un 403 aca, sin llegar al controlador. Van ANTES que
+                // la regla general de /admin/** porque se aplica la primera que coincide.
+                .requestMatchers("/admin/supervisores", "/admin/supervisores/**",
+                                 "/admin/empresas", "/admin/empresas/**").hasRole("COORDINADOR")
                 .requestMatchers("/admin/**").hasRole("ADMIN")                           //esta regla dice que cualquiera con el rol de ADMIN puede entrar si es la ruta /admin/
                 .requestMatchers("/alumno/**").hasRole("ALUMNO")                         //esta regla dice que cualquiera con el rol de ALUMNO puede entrar si es la ruta /alumno/
                 .anyRequest().authenticated()                                            //por ultimo esto dice que cualquier otra cosa que no matcheo ninguna de las anteriores tiene que estar autentificado (logueado) sin importar el rol
@@ -61,6 +93,15 @@ public class SecurityConfig {
             .rememberMe(remember -> remember
             .key(rememberMeKey)
             .tokenValiditySeconds(1209600) // 14 dias en segundos
+            // Esta cookie dura 14 dias y sirve para entrar sin contraseña, asi que
+            // es la que MENOS puede viajar en claro. Acompaña a la cookie de sesion:
+            // secure en produccion, no en desarrollo, donde sobre http el navegador
+            // directamente no la mandaria.
+            .useSecureCookie(cookiesSeguras)
+            )
+            .sessionManagement(session -> session
+                .maximumSessions(-1)                    // -1: no limitamos cuantas sesiones puede tener un usuario,
+                .sessionRegistry(sessionRegistry)       // solo queremos que queden anotadas para poder cerrarlas
             )
             .logout(logout -> logout.permitAll()); //esto activa la funcion de logout que viene de Spring Security en la URL "/logout". Permitiendo que cualquiera pueda acceder a esa URL para cerrar sesion
 

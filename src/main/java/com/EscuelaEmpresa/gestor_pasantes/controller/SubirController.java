@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.unit.DataSize;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -52,13 +53,19 @@ public class SubirController {
     @Value("${app.uploads.directorio}")
     private String directorioUploads;
 
-    // Tamaño máximo de archivo en bytes (50 MB)
-    private static final long TAMANIO_MAXIMO = 50 * 1024 * 1024;
+    // El tope sale de application.properties, el mismo valor con el que Spring corta
+    // la subida. Antes habia dos numeros distintos: aca decia 50 MB y las properties
+    // 10 MB. Ganaba el de Spring, que corta el request ANTES de llegar hasta aca, asi
+    // que un archivo de 12 MB daba un error 500 en vez del mensaje que dice justamente
+    // que el archivo es muy grande -- y la validacion de 50 MB no se ejecutaba nunca.
+    private final DataSize tamanioMaximo;
 
     public SubirController(AlumnoRepository alumnoRepository, UsuarioRepository usuarioRepository,
                             DocumentoSubidoRepository documentoSubidoRepository,
                             ValidacionDocumentoService validacionDocumentoService,
-                            LimitesDocumentoService limitesDocumentoService) {
+                            LimitesDocumentoService limitesDocumentoService,
+                            @Value("${spring.servlet.multipart.max-file-size}") DataSize tamanioMaximo) {
+        this.tamanioMaximo = tamanioMaximo;
         this.alumnoRepository = alumnoRepository;
         this.usuarioRepository = usuarioRepository;
         this.documentoSubidoRepository = documentoSubidoRepository;
@@ -142,7 +149,7 @@ public class SubirController {
             redirectAttributes.addFlashAttribute("error", mensaje);
             return "redirect:/alumno/subir";
         }
-        ValidacionResultado validacion = validacionDocumentoService.validarDocumentoCompleto(archivo, TAMANIO_MAXIMO);
+        ValidacionResultado validacion = validacionDocumentoService.validarDocumentoCompleto(archivo, tamanioMaximo.toBytes());
         
         if (!validacion.isValido() || validacion.tieneErrores()) {
             redirectAttributes.addFlashAttribute("error", 
@@ -217,7 +224,9 @@ public class SubirController {
 
         response.setContentType("application/pdf");
         // "inline" (no "attachment") para que el navegador lo abra en la misma pestaña/visor
-        // de PDF, en vez de forzar la descarga
+        // de PDF, en vez de forzar la descarga. El nombre lo eligio el alumno al subir
+        // el archivo, asi que va sanitizado y codificado: pegado crudo, uno con comillas,
+        // punto y coma o acentos partia la cabecera o llegaba mal al navegador.
         response.setHeader("Content-Disposition",
                 Descarga.inline(documento.getNombreArchivo(), "documento_" + documento.getIdDs() + ".pdf"));
 

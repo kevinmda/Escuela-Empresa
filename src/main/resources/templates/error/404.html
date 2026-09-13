@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/auth :: head('Esa página no existe')}"></head>
+<body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
+
+    <th:block th:replace="~{fragments/error :: tarjeta('Esa página no existe', 'La dirección que abriste no corresponde a ninguna pantalla del sistema. Puede que el enlace esté viejo o mal copiado.', '404')}"></th:block>
+</body>
+</html>

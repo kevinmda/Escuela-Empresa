@@ -40,6 +40,11 @@
         </section>
 
         <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+        <!-- Este llega por la URL y no por flash: cuando el archivo pasa el tope,
+             Spring corta la subida antes de que el controlador llegue a ejecutarse. -->
+        <p th:if="${param.errorTamanio}" class="mensaje-error" role="alert">
+            El archivo es demasiado grande. El máximo es 10 MB.
+        </p>
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
 
         <form th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data"

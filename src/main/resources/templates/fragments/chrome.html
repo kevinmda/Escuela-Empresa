@@ -99,6 +99,14 @@
                        th:href="@{${chrome.pdfAyuda()}}" target="_blank" rel="noopener">
                         Ayuda <span class="cuenta-item-nota">PDF</span>
                     </a>
+                    <!-- Acá y no en un pie de página: agregarle un pie a las once
+                         pantallas costaría altura en todas para dos enlaces que se
+                         consultan una vez. En el menú de la cuenta están donde uno
+                         los busca -junto a lo que tiene que ver con uno mismo- y no
+                         le quitan sitio a nada. -->
+                    <a class="cuenta-item" th:href="@{/privacidad}">
+                        Privacidad <span class="cuenta-item-nota">y uso</span>
+                    </a>
 
                     <form class="cuenta-salida" th:action="@{/logout}" method="post"
                           onsubmit="return confirm('¿Estás seguro que quieres cerrar sesión?');">

@@ -27,6 +27,8 @@
                     <a th:href="@{/login(email=${email})}">← Volver al login</a>
                 </div>
             </div>
+
+            <th:block th:replace="~{fragments/auth :: pieLegal}"></th:block>
         </main>
     </div>
 </body>

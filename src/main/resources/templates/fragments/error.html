@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+    Cuerpo compartido por las pantallas de error.
+
+    Antes no había ninguna: cada RuntimeException("Alumno no encontrado") y cada
+    AccessDeniedException terminaba en la pantalla blanca de Whitelabel de Spring,
+    que le muestra al alumno una tabla de datos técnicos y ningún camino de vuelta.
+
+    Estas usan la misma tarjeta que el resto del flujo de acceso, y a propósito NO
+    incluyen el cromo: la barra necesita el contexto del usuario, y buena parte de
+    los errores ocurren justamente cuando ese contexto es lo que falló.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<main th:fragment="tarjeta(titulo, explicacion, codigo)" id="main-content" class="auth-main">
+    <div class="panel auth-card">
+        <img class="auth-card-logo" th:src="@{/img/ctnLogoDef.png}"
+             alt="Colegio Técnico Nacional de Asunción">
+
+        <h1 class="auth-titulo" th:text="${titulo}">Algo salió mal</h1>
+
+        <p class="auth-nota" th:text="${explicacion}">
+            Explicación de qué pasó.
+        </p>
+
+        <a th:href="@{/home}" class="btn btn-secondary">Volver al inicio</a>
+
+        <p class="campo-ayuda" th:text="'Error ' + ${codigo}">Error</p>
+    </div>
+</main>
+
+</body>
+</html>

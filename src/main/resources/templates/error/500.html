@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/auth :: head('Se nos rompió algo')}"></head>
+<body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
+
+    <th:block th:replace="~{fragments/error :: tarjeta('Se nos rompió algo', 'El problema es nuestro, no tuyo. Probá de nuevo en un rato y, si sigue igual, avisale a Coordinación.', '500')}"></th:block>
+</body>
+</html>

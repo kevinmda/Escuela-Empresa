@@ -40,6 +40,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
 import com.EscuelaEmpresa.gestor_pasantes.dto.ResumenDocumentoTipoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
+import com.EscuelaEmpresa.gestor_pasantes.service.NombresDeArchivo;
 import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -635,9 +636,11 @@ public class AdminController {
         return texto.replaceAll("[^a-zA-Z0-9_-]", "_");
     }
 
+    // Delega en el helper compartido para que exista una sola definicion de que es
+    // un nombre de archivo seguro: cuando estaba escrita aca adentro, la vista del
+    // alumno quedo sin sanitizar y nadie lo noto.
     private String sanitizarNombreArchivo(String nombre, Integer idDs) {
-        String seguro = nombre.replaceAll("[\\x00-\\x1F\\x7F\\\\/:*?\"<>|]", "_");
-        return seguro.isBlank() ? "documento_" + idDs + ".pdf" : seguro;
+        return NombresDeArchivo.seguro(nombre, "documento_" + idDs + ".pdf");
     }
 
     private Administrador obtenerAdminAutenticado(Authentication authentication) {

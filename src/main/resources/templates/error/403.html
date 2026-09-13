@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/auth :: head('Esta pantalla no es para vos')}"></head>
+<body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
+
+    <th:block th:replace="~{fragments/error :: tarjeta('Esta pantalla no es para vos', 'Tu cuenta no tiene permiso para ver lo que pediste. Si creés que deberías tenerlo, avisale a Coordinación.', '403')}"></th:block>
+</body>
+</html>
