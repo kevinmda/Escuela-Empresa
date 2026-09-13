@@ -1,5 +1,12 @@
 # Copiá este archivo a application.properties (mismo directorio) y completá lo tuyo.
 # application.properties está en .gitignore: nunca subas credenciales al repo.
+#
+# Variables de entorno que espera:
+#   MAIL_USERNAME / MAIL_PASSWORD  cuenta de Gmail que manda los codigos
+#   REMEMBER_ME_KEY                cualquier texto largo y fijo. Si no se define,
+#                                  se genera uno al azar en cada arranque y todos
+#                                  los "Recordarme" se caen con cada reinicio.
+#   COOKIES_SEGURAS                true en produccion (con HTTPS), false en local
 
 # --- Base de datos (XAMPP/MySQL) ---
 # Para una instalación nueva, creá la base con db/schema.sql
@@ -16,6 +23,23 @@ spring.jpa.show-sql=false
 spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
 server.port=8080
+
+# --- Sesion y cookies ---
+server.servlet.session.timeout=30m
+server.servlet.session.cookie.http-only=true
+server.servlet.session.cookie.same-site=lax
+# En produccion, detras de HTTPS, esto TIENE que ser true (COOKIES_SEGURAS=true en
+# el entorno): si no, la cookie de sesion viaja legible y en la red de la escuela
+# cualquiera en el mismo tramo se la lleva. En desarrollo queda en false porque
+# sobre http el navegador no manda una cookie marcada como secure y no se podria
+# ni entrar.
+server.servlet.session.cookie.secure=${COOKIES_SEGURAS:false}
+
+# --- Actuator ---
+# Viene con el starter en el pom. Sin esto quedaba expuesto lo que trae por
+# defecto a cualquier usuario logueado; con esto, solo el estado y sin detalles.
+management.endpoints.web.exposure.include=health
+management.endpoint.health.show-details=never
 
 # --- Correo (código de primer ingreso y recuperación de contraseña) ---
 # Con Gmail hace falta una "contraseña de aplicación", no la de la cuenta.
