@@ -40,3 +40,13 @@ app.url.base=http://localhost:8080
 # Clave de las cookies "recordarme". Si no se fija, se genera una nueva en cada
 # arranque y todos los usuarios tienen que volver a loguearse tras cada reinicio.
 # REMEMBER_ME_KEY=una-cadena-larga-y-secreta
+
+# Redirige todo http a https y hace que las cookies de sesion y "recordarme" viajen
+# marcadas como secure. Apagado por defecto porque en localhost (sin https) dejaria
+# a cualquiera afuera. Prendelo en produccion.
+# app.security.forzar-https=true
+
+# Si el servidor esta detras de un proxy/balanceador que termina el https (Nginx,
+# Render, etc.), esto le dice a Spring que confie en los headers X-Forwarded-* para
+# saber que el pedido original fue https, aunque a la app le llegue por http.
+server.forward-headers-strategy=framework

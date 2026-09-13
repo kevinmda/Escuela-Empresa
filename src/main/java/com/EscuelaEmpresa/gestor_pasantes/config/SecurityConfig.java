@@ -14,15 +14,21 @@ public class SecurityConfig {
     private final LoginFailureHandler loginFailureHandler; // detecta cuenta inactiva/bloqueada y actua en consecuencia
     private final LoginSuccessHandler loginSuccessHandler; // resetea contadores de intentos al loguear con exito
     private final String rememberMeKey;
+    private final boolean forzarHttps;
 
     public SecurityConfig(LoginFailureHandler loginFailureHandler,
                           LoginSuccessHandler loginSuccessHandler,
-                          @Value("${REMEMBER_ME_KEY:}") String rememberMeKey) {
+                          @Value("${REMEMBER_ME_KEY:}") String rememberMeKey,
+                          // apagado por defecto: en local (http://localhost) forzar https
+                          // dejaria a cualquiera afuera. Se prende en produccion, ver
+                          // application.properties.example
+                          @Value("${app.security.forzar-https:false}") boolean forzarHttps) {
         this.loginFailureHandler = loginFailureHandler;
         this.loginSuccessHandler = loginSuccessHandler;
         this.rememberMeKey = rememberMeKey.isBlank()
                 ? java.util.UUID.randomUUID().toString()
                 : rememberMeKey;
+        this.forzarHttps = forzarHttps;
     }
 
     // el PasswordEncoder ahora vive en PasswordEncoderConfig.java, para evitar dependencia circular
@@ -31,8 +37,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { //esto define cuales son las cadenas de filtros de seguridad por las cuales pasa cada peticion HTTP antes de llegar al Controlador. http es un objeto de la clase "HttpSecurity" que te proporciona una API fluida (especificamente Build Pattern) con la cual vas a ir configurando las reglas
         http                                                                             //estos son una lista de reglas evaluadas en orden de arriba hacia abajo y se aplica la primera que coincida con la URL pedida. El orden y la complitud son muy importantes
-            .authorizeHttpRequests(auth -> auth                                          //con .authorizeHttpRequests() lo que se hace es definir que rutas puede ver quien. auth es un objeto configurador de tipo "AuthorizeHttpRequestsConfigurer" que te da Spring Security para configurar el formulario, lo que esta despues de la flecha es lo que haces con ese form
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/login", "/login-check", "/error", "/verificar-codigo", "/olvide-contrasena", "/restablecer-contrasena").permitAll()    //esta regla dice que cualquiera puede entrar (logueado o no) si son las rutas /css/, /js/, /img/, /login, /login-check, /error, /verificar-codigo, /olvide-contrasena o /restablecer-contrasena
+            .requiresChannel(channel -> {                                                // si esta prendido, cualquier pedido por http se redirige a https en vez de servirse
+                if (forzarHttps) {
+                    channel.anyRequest().requiresSecure();
+                }
+            })
+            .authorizeHttpRequests(auth -> auth                                       //con .authorizeHttpRequests() lo que se hace es definir que rutas puede ver quien. auth es un objeto configurador de tipo "AuthorizeHttpRequestsConfigurer" que te da Spring Security para configurar el formulario, lo que esta despues de la flecha es lo que haces con ese form
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/robots.txt", "/login", "/login-check", "/error", "/verificar-codigo", "/olvide-contrasena", "/restablecer-contrasena", "/terminos-y-condiciones").permitAll()    //esta regla dice que cualquiera puede entrar (logueado o no) si son las rutas /css/, /js/, /img/, /robots.txt, /login, /login-check, /error, /verificar-codigo, /olvide-contrasena o /restablecer-contrasena
                 .requestMatchers("/admin/**").hasRole("ADMIN")                           //esta regla dice que cualquiera con el rol de ADMIN puede entrar si es la ruta /admin/
                 .requestMatchers("/alumno/**").hasRole("ALUMNO")                         //esta regla dice que cualquiera con el rol de ALUMNO puede entrar si es la ruta /alumno/
                 .anyRequest().authenticated()                                            //por ultimo esto dice que cualquier otra cosa que no matcheo ninguna de las anteriores tiene que estar autentificado (logueado) sin importar el rol

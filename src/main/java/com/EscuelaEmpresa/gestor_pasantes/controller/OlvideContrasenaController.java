@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -28,6 +29,11 @@ public class OlvideContrasenaController {
 
     private static final int MAX_INTENTOS_CODIGO = 5;
     private static final String ATRIBUTO_SESION_EMAIL = "email_recuperacion";
+
+    // anti-spam: sin esto, un POST repetido a /olvide-contrasena manda un correo
+    // nuevo cada vez, sin límite. 60 segundos alcanza para que alguien real no
+    // note la espera, pero corta un loop automatizado.
+    private static final int COOLDOWN_REENVIO_SEGUNDOS = 60;
 
     private final UsuarioRepository usuarioRepository;
     private final EmailService emailService;
@@ -59,7 +65,7 @@ public class OlvideContrasenaController {
     }
 
     @PostMapping("/olvide-contrasena")
-    public String enviarCodigo(HttpSession session, Model model) {
+    public String enviarCodigo(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         String email = (String) session.getAttribute(ATRIBUTO_SESION_EMAIL);
 
         if (email == null) {
@@ -70,6 +76,21 @@ public class OlvideContrasenaController {
 
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
+
+            // tokenExpiracion siempre queda en "ahora + 5 minutos" al generar un
+            // código (ver más abajo), así que restando 5 minutos se reconstruye
+            // cuándo se generó el último sin necesitar una columna nueva solo
+            // para esto.
+            LocalDateTime ultimoEnvio = usuario.getTokenExpiracion() == null
+                    ? null
+                    : usuario.getTokenExpiracion().minusMinutes(5);
+
+            if (ultimoEnvio != null && ultimoEnvio.plusSeconds(COOLDOWN_REENVIO_SEGUNDOS).isAfter(LocalDateTime.now())) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Ya te mandamos un código. Revisá tu correo (también la carpeta de spam) antes de pedir otro.");
+                return "redirect:/restablecer-contrasena";
+            }
+
             String codigo = generarCodigoNumerico();
 
             usuario.setTokenActivacion(codigo);

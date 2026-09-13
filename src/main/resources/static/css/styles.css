@@ -437,6 +437,53 @@ img {
     }
 }
 
+/* Aviso de cookies (js/cookie-consent.js). Barra fija abajo, sólida (no
+   translúcida como .theme-toggle-standalone): tiene texto largo y necesita
+   contraste garantizado, no solo legible sobre lo que haya detrás. */
+.aviso-cookies {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background-color: var(--surface);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 20px -8px rgba(var(--shadow-tint), 0.28);
+}
+
+.aviso-cookies-texto {
+    margin: 0;
+    max-width: 60ch;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+}
+
+.aviso-cookies-texto a {
+    color: var(--ink);
+}
+
+.aviso-cookies-boton {
+    flex-shrink: 0;
+    width: auto;
+    padding: 0.6rem 1.5rem;
+}
+
+@media (max-width: 560px) {
+    .aviso-cookies {
+        justify-content: stretch;
+    }
+
+    .aviso-cookies-boton {
+        width: 100%;
+    }
+}
+
 /* El toggle se queda fuera del menu: es una preferencia que se cambia seguido y
    esconderla costaria un clic cada vez. Pasa a icono porque el texto "Modo
    oscuro" pesaba lo mismo que una seccion sin serlo. El par de iconos lo elige el
@@ -1203,6 +1250,37 @@ main h3 {
 
 .auth-panel .auth-card {
     max-width: 460px;
+}
+
+/* Términos y condiciones: mismo layout de acceso, pero con una tarjeta más
+   ancha y texto alineado a la izquierda, porque es prosa larga y no un
+   formulario corto centrado. */
+.auth-panel .auth-card--legal {
+    max-width: 640px;
+    text-align: left;
+}
+
+.auth-panel .auth-card--legal .auth-titulo {
+    text-align: center;
+}
+
+.legal-texto {
+    text-align: left;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.legal-texto h2 {
+    font-size: 1.05rem;
+    margin: 1.5rem 0 0.5rem;
+}
+
+.legal-texto h2:first-child {
+    margin-top: 0;
+}
+
+.legal-texto p {
+    margin-bottom: 0.75rem;
 }
 
 .auth-panel .auth-card-logo {
