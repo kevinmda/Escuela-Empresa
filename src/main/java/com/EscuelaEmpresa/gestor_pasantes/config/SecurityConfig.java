@@ -3,6 +3,7 @@ package com.EscuelaEmpresa.gestor_pasantes.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -60,7 +61,12 @@ public class SecurityConfig {
         return new HttpSessionEventPublisher();
     }
 
+    // @Order(2): la API movil (SecurityConfigMovil, @Order(1)) matchea primero
+    // /api/movil/**; esta cadena, sin securityMatcher, cubre todo lo demas -- igual
+    // que antes de que existiera una segunda SecurityFilterChain. Sin un @Order
+    // explicito en las dos, Spring no arranca (no sabe cual va primero).
     @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http, SessionRegistry sessionRegistry) throws Exception { //esto define cuales son las cadenas de filtros de seguridad por las cuales pasa cada peticion HTTP antes de llegar al Controlador. http es un objeto de la clase "HttpSecurity" que te proporciona una API fluida (especificamente Build Pattern) con la cual vas a ir configurando las reglas
         if (forzarHttps) {                                                              // si esta prendido, cualquier pedido por http se redirige a https en vez de servirse
             http.redirectToHttps(Customizer.withDefaults());

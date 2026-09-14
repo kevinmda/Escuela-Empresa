@@ -3,13 +3,9 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.unit.DataSize;
@@ -35,6 +31,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService;
 import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService.ValidacionResultado;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
+import com.EscuelaEmpresa.gestor_pasantes.service.DocumentoAlmacenamientoService;
 import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -47,11 +44,7 @@ public class SubirController {
     private final DocumentoSubidoRepository documentoSubidoRepository;
     private final ValidacionDocumentoService validacionDocumentoService;
     private final LimitesDocumentoService limitesDocumentoService;
-
-    // ruta configurable desde application.properties, para poder cambiarla entre
-    // desarrollo (compu local) y produccion (VPS) sin tocar codigo
-    @Value("${app.uploads.directorio}")
-    private String directorioUploads;
+    private final DocumentoAlmacenamientoService documentoAlmacenamientoService;
 
     // El tope sale de application.properties, el mismo valor con el que Spring corta
     // la subida. Antes habia dos numeros distintos: aca decia 50 MB y las properties
@@ -64,6 +57,7 @@ public class SubirController {
                             DocumentoSubidoRepository documentoSubidoRepository,
                             ValidacionDocumentoService validacionDocumentoService,
                             LimitesDocumentoService limitesDocumentoService,
+                            DocumentoAlmacenamientoService documentoAlmacenamientoService,
                             @Value("${spring.servlet.multipart.max-file-size}") DataSize tamanioMaximo) {
         this.tamanioMaximo = tamanioMaximo;
         this.alumnoRepository = alumnoRepository;
@@ -71,6 +65,7 @@ public class SubirController {
         this.documentoSubidoRepository = documentoSubidoRepository;
         this.validacionDocumentoService = validacionDocumentoService;
         this.limitesDocumentoService = limitesDocumentoService;
+        this.documentoAlmacenamientoService = documentoAlmacenamientoService;
     }
 
     @GetMapping("/alumno/subir")
@@ -157,47 +152,9 @@ public class SubirController {
             return "redirect:/alumno/subir";
         }
 
-        // nombre unico en el filesystem para evitar que dos alumnos (o el mismo alumno dos veces)
-        // pisen el archivo del otro si suben algo con el mismo nombre original
-        String nombreUnico = UUID.randomUUID() + ".pdf";
-        Path carpetaDestino = Paths.get(directorioUploads);
-        Files.createDirectories(carpetaDestino);
+        documentoAlmacenamientoService.guardar(archivo, tipoDocumento, alumno);
 
-        Path rutaCompleta = carpetaDestino.resolve(nombreUnico);
-
-        // OJO: no usamos archivo.transferTo(rutaCompleta.toFile()) porque, con una ruta
-        // relativa, Tomcat la resuelve contra SU PROPIO directorio temporal interno
-        // (no contra el directorio de trabajo de la app), lo que tira FileNotFoundException.
-        // Usando Files.copy() con el InputStream, escribimos nosotros mismos con la ruta
-        // exacta que calculamos, sin depender de esa resolucion ambigua de Tomcat.
-        try (java.io.InputStream inputStream = archivo.getInputStream()) {
-            Files.copy(inputStream, rutaCompleta, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-            // Calcular hash del archivo para verificar integridad posterior
-            String hashIntegridad = validacionDocumentoService.calcularSHA256(rutaCompleta);
-
-            DocumentoSubido documento = new DocumentoSubido();
-            String nombreOriginal = archivo.getOriginalFilename();
-            if (nombreOriginal != null && nombreOriginal.length() > 100) {
-                nombreOriginal = nombreOriginal.substring(0, 100); // el campo "nombre" en la BD es VARCHAR(100)
-            }
-            documento.setNombreArchivo(nombreOriginal);
-            documento.setRutaArchivo(rutaCompleta.toString());
-            documento.setFechaSubida(LocalDateTime.now());
-            documento.setAlumno(alumno);
-            documento.setTipoDocumento(tipoDocumento);
-            documento.setHashIntegridad(hashIntegridad);
-            documento.setValidado(true); // Se pasó todas las validaciones
-            
-            try {
-                documentoSubidoRepository.save(documento);
-            } catch (RuntimeException exception) {
-                Files.deleteIfExists(rutaCompleta);
-                throw exception;
-            }
-        }
-
-        redirectAttributes.addFlashAttribute("exito", 
+        redirectAttributes.addFlashAttribute("exito",
             "Documento de tipo '" + tipoDocumento.getDescripcion() + "' subido correctamente.");
         return "redirect:/alumno/subir";
     }

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Gestor de Pasantes</string>
+
+    <!-- Login -->
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Contraseña</string>
+    <string name="boton_ingresar">Ingresar</string>
+    <string name="error_email_requerido">Ingresá tu email</string>
+    <string name="error_email_invalido">Ese email no es válido</string>
+    <string name="error_password_requerido">Ingresá tu contraseña</string>
+
+    <!-- Navegacion inferior -->
+    <string name="tab_perfil">Perfil</string>
+    <string name="tab_documentos">Documentos</string>
+    <string name="tab_planilla">Planilla</string>
+
+    <!-- Perfil -->
+    <string name="etiqueta_curso">Curso</string>
+    <string name="etiqueta_especialidad">Especialidad</string>
+    <string name="etiqueta_empresa">Empresa</string>
+    <string name="etiqueta_supervisor">Supervisor</string>
+    <string name="etiqueta_telefono">Teléfono</string>
+    <string name="etiqueta_email">Email</string>
+    <string name="sin_asignar">Sin asignar</string>
+    <string name="boton_cerrar_sesion">Cerrar sesión</string>
+
+    <!-- Documentos -->
+    <string name="titulo_subir_documento">Subir documento</string>
+    <string name="boton_subir">Subir</string>
+    <string name="boton_elegir_archivo">Elegir archivo (PDF)</string>
+    <string name="ningun_archivo_elegido">Ningún archivo elegido</string>
+    <string name="hint_tipo_documento">Tipo de documento</string>
+    <string name="documentos_vacio">Todavía no subiste documentos.</string>
+    <string name="boton_cargar_mas">Cargar más</string>
+    <string name="documento_subido_ok">Documento subido correctamente.</string>
+    <string name="documento_eliminado_ok">Documento eliminado.</string>
+    <string name="confirmar_eliminar_documento">¿Eliminar este documento?</string>
+
+    <!-- Planilla -->
+    <string name="titulo_planilla">Planilla semanal</string>
+    <string name="planillas_vacio">Todavía no cargaste ninguna planilla.</string>
+    <string name="boton_nueva_planilla">Cargar semana</string>
+    <string name="hint_supervisor">Supervisor</string>
+    <string name="hint_conocimientos">Conocimientos adquiridos</string>
+    <string name="hint_experiencia">Experiencia</string>
+    <string name="hint_aprendizaje">Aprendizaje</string>
+    <string name="hint_descripcion_dia">Descripción de la tarea</string>
+    <string name="hint_horas">Horas</string>
+    <string name="boton_elegir_fecha">Elegir fecha</string>
+    <string name="boton_guardar_planilla">Guardar planilla</string>
+    <string name="planilla_guardada_ok">Planilla guardada correctamente.</string>
+    <string name="error_red_completa_el_dia">Completá fecha, descripción y horas en %1$s (o dejalo vacío)</string>
+    <string name="error_ningun_dia_cargado">Cargá al menos un día trabajado</string>
+    <string name="error_campos_obligatorios">Supervisor, conocimientos, experiencia y aprendizaje son obligatorios</string>
+
+    <!-- Generico -->
+    <string name="error_red">No se pudo conectar con el servidor. Revisá tu conexión.</string>
+    <string name="cargando">Cargando…</string>
+</resources>

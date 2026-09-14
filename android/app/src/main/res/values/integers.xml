@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Columnas de la grilla de documentos. Version -land pisa esto en horizontal. -->
+    <integer name="columnas_documentos">1</integer>
+</resources>

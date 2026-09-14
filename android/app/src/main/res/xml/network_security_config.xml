@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Solo permite trafico sin cifrar (http, no https) contra 10.0.2.2, el alias que
+  usa el emulador de Android para llegar al localhost de la compu donde corre el
+  backend en desarrollo. Cualquier otro host sigue exigiendo https (regla base-config
+  de abajo), asi que esto no abre la app entera a cleartext, solo el caso de desarrollo.
+
+  Para probar en un celular fisico contra la IP de la red Wi-Fi (ej. 192.168.1.X),
+  agregar un <domain> mas aca abajo con esa IP.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
