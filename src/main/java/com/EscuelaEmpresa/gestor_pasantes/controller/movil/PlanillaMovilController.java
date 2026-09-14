@@ -131,9 +131,11 @@ public class PlanillaMovilController {
                 planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         Collections.reverse(planillas);
 
-        if (planillas.size() < 6) {
+        boolean requisitoSemanasCumplido = planillas.size() >= PlanillaSemanalService.MAX_SEMANAS
+                || planillaSemanalService.alcanzoObjetivoHoras(planillas);
+        if (!requisitoSemanasCumplido) {
             throw new ReglaNegocioException(
-                    "Todavía no completaste las 6 semanas de planilla, no se puede generar el informe.");
+                    "Todavía no completaste la pasantía: te faltan semanas o no llegaste a las 240 horas.");
         }
         if (alumno.getSupervisor() == null) {
             throw new ReglaNegocioException(
