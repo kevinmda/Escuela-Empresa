@@ -64,6 +64,7 @@
     <string name="hint_horas">Horas</string>
     <string name="boton_elegir_fecha">Elegir fecha</string>
     <string name="boton_ver_pdf">Ver PDF</string>
+    <string name="boton_descargar_informe">Descargar informe final</string>
     <string name="boton_guardar_planilla">Guardar planilla</string>
     <string name="planilla_guardada_ok">Planilla guardada correctamente.</string>
     <string name="error_red_completa_el_dia">Completá fecha, descripción y horas en %1$s (o dejalo vacío)</string>
