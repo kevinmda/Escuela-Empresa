@@ -18,6 +18,11 @@
         <item name="android:windowBackground">@color/fondo</item>
         <item name="android:statusBarColor">@color/primario_oscuro</item>
 
+        <!-- Sin esto, Android dibuja una "starting window" con el tema por defecto
+             mientras arranca la siguiente Activity, lo que se ve como un parpadeo a
+             modo claro antes de que se pinte el layout real en modo oscuro. -->
+        <item name="android:windowDisablePreview">true</item>
+
         <item name="shapeAppearanceCornerExtraSmall">@style/ShapeAppearance.GestorPasantes.Small</item>
         <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.GestorPasantes.Small</item>
         <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.GestorPasantes.Medium</item>
