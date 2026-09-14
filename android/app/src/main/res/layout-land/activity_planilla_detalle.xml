@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- En horizontal los seis dias se acomodan en dos columnas de tres, en vez de una
-     sola lista larga como en portrait -- misma idea que fragment_perfil en horizontal. -->
+     sola lista larga como en portrait (misma idea que fragment_perfil en horizontal). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"

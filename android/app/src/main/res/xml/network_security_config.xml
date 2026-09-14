@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Solo permite trafico sin cifrar (http, no https) contra 10.0.2.2 -- el alias que
+  Solo permite trafico sin cifrar (http, no https) contra 10.0.2.2, el alias que
   usa el emulador de Android para llegar al localhost de la compu donde corre el
   backend en desarrollo. Cualquier otro host sigue exigiendo https (regla base-config
   de abajo), asi que esto no abre la app entera a cleartext, solo el caso de desarrollo.
