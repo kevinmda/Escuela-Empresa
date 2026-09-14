@@ -10,6 +10,18 @@
     <string name="error_email_requerido">Ingresá tu email</string>
     <string name="error_email_invalido">Ese email no es válido</string>
     <string name="error_password_requerido">Ingresá tu contraseña</string>
+    <string name="boton_olvide_contrasena">¿Olvidaste tu contraseña?</string>
+
+    <!-- Recuperar contraseña -->
+    <string name="titulo_recuperar_contrasena">Recuperar contraseña</string>
+    <string name="subtitulo_recuperar_contrasena">Te mandamos un código de 6 dígitos a tu email.</string>
+    <string name="boton_enviar_codigo">Enviar código</string>
+    <string name="titulo_restablecer_contrasena">Restablecer contraseña</string>
+    <string name="subtitulo_restablecer_contrasena">Ingresá el código que te llegó por email y elegí una contraseña nueva.</string>
+    <string name="hint_codigo">Código de 6 dígitos</string>
+    <string name="boton_restablecer_contrasena">Restablecer</string>
+    <string name="contrasena_restablecida_ok">Contraseña restablecida. Iniciá sesión con la nueva.</string>
+    <string name="aviso_codigo_enviado">Revisá tu email: si la cuenta existe, te llegó un código.</string>
 
     <!-- Navegacion inferior -->
     <string name="tab_perfil">Perfil</string>

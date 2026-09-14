@@ -47,6 +47,16 @@
             android:exported="false"
             android:label="@string/titulo_formularios" />
 
+        <activity
+            android:name=".RecuperarContrasenaActivity"
+            android:exported="false"
+            android:label="@string/titulo_recuperar_contrasena" />
+
+        <activity
+            android:name=".RestablecerContrasenaActivity"
+            android:exported="false"
+            android:label="@string/titulo_restablecer_contrasena" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

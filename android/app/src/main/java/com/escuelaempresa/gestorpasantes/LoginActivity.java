@@ -57,6 +57,10 @@ public class LoginActivity extends AppCompatActivity {
 
         AnimacionResorte.feedbackToque(botonIngresar);
         botonIngresar.setOnClickListener(v -> intentarLogin());
+
+        MaterialButton botonOlvideContrasena = findViewById(R.id.botonOlvideContrasena);
+        botonOlvideContrasena.setOnClickListener(v ->
+                startActivity(new Intent(this, RecuperarContrasenaActivity.class)));
     }
 
     private void intentarLogin() {
