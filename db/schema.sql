@@ -113,7 +113,7 @@ CREATE TABLE planilla_semanal (
     supervisor    VARCHAR(100),
     fecha_desde   DATE,
     fecha_hasta   DATE,
-    total_horas   DECIMAL(5,2),             -- suma exacta de los dias, dos decimales
+    total_horas   DECIMAL(5,0),             -- suma exacta de los dias, siempre entero
     conocimientos VARCHAR(265),
     experiencia   VARCHAR(200),
     aprendizaje   VARCHAR(200),
@@ -128,7 +128,7 @@ CREATE TABLE planilla_semanal_detalle (
     id_PSD      INT NOT NULL,
     fecha       DATE,
     descripcion VARCHAR(65),
-    horas       DECIMAL(5,2),
+    horas       DECIMAL(5,0),
     PRIMARY KEY (id_PS, id_PSD),
     CONSTRAINT fk_detalle_planilla FOREIGN KEY (id_PS) REFERENCES planilla_semanal (id_PS)
 );
