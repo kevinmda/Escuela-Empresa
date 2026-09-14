@@ -219,7 +219,7 @@ public class AdminController {
                                     documento.getValidado()))
                             .toList();
 
-                    int limite = limitesDocumentoService.obtenerLimitePorTipo(tipo);
+                    int limite = limitesDocumentoService.obtenerLimitePorTipo(tipo, idAl);
                     return new ResumenDocumentoTipoDTO(tipo, limite, documentosDeEsteTipo);
                 })
                 .toList();

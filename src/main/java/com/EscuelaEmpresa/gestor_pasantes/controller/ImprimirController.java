@@ -53,7 +53,7 @@ public class ImprimirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
         model.addAttribute("expedienteCompleto", expedientePdfService.estaCompleto(alumno.getIdAl()));
         model.addAttribute("totalSubidos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
-        model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal());
+        model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal(alumno.getIdAl()));
         return "alumno/imprimir";
     }
 

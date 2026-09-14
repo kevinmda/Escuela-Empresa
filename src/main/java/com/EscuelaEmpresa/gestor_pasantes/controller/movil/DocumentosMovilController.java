@@ -95,7 +95,7 @@ public class DocumentosMovilController {
         }
 
         if (!limitesDocumentoService.puedeSubirDocumento(alumno.getIdAl(), tipoDocumento)) {
-            throw new ReglaNegocioException(limitesDocumentoService.obtenerMensajeError(tipoDocumento));
+            throw new ReglaNegocioException(limitesDocumentoService.obtenerMensajeError(tipoDocumento, alumno.getIdAl()));
         }
 
         ValidacionResultado validacion =

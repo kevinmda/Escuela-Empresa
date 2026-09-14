@@ -22,6 +22,18 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 @Service
 public class PlanillaSemanalService {
 
+    // Tope absoluto de semanas: una pasantia dura como maximo 6. Si el alumno
+    // ya acumulo las 240 horas objetivo antes de llegar a la sexta, dejar de
+    // cargar semanas pasa a ser opcional (ver alcanzoObjetivoHoras), pero
+    // nunca se puede superar este tope. Publico: lo usan los controllers
+    // (web y movil) para saber cuando el requisito de semanas esta cumplido.
+    public static final int MAX_SEMANAS = 6;
+
+    // Horas totales que se esperan de la pasantia completa. Una vez que la
+    // suma de "total_horas" de las semanas ya cargadas llega aca, ya no hace
+    // falta completar las 6 semanas: alcanza con las que el alumno ya cargo.
+    private static final BigDecimal HORAS_OBJETIVO_PASANTIA = new BigDecimal("240");
+
     private final PlanillaSemanalRepository planillaSemanalRepository;
     private final PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository;
 
@@ -36,7 +48,7 @@ public class PlanillaSemanalService {
 
         // Maximo 6 planillas por alumno (una pasantia dura exactamente 6 semanas)
         List<PlanillaSemanal> planillasExistentes = planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
-        if (planillasExistentes.size() >= 6) {
+        if (planillasExistentes.size() >= MAX_SEMANAS) {
             throw new ReglaNegocioException("Ya cargaste las 6 semanas de planilla. No se pueden cargar más.");
         }
 
@@ -172,6 +184,47 @@ public class PlanillaSemanalService {
         return horas.setScale(2, RoundingMode.HALF_UP);
     }
 
+    /**
+     * Suma el total_horas de todas las semanas ya cargadas por el alumno.
+     */
+    public BigDecimal calcularHorasAcumuladas(List<PlanillaSemanal> planillas) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (PlanillaSemanal planilla : planillas) {
+            if (planilla.getTotalHoras() != null) {
+                total = total.add(planilla.getTotalHoras());
+            }
+        }
+        return total;
+    }
+
+    /**
+     * True si con las semanas ya cargadas el alumno ya llegó a las 240 horas
+     * de la pasantía. A partir de ahí cargar otra semana pasa a ser
+     * opcional: no hace falta llegar a las 6 para habilitar el informe.
+     */
+    public boolean alcanzoObjetivoHoras(List<PlanillaSemanal> planillas) {
+        return calcularHorasAcumuladas(planillas).compareTo(HORAS_OBJETIVO_PASANTIA) >= 0;
+    }
+
+    /**
+     * Cuántas semanas le hacían falta a este alumno para el expediente: si ya
+     * alcanzó las 240 horas antes de llegar a MAX_SEMANAS, son las que ya
+     * cargó (puede ser 5); si no, sigue siendo MAX_SEMANAS. La usa
+     * LimitesDocumentoService para saber cuántos PDF de "Plantilla Semanal"
+     * tiene que subir este alumno en particular.
+     */
+    public int obtenerSemanasNecesarias(Integer idAlumno) {
+        List<PlanillaSemanal> planillas =
+                planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(idAlumno);
+        if (planillas.size() >= MAX_SEMANAS) {
+            return MAX_SEMANAS;
+        }
+        if (alcanzoObjetivoHoras(planillas)) {
+            return planillas.size();
+        }
+        return MAX_SEMANAS;
+    }
+
     private void validarOrdenYRango(List<DiaForm> diasCargados) {
         // Opción 1: orden cronológico -- cada día cargado tiene que tener una fecha
         // posterior al día anterior (evita "Martes antes que Lunes")
@@ -232,6 +285,16 @@ public class PlanillaSemanalService {
 
         if (dia.getHoras().signum() <= 0) {
             throw new ReglaNegocioException("Las horas deben ser mayores a 0 en " + dia.getNombreDia());
+        }
+
+        // Sábados se trabaja media jornada: máximo 8 horas contra las 10 de
+        // lunes a viernes.
+        BigDecimal maxHoras = diaEsperado == DayOfWeek.SATURDAY
+                ? new BigDecimal("8")
+                : new BigDecimal("10");
+        if (dia.getHoras().compareTo(maxHoras) > 0) {
+            throw new ReglaNegocioException("Las horas de " + dia.getNombreDia() + " no pueden superar las "
+                    + maxHoras + " (máximo " + (diaEsperado == DayOfWeek.SATURDAY ? "8 horas los sábados" : "10 horas de lunes a viernes") + ").");
         }
 
         if (dia.getFecha() != null && dia.getFecha().getDayOfWeek() != diaEsperado) {

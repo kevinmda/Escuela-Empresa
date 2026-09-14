@@ -11,7 +11,9 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
  * Servicio para gestionar los límites de subida de documentos por tipo.
  *
  * Límites:
- * - PLANTILLA_SEMANAL: 6 subidas máximo
+ * - PLANTILLA_SEMANAL: 5 o 6 subidas, según cuántas semanas le hicieron
+ *   falta a ese alumno para llegar a las 240 horas de la pasantía
+ *   (ver PlanillaSemanalService.obtenerSemanasNecesarias)
  * - Otros tipos: 1 subida máximo
  */
 @Service
@@ -31,17 +33,22 @@ public class LimitesDocumentoService {
     );
 
     private final DocumentoSubidoRepository documentoSubidoRepository;
+    private final PlanillaSemanalService planillaSemanalService;
 
-    public LimitesDocumentoService(DocumentoSubidoRepository documentoSubidoRepository) {
+    public LimitesDocumentoService(DocumentoSubidoRepository documentoSubidoRepository,
+                                    PlanillaSemanalService planillaSemanalService) {
         this.documentoSubidoRepository = documentoSubidoRepository;
+        this.planillaSemanalService = planillaSemanalService;
     }
 
     /**
-     * Obtiene el límite máximo de subidas para un tipo de documento
+     * Obtiene el límite máximo de subidas para un tipo de documento. Para
+     * PLANTILLA_SEMANAL depende del alumno: son las semanas que realmente
+     * le hicieron falta para llegar a las 240 horas (5 o 6).
      */
-    public int obtenerLimitePorTipo(TipoDocumento tipo) {
+    public int obtenerLimitePorTipo(TipoDocumento tipo, Integer idAlumno) {
         if (tipo == TipoDocumento.PLANTILLA_SEMANAL) {
-            return 6; // Plantilla semanal permite 6 subidas
+            return planillaSemanalService.obtenerSemanasNecesarias(idAlumno);
         }
         return 1; // Todos los otros tipos permiten solo 1
     }
@@ -60,7 +67,7 @@ public class LimitesDocumentoService {
      */
     public boolean puedeSubirDocumento(Integer idAlumno, TipoDocumento tipo) {
         long subidos = contarDocumentosSubidos(idAlumno, tipo);
-        int limite = obtenerLimitePorTipo(tipo);
+        int limite = obtenerLimitePorTipo(tipo, idAlumno);
         return subidos < limite;
     }
 
@@ -73,15 +80,15 @@ public class LimitesDocumentoService {
     }
 
     /**
-     * Verifica si el alumno ya entregó el expediente completo: los diez
-     * comprobantes (una autorización, un contrato, seis planillas semanales,
-     * una ficha final y una ficha final evaluativa). Es la condición que
+     * Verifica si el alumno ya entregó el expediente completo: autorización,
+     * contrato, sus planillas semanales (5 o 6, según cuántas le hicieron
+     * falta), ficha final y ficha final evaluativa. Es la condición que
      * habilita imprimir/descargar todo junto en un solo PDF, y también la que
      * habilita subir DOCUMENTOS_ADJUNTOS.
      */
     public boolean expedienteCompleto(Integer idAlumno) {
         for (TipoDocumento tipo : TIPOS_EXPEDIENTE) {
-            if (contarDocumentosSubidos(idAlumno, tipo) < obtenerLimitePorTipo(tipo)) {
+            if (contarDocumentosSubidos(idAlumno, tipo) < obtenerLimitePorTipo(tipo, idAlumno)) {
                 return false;
             }
         }
@@ -89,13 +96,14 @@ public class LimitesDocumentoService {
     }
 
     /**
-     * Cuántos comprobantes en total componen el expediente completo (hoy son 10:
-     * autorización + contrato + 6 planillas + ficha final + ficha final evaluativa).
+     * Cuántos comprobantes en total componen el expediente completo de este
+     * alumno (9 o 10: autorización + contrato + sus planillas semanales +
+     * ficha final + ficha final evaluativa).
      */
-    public int obtenerLimiteTotal() {
+    public int obtenerLimiteTotal(Integer idAlumno) {
         int total = 0;
         for (TipoDocumento tipo : TIPOS_EXPEDIENTE) {
-            total += obtenerLimitePorTipo(tipo);
+            total += obtenerLimitePorTipo(tipo, idAlumno);
         }
         return total;
     }
@@ -115,8 +123,8 @@ public class LimitesDocumentoService {
     /**
      * Obtiene un mensaje de error descriptivo cuando el alumno alcanzó el límite
      */
-    public String obtenerMensajeError(TipoDocumento tipo) {
-        int limite = obtenerLimitePorTipo(tipo);
+    public String obtenerMensajeError(TipoDocumento tipo, Integer idAlumno) {
+        int limite = obtenerLimitePorTipo(tipo, idAlumno);
         if (limite == 1) {
             return "Ya subiste el máximo de 1 documento de tipo '" + tipo.getDescripcion() 
                    + "'. Para subir otro, debes eliminar el anterior.";

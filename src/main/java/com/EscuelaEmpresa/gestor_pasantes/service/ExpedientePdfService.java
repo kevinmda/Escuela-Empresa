@@ -54,7 +54,7 @@ public class ExpedientePdfService {
     public void generarPdf(Alumno alumno, OutputStream salida) throws IOException {
         if (!estaCompleto(alumno.getIdAl())) {
             throw new ReglaNegocioException(
-                    "Todavía no se entregaron los 10 comprobantes del expediente. " +
+                    "Todavía no se entregaron todos los comprobantes del expediente. " +
                     "Los documentos adjuntos se pueden generar recién cuando la entrega esté completa.");
         }
 
