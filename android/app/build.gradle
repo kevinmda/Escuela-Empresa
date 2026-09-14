@@ -36,6 +36,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
     implementation 'androidx.fragment:fragment:1.8.4'
+    implementation 'androidx.activity:activity:1.9.3'
     implementation 'androidx.cardview:cardview:1.0.0'
 
     // Cliente HTTP recomendado por la consigna
