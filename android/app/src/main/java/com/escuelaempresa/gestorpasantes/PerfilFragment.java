@@ -70,6 +70,10 @@ public class PerfilFragment extends Fragment {
         MaterialButton botonCerrarSesion = view.findViewById(R.id.botonCerrarSesion);
         botonCerrarSesion.setOnClickListener(v -> cerrarSesion());
 
+        MaterialButton botonCambiarContrasena = view.findViewById(R.id.botonCambiarContrasena);
+        botonCambiarContrasena.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), CambiarContrasenaActivity.class)));
+
         refrescar.setOnRefreshListener(this::cargarPerfil);
         cargarPerfil();
     }

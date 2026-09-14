@@ -88,11 +88,19 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/botonCerrarSesion"
+                android:id="@+id/botonCambiarContrasena"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_lg"
+                android:text="@string/boton_cambiar_contrasena" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/botonCerrarSesion"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/espacio_sm"
                 android:text="@string/boton_cerrar_sesion"
                 android:textColor="@color/error"
                 app:strokeColor="@color/error"
