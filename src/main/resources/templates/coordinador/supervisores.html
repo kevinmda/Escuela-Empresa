@@ -2,6 +2,19 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+
+    <!-- Fija data-theme antes de que el navegador pinte nada: theme.js carga con
+         defer y corre recien despues del primer render, asi que sin esto la
+         pagina arranca en claro (el :root por defecto) y salta a oscuro apenas
+         theme.js llega -- ese salto es el parpadeo al cambiar de pagina. -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('theme')
+                || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.dataset.theme = tema;
+        })();
+    </script>
+
     <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supervisores | CTN Pasantías</title>
