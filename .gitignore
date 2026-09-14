@@ -65,3 +65,6 @@ android/*/.cxx/
 android/captures/
 android/*.hprof
 android/app/release/
+
+### Claude Code (configuracion local del asistente) ###
+.claude/

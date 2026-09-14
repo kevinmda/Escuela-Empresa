@@ -5671,6 +5671,13 @@ button:disabled,
     gap: 0.7rem;
 }
 
+/* Documentos adjuntos es un solo tipo, no cinco: una columna angosta y no las
+   cinco parejas de la grilla de arriba, que estirarían la tarjeta a lo ancho
+   de todo el panel. */
+.sb-tipos-grilla--unico {
+    grid-template-columns: minmax(0, 260px);
+}
+
 /* Pendiente: punteada, como se dice vacio en el resto de la app. */
 .sb-tipo {
     position: relative;
@@ -5766,6 +5773,26 @@ button:disabled,
     transition-duration: 0.08s;
 }
 
+/* Estatico: se ve como una tarjeta de tipo (misma forma, mismos estados de
+   color) pero no envuelve un radio y no hay nada que elegir -- es un
+   indicador, no un control. El cursor de mano y el salto al pasar el mouse
+   prometen una interacción que no existe, así que se anulan acá y no en
+   línea, para que ningún otro uso de .sb-tipo tenga que acordarse de esto. */
+.sb-tipo--estatico {
+    cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .sb-tipo--estatico:not(.sb-tipo--completo):hover {
+        transform: none;
+        border-color: color-mix(in srgb, var(--ink-soft) 45%, transparent);
+    }
+}
+
+.sb-tipo--estatico:not(.sb-tipo--completo):active {
+    transform: none;
+}
+
 /* ---------- La zona de arrastre ---------- */
 
 .dropzone {
@@ -5851,6 +5878,21 @@ button:disabled,
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
+}
+
+/* Nota corta del apartado de Documentos adjuntos: ni el vacío grande y
+   punteado de .sb-vacio (esto no es un estado vacío, es una aclaración) ni
+   el peso de .sb-tipos-titulo. */
+.sb-adjuntos-nota {
+    margin: 0;
+    max-width: 60ch;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+.sb-adjuntos-nota a {
+    color: var(--accent-ink);
 }
 
 /* ---------- Lo que ya subiste ---------- */

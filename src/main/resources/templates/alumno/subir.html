@@ -145,6 +145,67 @@
                 arrastrá el PDF.
             </p>
         </section>
+
+        <!-- Apartado exclusivo de Documentos adjuntos: no es uno de los cinco
+             tipos del expediente, es el expediente ya combinado (autorización +
+             contrato + planillas + las dos fichas, armado en /alumno/imprimir)
+             firmado y escaneado de vuelta. Por eso va separado y no entra en la
+             grilla de arriba, y por eso se habilita recién cuando esos diez ya
+             están completos: subirlo antes no tendría nada que combinar.
+
+             No es un <fieldset> como el de arriba: ahí adentro había una
+             decisión real que tomar (qué tipo estás subiendo, entre cinco).
+             Acá no hay nada que elegir, así que es un encabezado normal más
+             una tarjeta que solo informa un estado. -->
+        <section class="panel sb-form" aria-labelledby="sb-adjuntos-titulo">
+            <h3 class="sb-subidos-titulo" id="sb-adjuntos-titulo">Documentos adjuntos</h3>
+            <p class="sb-adjuntos-nota">
+                El expediente completo que armás en
+                <a th:href="@{/alumno/imprimir}">Imprimir</a>, ya firmado y escaneado. Se
+                admite un solo archivo.
+            </p>
+
+            <div class="sb-tipos-grilla sb-tipos-grilla--unico">
+                <!-- sb-tipo--estatico: se ve como las tarjetas de arriba, pero no
+                     hay radio adentro ni nada que elegir, así que no debe
+                     comportarse como si lo hubiera (ni cursor de mano, ni el
+                     salto al pasar el mouse). -->
+                <div class="sb-tipo sb-tipo--estatico"
+                     th:classappend="${documentoAdjuntos != null} ? ' sb-tipo--completo'">
+                    <span class="sb-tipo-nombre">Documentos Adjuntos</span>
+                    <span class="sb-tipo-cuenta"
+                          th:text="${(documentoAdjuntos != null ? 1 : 0)} + ' de 1'">0 de 1</span>
+                </div>
+            </div>
+
+            <form th:if="${puedeSubirAdjuntos}" th:action="@{/alumno/subir}" method="post"
+                  enctype="multipart/form-data" class="sb-form-adjuntos-cuerpo">
+                <input type="hidden" name="tipoDocumento" value="DOCUMENTOS_ADJUNTOS">
+
+                <label for="archivo-input-adjuntos" class="dropzone" id="dropzone-adjuntos">
+                    <span class="dropzone-titulo" id="dropzone-titulo-adjuntos">Hacé click o arrastrá tu PDF acá</span>
+                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
+                </label>
+                <input type="file" id="archivo-input-adjuntos" name="archivo" accept="application/pdf" required
+                       class="dropzone-input">
+
+                <div class="sb-form-acciones">
+                    <button type="submit" class="btn btn-primary">Subir documento</button>
+                </div>
+            </form>
+
+            <!-- Mismo tratamiento que "Todavía no subiste ningún documento" más
+                 arriba: es el mismo tipo de estado (nada para hacer todavía acá),
+                 así que se ve igual, no una variante nueva. -->
+            <p th:unless="${expedienteCompleto}" class="sb-vacio">
+                Se habilita cuando completes los <span th:text="${totalLimite}">10</span> comprobantes de arriba
+                (llevás <span th:text="${totalSubidos}">0</span>).
+            </p>
+
+            <p th:if="${expedienteCompleto and documentoAdjuntos != null}" class="sb-adjuntos-nota">
+                Ya lo subiste. Para reemplazarlo, eliminalo en la tabla de arriba y subí el nuevo acá.
+            </p>
+        </section>
     </main>
 
     <script>
@@ -152,38 +213,52 @@
         // hacer falta: cada tarjeta de tipo dice su propia cuenta y la completa
         // viene deshabilitada desde el servidor, asi que no hay nada que
         // calcular ni que pintar en el navegador.
-        const dropzone = document.getElementById('dropzone');
-        const inputArchivo = document.getElementById('archivo-input');
-        const dropzoneTitulo = document.getElementById('dropzone-titulo');
+        //
+        // La misma zona de arrastre se repite en Documentos adjuntos, así que se
+        // arma una vez por función y se engancha a cada par que exista en la
+        // página en vez de repetir el bloque entero.
+        function activarDropzone(dropzone, inputArchivo, dropzoneTitulo) {
+            if (!dropzone || !inputArchivo || !dropzoneTitulo) return;
 
-        function actualizarNombreArchivo() {
-            if (inputArchivo.files && inputArchivo.files.length > 0) {
-                dropzoneTitulo.textContent = inputArchivo.files[0].name;
-                dropzone.classList.add('dropzone-con-archivo');
-            } else {
-                dropzoneTitulo.textContent = 'Hacé click o arrastrá tu PDF acá';
-                dropzone.classList.remove('dropzone-con-archivo');
+            function actualizarNombreArchivo() {
+                if (inputArchivo.files && inputArchivo.files.length > 0) {
+                    dropzoneTitulo.textContent = inputArchivo.files[0].name;
+                    dropzone.classList.add('dropzone-con-archivo');
+                } else {
+                    dropzoneTitulo.textContent = 'Hacé click o arrastrá tu PDF acá';
+                    dropzone.classList.remove('dropzone-con-archivo');
+                }
             }
+
+            inputArchivo.addEventListener('change', actualizarNombreArchivo);
+
+            ['dragover', 'dragleave', 'drop'].forEach(evento => {
+                dropzone.addEventListener(evento, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+
+            dropzone.addEventListener('dragover', () => dropzone.classList.add('dropzone-activo'));
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dropzone-activo'));
+            dropzone.addEventListener('drop', (e) => {
+                dropzone.classList.remove('dropzone-activo');
+                if (e.dataTransfer.files.length > 0) {
+                    inputArchivo.files = e.dataTransfer.files;
+                    actualizarNombreArchivo();
+                }
+            });
         }
 
-        inputArchivo.addEventListener('change', actualizarNombreArchivo);
+        activarDropzone(
+            document.getElementById('dropzone'),
+            document.getElementById('archivo-input'),
+            document.getElementById('dropzone-titulo'));
 
-        ['dragover', 'dragleave', 'drop'].forEach(evento => {
-            dropzone.addEventListener(evento, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            });
-        });
-
-        dropzone.addEventListener('dragover', () => dropzone.classList.add('dropzone-activo'));
-        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dropzone-activo'));
-        dropzone.addEventListener('drop', (e) => {
-            dropzone.classList.remove('dropzone-activo');
-            if (e.dataTransfer.files.length > 0) {
-                inputArchivo.files = e.dataTransfer.files;
-                actualizarNombreArchivo();
-            }
-        });
+        activarDropzone(
+            document.getElementById('dropzone-adjuntos'),
+            document.getElementById('archivo-input-adjuntos'),
+            document.getElementById('dropzone-titulo-adjuntos'));
     </script>
 </body>
 </html>
