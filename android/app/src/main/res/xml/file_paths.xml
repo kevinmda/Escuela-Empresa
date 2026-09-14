@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Los documentos descargados se guardan en el cache antes de abrirlos con
+         FileProvider (Volley no puede pasarle un header Authorization a un Intent
+         ACTION_VIEW directo contra la URL del backend). -->
+    <cache-path name="documentos" path="documentos/" />
+</paths>

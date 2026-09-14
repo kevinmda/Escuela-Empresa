@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- En horizontal hay ancho de sobra: los datos se acomodan en dos columnas
+     etiqueta/valor en vez de una sola lista apilada como en portrait. -->
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/refrescarPerfil"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/textoNombre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/texto_principal"
+                tools:text="Nombre Apellido" />
+
+            <TextView
+                android:id="@+id/textoCursoSeccion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/texto_secundario"
+                tools:text="6to Informática A" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="16dp"
+                android:background="#E0E0E0" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <include layout="@layout/item_dato_perfil" android:id="@+id/filaEspecialidad"
+                    android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" />
+                <include layout="@layout/item_dato_perfil" android:id="@+id/filaEmpresa"
+                    android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <include layout="@layout/item_dato_perfil" android:id="@+id/filaSupervisor"
+                    android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" />
+                <include layout="@layout/item_dato_perfil" android:id="@+id/filaTelefono"
+                    android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <include layout="@layout/item_dato_perfil" android:id="@+id/filaEmail" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/botonCerrarSesion"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/boton_cerrar_sesion" />
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

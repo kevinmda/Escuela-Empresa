@@ -56,3 +56,12 @@ desktop.ini
 ### Documentos que suben los alumnos ###
 # Son datos personales: no van al repositorio ni aunque el repo sea privado.
 uploads/
+
+### Android (proyecto Gradle separado en android/) ###
+# build/ e .idea/ ya los cubren las reglas genericas de arriba.
+android/.gradle/
+android/local.properties
+android/*/.cxx/
+android/captures/
+android/*.hprof
+android/app/release/
