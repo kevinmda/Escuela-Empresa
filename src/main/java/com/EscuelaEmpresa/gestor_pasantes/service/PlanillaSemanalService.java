@@ -178,10 +178,12 @@ public class PlanillaSemanalService {
         return total;
     }
 
-    // El campo del formulario acepta step 0.01 y la columna es DECIMAL(5,2): se
+    // El campo del formulario acepta step 1 y la columna es DECIMAL(5,0): se
     // redondea aca, de forma explicita, en vez de dejar que MySQL lo haga en silencio.
+    // En circunstancias normales ya llega entero (ver validarDia), pero esto es la
+    // ultima garantia antes de guardar.
     static BigDecimal normalizarHoras(BigDecimal horas) {
-        return horas.setScale(2, RoundingMode.HALF_UP);
+        return horas.setScale(0, RoundingMode.HALF_UP);
     }
 
     /**
@@ -285,6 +287,11 @@ public class PlanillaSemanalService {
 
         if (dia.getHoras().signum() <= 0) {
             throw new ReglaNegocioException("Las horas deben ser mayores a 0 en " + dia.getNombreDia());
+        }
+
+        // Las horas se cargan enteras, sin fracciones (ni 7.5 ni 7:30).
+        if (dia.getHoras().remainder(BigDecimal.ONE).signum() != 0) {
+            throw new ReglaNegocioException("Las horas de " + dia.getNombreDia() + " deben ser un número entero, sin decimales.");
         }
 
         // Sábados se trabaja media jornada: máximo 8 horas contra las 10 de
