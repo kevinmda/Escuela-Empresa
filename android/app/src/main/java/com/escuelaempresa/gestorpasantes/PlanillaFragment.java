@@ -23,6 +23,7 @@ import com.escuelaempresa.gestorpasantes.network.ApiConfig;
 import com.escuelaempresa.gestorpasantes.network.ApiJsonRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
+import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -80,6 +81,7 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
         });
 
         FloatingActionButton botonNueva = view.findViewById(R.id.botonNuevaPlanilla);
+        AnimacionResorte.feedbackToque(botonNueva);
         botonNueva.setOnClickListener(v ->
                 lanzadorDetalle.launch(new Intent(requireContext(), PlanillaDetalleActivity.class)));
 

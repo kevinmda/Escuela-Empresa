@@ -15,6 +15,7 @@ public class PerfilAlumnoDTO {
     private final String especialidad;
     private final String empresa;
     private final String supervisor;
+    private final boolean contrasenaPorDefecto;
 
     public PerfilAlumnoDTO(Alumno alumno) {
         this.idAl = alumno.getIdAl();
@@ -30,6 +31,11 @@ public class PerfilAlumnoDTO {
         this.supervisor = alumno.getSupervisor() != null
                 ? (alumno.getSupervisor().getNombres() + " " + alumno.getSupervisor().getApellidos())
                 : null;
+        // La app usa esto para mandar al alumno directo a cambiar su contraseña
+        // despues del login, igual que ContrasenaPorDefectoInterceptor lo hace en
+        // la web (ese interceptor no corre para /api/movil/**, ver WebConfig).
+        this.contrasenaPorDefecto = alumno.getUsuario() != null
+                && Boolean.TRUE.equals(alumno.getUsuario().getContrasenaPorDefecto());
     }
 
     public Integer getIdAl() { return idAl; }
@@ -43,4 +49,5 @@ public class PerfilAlumnoDTO {
     public String getEspecialidad() { return especialidad; }
     public String getEmpresa() { return empresa; }
     public String getSupervisor() { return supervisor; }
+    public boolean isContrasenaPorDefecto() { return contrasenaPorDefecto; }
 }

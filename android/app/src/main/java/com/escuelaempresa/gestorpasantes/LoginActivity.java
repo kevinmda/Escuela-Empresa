@@ -16,6 +16,7 @@ import com.escuelaempresa.gestorpasantes.network.ApiConfig;
 import com.escuelaempresa.gestorpasantes.network.ApiJsonRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
+import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
@@ -54,6 +55,7 @@ public class LoginActivity extends AppCompatActivity {
         botonIngresar = findViewById(R.id.botonIngresar);
         progresoLogin = findViewById(R.id.progresoLogin);
 
+        AnimacionResorte.feedbackToque(botonIngresar);
         botonIngresar.setOnClickListener(v -> intentarLogin());
     }
 

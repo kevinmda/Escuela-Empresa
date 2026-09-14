@@ -28,6 +28,7 @@ import com.escuelaempresa.gestorpasantes.network.ApiDeleteRequest;
 import com.escuelaempresa.gestorpasantes.network.ApiJsonRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
+import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -82,6 +83,7 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
         botonCargarMas.setOnClickListener(v -> cargarPagina(paginaActual + 1));
 
         FloatingActionButton botonSubir = view.findViewById(R.id.botonSubirDocumento);
+        AnimacionResorte.feedbackToque(botonSubir);
         lanzadorSubida = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), resultado -> {
             if (resultado.getResultCode() == android.app.Activity.RESULT_OK) {
                 cargarPagina(0);

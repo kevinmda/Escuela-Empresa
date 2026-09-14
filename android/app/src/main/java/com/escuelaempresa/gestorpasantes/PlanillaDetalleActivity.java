@@ -19,6 +19,7 @@ import com.escuelaempresa.gestorpasantes.network.ApiConfig;
 import com.escuelaempresa.gestorpasantes.network.ApiJsonRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
+import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -78,6 +79,7 @@ public class PlanillaDetalleActivity extends AppCompatActivity {
         textoError = findViewById(R.id.textoErrorPlanilla);
         botonGuardar = findViewById(R.id.botonGuardarPlanilla);
         progreso = findViewById(R.id.progresoPlanilla);
+        AnimacionResorte.feedbackToque(botonGuardar);
 
         armarFilasDeDias();
 

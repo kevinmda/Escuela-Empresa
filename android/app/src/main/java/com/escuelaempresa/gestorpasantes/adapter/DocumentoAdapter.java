@@ -11,9 +11,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.escuelaempresa.gestorpasantes.R;
 import com.escuelaempresa.gestorpasantes.model.Documento;
+import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DocumentoAdapter extends RecyclerView.Adapter<DocumentoAdapter.DocumentoViewHolder> {
 
@@ -23,6 +26,7 @@ public class DocumentoAdapter extends RecyclerView.Adapter<DocumentoAdapter.Docu
     }
 
     private final List<Documento> documentos = new ArrayList<>();
+    private final Set<Integer> posicionesYaAnimadas = new HashSet<>();
     private final Escucha escucha;
 
     public DocumentoAdapter(Escucha escucha) {
@@ -38,6 +42,7 @@ public class DocumentoAdapter extends RecyclerView.Adapter<DocumentoAdapter.Docu
     public void reemplazarTodo(List<Documento> nuevos) {
         documentos.clear();
         documentos.addAll(nuevos);
+        posicionesYaAnimadas.clear();
         notifyDataSetChanged();
     }
 
@@ -68,6 +73,7 @@ public class DocumentoAdapter extends RecyclerView.Adapter<DocumentoAdapter.Docu
         holder.fechaSubida.setText(documento.fechaSubida);
         holder.botonDescargar.setOnClickListener(v -> escucha.alDescargar(documento));
         holder.botonEliminar.setOnClickListener(v -> escucha.alEliminar(documento));
+        AnimacionResorte.entradaDeFila(holder.itemView, position, posicionesYaAnimadas);
     }
 
     @Override
@@ -89,6 +95,8 @@ public class DocumentoAdapter extends RecyclerView.Adapter<DocumentoAdapter.Docu
             fechaSubida = itemView.findViewById(R.id.textoFechaSubida);
             botonDescargar = itemView.findViewById(R.id.botonDescargar);
             botonEliminar = itemView.findViewById(R.id.botonEliminarDocumento);
+            AnimacionResorte.feedbackToque(botonDescargar);
+            AnimacionResorte.feedbackToque(botonEliminar);
         }
     }
 }

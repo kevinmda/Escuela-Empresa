@@ -14,15 +14,31 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/textoPlanillasVacio"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="48dp"
+                android:layout_marginTop="64dp"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textColor="@color/texto_secundario"
-                android:text="@string/planillas_vacio"
-                android:visibility="gone" />
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:alpha="0.6"
+                    android:contentDescription="@null"
+                    app:tint="@color/texto_secundario"
+                    app:srcCompat="@drawable/ic_vacio" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/espacio_sm"
+                    android:gravity="center"
+                    android:textColor="@color/texto_secundario"
+                    android:text="@string/planillas_vacio" />
+            </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/listaPlanillas"
@@ -30,11 +46,11 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:clipToPadding="false"
-                android:padding="8dp" />
+                android:padding="@dimen/espacio_sm" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/botonCargarMasPlanillas"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/boton_cargar_mas"
@@ -47,8 +63,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/espacio_md"
         android:contentDescription="@string/boton_nueva_planilla"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        app:backgroundTint="@color/acento"
+        app:tint="@color/on_acento"
+        app:srcCompat="@drawable/ic_agregar" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

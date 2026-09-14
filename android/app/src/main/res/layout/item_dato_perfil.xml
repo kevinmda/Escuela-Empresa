@@ -4,21 +4,23 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingVertical="6dp">
+    android:paddingVertical="12dp">
 
     <TextView
         android:id="@+id/etiqueta"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
         android:textColor="@color/texto_secundario"
+        android:letterSpacing="0.04"
         tools:text="Empresa" />
 
     <TextView
         android:id="@+id/valor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
+        android:layout_marginTop="2dp"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
         android:textColor="@color/texto_principal"
         tools:text="Valor" />
 </LinearLayout>

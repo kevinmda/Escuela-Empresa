@@ -7,19 +7,24 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.EscuelaEmpresa.gestor_pasantes.config.JwtService;
+import com.EscuelaEmpresa.gestor_pasantes.dto.movil.CambiarContrasenaRequest;
 import com.EscuelaEmpresa.gestor_pasantes.dto.movil.LoginRequest;
 import com.EscuelaEmpresa.gestor_pasantes.dto.movil.LoginResponse;
 import com.EscuelaEmpresa.gestor_pasantes.dto.movil.PerfilAlumnoDTO;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 
@@ -33,17 +38,23 @@ public class AuthMovilController {
     private static final int MAX_INTENTOS_LOGIN = 5;
     private static final int MINUTOS_BLOQUEO = 15;
 
+    // El mismo minimo que pide CambiarContrasenaController en la web.
+    private static final int LARGO_MINIMO_CONTRASENA = 6;
+
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UsuarioRepository usuarioRepository;
     private final AlumnoRepository alumnoRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthMovilController(AuthenticationManager authenticationManager, JwtService jwtService,
-                                UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository) {
+                                UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository,
+                                PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
@@ -92,5 +103,33 @@ public class AuthMovilController {
             usuario.setBloqueadoHasta(null);
             usuarioRepository.save(usuario);
         });
+    }
+
+    // Mismas reglas que /cambiar-contrasena en la web (largo minimo, contrasena
+    // actual correcta, nueva distinta de la actual), pero sin las sesiones
+    // pararelas: la API movil es stateless, no hay nada que cerrar aca.
+    @PostMapping("/cambiar-contrasena")
+    public ResponseEntity<Void> cambiarContrasena(@RequestBody CambiarContrasenaRequest request,
+                                                   Authentication authentication) {
+        Usuario usuario = usuarioRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
+
+        String nueva = request.getNueva();
+        if (nueva == null || nueva.length() < LARGO_MINIMO_CONTRASENA) {
+            throw new ReglaNegocioException(
+                    "La contraseña nueva tiene que tener al menos " + LARGO_MINIMO_CONTRASENA + " caracteres.");
+        }
+        if (!passwordEncoder.matches(request.getActual(), usuario.getContrasena())) {
+            throw new ReglaNegocioException("La contraseña actual no es correcta.");
+        }
+        if (passwordEncoder.matches(nueva, usuario.getContrasena())) {
+            throw new ReglaNegocioException("La contraseña nueva tiene que ser distinta de la actual.");
+        }
+
+        usuario.setContrasena(passwordEncoder.encode(nueva));
+        usuario.setContrasenaPorDefecto(false);
+        usuarioRepository.save(usuario);
+
+        return ResponseEntity.noContent().build();
     }
 }
