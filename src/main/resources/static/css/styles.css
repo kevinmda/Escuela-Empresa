@@ -1035,6 +1035,28 @@ main h3 {
     font-style: italic;
 }
 
+/* Bloque de "Documentos adjuntos" al pie del desplegable de entregas: un botón
+   cuando el alumno ya completó las diez, una nota de cuánto falta si no. */
+.documentos-adjuntos {
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--line);
+}
+
+.documentos-adjuntos .btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.8rem;
+}
+
+.documentos-adjuntos-nota {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
 .bienvenida {
     max-width: 640px;
     margin: 0 auto;

@@ -154,6 +154,53 @@
                 </li>
             </ul>
         </section>
+
+        <!-- Documentos adjuntos: no genera nada nuevo, junta en un solo PDF lo
+             que el alumno ya subió en /alumno/subir (los escaneos firmados, no
+             las plantillas de esta página). Solo tiene sentido pedirlo cuando
+             el expediente está completo, así que hasta entonces el botón queda
+             deshabilitado y muestra cuánto falta en vez de romper al tocarlo. -->
+        <section class="panel impr-pliego" aria-labelledby="impr-adjuntos">
+            <div class="impr-momento">
+                <h3 class="impr-momento-titulo" id="impr-adjuntos">Documentos adjuntos</h3>
+                <p class="impr-momento-nota" th:if="${expedienteCompleto}">
+                    Autorización, contrato, tus planillas semanales y las dos fichas finales que
+                    subiste, juntos en un solo PDF y en ese orden.
+                </p>
+                <p class="impr-momento-nota" th:unless="${expedienteCompleto}">
+                    Se habilita cuando termines de subir los <span th:text="${totalLimite}">10</span>
+                    comprobantes en <a th:href="@{/alumno/subir}">Subir documentos</a>.
+                </p>
+            </div>
+
+            <ul class="impr-lista">
+                <li class="impr-doc">
+                    <div class="impr-doc-hoja">
+                        <span class="impr-hoja impr-hoja--pila" aria-hidden="true">
+                            <span class="impr-hoja-cara">
+                                <span class="impr-hoja-banda"></span>
+                                <span class="impr-hoja-renglones"></span>
+                            </span>
+                        </span>
+                        <span class="impr-hoja-cuenta" th:text="${totalLimite} + ' documentos'">10 documentos</span>
+                    </div>
+                    <div class="impr-doc-texto">
+                        <h4 class="impr-doc-titulo">Expediente completo</h4>
+                        <p class="impr-doc-desc">Todo lo que subiste en "Subir documentos", en un único
+                            PDF listo para imprimir: autorización, contrato, planillas semanales,
+                            ficha final y ficha final evaluativa.</p>
+                    </div>
+                    <div class="impr-doc-acciones">
+                        <a th:if="${expedienteCompleto}" class="btn btn-primary"
+                           th:href="@{/alumno/imprimir/Documentos_Adjuntos.pdf}"
+                           target="_blank" rel="noopener"
+                           aria-label="Descargar documentos adjuntos en un solo PDF">Descargar</a>
+                        <button th:unless="${expedienteCompleto}" type="button" class="btn btn-primary" disabled
+                                th:text="${totalSubidos} + ' de ' + ${totalLimite}">0 de 10</button>
+                    </div>
+                </li>
+            </ul>
+        </section>
     </main>
 </body>
 </html>
