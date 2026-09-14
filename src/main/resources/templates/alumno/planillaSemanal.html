@@ -24,7 +24,8 @@
             <div class="portada-texto">
                 <h2 class="portada-titulo">Planilla Semanal</h2>
                 <p class="portada-sub">La pasantía son seis semanas y cada una se carga por
-                    separado. Elegí una ya cargada para revisarla, o abrí la siguiente.</p>
+                    separado. Elegí una ya cargada para revisarla, o abrí la siguiente. Si
+                    llegás antes a las 240 horas, pueden ser menos de seis.</p>
             </div>
 
             <p class="portada-cuenta">
@@ -39,6 +40,15 @@
         </div>
         <div th:if="${exito}" class="mensaje-exito">
             <p th:text="${exito}"></p>
+        </div>
+        <!-- Con las semanas ya cargadas alcanza y sobra: no hace falta llegar a
+             la sexta si ya se juntaron las 240 horas de la pasantía. Se avisa,
+             pero no se bloquea nada: el riel de abajo sigue dejando cargar la
+             semana que falte por si el alumno quiere hacerlo igual. -->
+        <div th:if="${objetivoHorasAlcanzado}" class="mensaje-exito">
+            <p>Ya acumulaste <span th:text="${#numbers.formatDecimal(horasAcumuladas, 1, 0)}">240</span>
+                horas de la pasantía. No hace falta que cargues otra semana, pero podés
+                hacerlo si querés.</p>
         </div>
 
         <!-- ================= Las seis semanas =================
@@ -226,8 +236,8 @@
                             Una empresa asignada</li>
                         <li class="pl-requisito" th:classappend="${tieneSupervisor} ? ' pl-requisito--listo'">
                             Un supervisor o docente asignado</li>
-                        <li class="pl-requisito" th:classappend="${tieneSeisPlanillas} ? ' pl-requisito--listo'">
-                            Las seis semanas cargadas</li>
+                        <li class="pl-requisito" th:classappend="${requisitoSemanasCumplido} ? ' pl-requisito--listo'">
+                            Las semanas necesarias cargadas</li>
                     </ul>
                 </div>
 
