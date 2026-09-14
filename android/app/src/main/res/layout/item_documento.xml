@@ -67,7 +67,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/boton_elegir_archivo"
+            android:contentDescription="@string/boton_descargar_documento"
             app:tint="@color/primario"
             android:src="@drawable/ic_descargar" />
 
@@ -76,7 +76,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/confirmar_eliminar_documento"
+            android:contentDescription="@string/boton_eliminar_documento"
             app:tint="@color/error"
             android:src="@drawable/ic_eliminar" />
     </LinearLayout>

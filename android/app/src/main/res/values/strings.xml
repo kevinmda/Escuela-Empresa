@@ -37,6 +37,8 @@
     <string name="documento_subido_ok">Documento subido correctamente.</string>
     <string name="documento_eliminado_ok">Documento eliminado.</string>
     <string name="confirmar_eliminar_documento">¿Eliminar este documento?</string>
+    <string name="boton_descargar_documento">Descargar documento</string>
+    <string name="boton_eliminar_documento">Eliminar documento</string>
 
     <!-- Planilla -->
     <string name="titulo_planilla">Planilla semanal</string>
