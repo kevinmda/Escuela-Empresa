@@ -1,6 +1,7 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -206,9 +207,11 @@ public class PlanillaSemanalController {
                 planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         Collections.reverse(planillas);
 
-        if (planillas.size() < 6) {
+        boolean requisitoSemanasCumplido = planillas.size() >= PlanillaSemanalService.MAX_SEMANAS
+                || planillaSemanalService.alcanzoObjetivoHoras(planillas);
+        if (!requisitoSemanasCumplido) {
             redirectAttributes.addFlashAttribute("error",
-                    "Todavía no completaste las 6 semanas de planilla, no se puede generar el informe.");
+                    "Todavía no completaste la pasantía: te faltan semanas o no llegaste a las 240 horas.");
             response.sendRedirect("/alumno/planilla");
             return;
         }
@@ -261,13 +264,18 @@ public class PlanillaSemanalController {
         model.addAttribute("idEspecialidad",
                 alumno.getEspecialidad() != null ? alumno.getEspecialidad().getIdEsp() : null);
 
-        boolean tieneSeisPlanillas = planillas.size() >= 6;
+        BigDecimal horasAcumuladas = planillaSemanalService.calcularHorasAcumuladas(planillas);
+        boolean objetivoHorasAlcanzado = planillaSemanalService.alcanzoObjetivoHoras(planillas);
+        boolean requisitoSemanasCumplido = planillas.size() >= PlanillaSemanalService.MAX_SEMANAS
+                || objetivoHorasAlcanzado;
         boolean tieneSupervisor = alumno.getSupervisor() != null;
         boolean tieneEmpresa = alumno.getEmpresa() != null;
-        boolean informeHabilitado = tieneSeisPlanillas && tieneSupervisor && tieneEmpresa;
+        boolean informeHabilitado = requisitoSemanasCumplido && tieneSupervisor && tieneEmpresa;
 
         model.addAttribute("informeHabilitado", informeHabilitado);
-        model.addAttribute("tieneSeisPlanillas", tieneSeisPlanillas);
+        model.addAttribute("horasAcumuladas", horasAcumuladas);
+        model.addAttribute("objetivoHorasAlcanzado", objetivoHorasAlcanzado);
+        model.addAttribute("requisitoSemanasCumplido", requisitoSemanasCumplido);
         model.addAttribute("tieneSupervisor", tieneSupervisor);
         model.addAttribute("tieneEmpresa", tieneEmpresa);
     }
