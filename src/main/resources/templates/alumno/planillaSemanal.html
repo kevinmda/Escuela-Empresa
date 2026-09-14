@@ -159,9 +159,9 @@
 
                             <label class="pl-campo pl-campo--horas">
                                 <span class="pl-campo-etiqueta">Horas</span>
-                                <input type="number" step="0.01" min="0.01"
+                                <input type="number" step="1" min="1"
                                        th:max="${iterStat.index == 5} ? 8 : 10"
-                                       th:field="*{dias[__${iterStat.index}__].horas}" placeholder="0.00">
+                                       th:field="*{dias[__${iterStat.index}__].horas}" placeholder="0">
                             </label>
                         </div>
                     </div>
