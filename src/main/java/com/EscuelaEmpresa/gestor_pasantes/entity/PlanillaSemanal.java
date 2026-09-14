@@ -22,9 +22,10 @@ public class PlanillaSemanal {
     @Column(name = "fecha_hasta")
     private LocalDate fechaHasta;
 
-    // DECIMAL(5,2) en la base: dos decimales exactos, hasta 999.99. Antes era FLOAT
-    // y la suma de los dias podia dar 15.749999 (ver DiaForm).
-    @Column(name = "total_horas", precision = 5, scale = 2)
+    // DECIMAL(5,0) en la base: las horas son siempre un numero entero, hasta 999.
+    // Sigue siendo BigDecimal (no int) por lo mismo que antes evitaba FLOAT: la
+    // suma de los dias se hace sin error de redondeo binario (ver DiaForm).
+    @Column(name = "total_horas", precision = 5, scale = 0)
     private BigDecimal totalHoras;
     
     @Column(length = 265)
