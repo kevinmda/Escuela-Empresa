@@ -351,7 +351,13 @@
             const bloque = document.createElement('div');
             bloque.className = 'documentos-adjuntos';
 
-            const completo = tipos.every(tipo => tipo.subidos >= tipo.limite);
+            // DOCUMENTOS_ADJUNTOS es el expediente ya combinado, subido de vuelta
+            // por el alumno una vez firmado: no es uno de los diez comprobantes
+            // que arma este PDF, así que no cuenta para saber si ya se puede
+            // generar. Si el alumno lo subió, ya aparece como una fila más de la
+            // tabla de arriba, con su propio enlace para verlo.
+            const tiposDelExpediente = tipos.filter(tipo => tipo.codigo !== 'DOCUMENTOS_ADJUNTOS');
+            const completo = tiposDelExpediente.every(tipo => tipo.subidos >= tipo.limite);
 
             if (completo) {
                 const enlace = document.createElement('a');
@@ -362,8 +368,8 @@
                 enlace.textContent = 'Descargar documentos adjuntos';
                 bloque.appendChild(enlace);
             } else {
-                const subidos = tipos.reduce((suma, tipo) => suma + tipo.subidos, 0);
-                const limite = tipos.reduce((suma, tipo) => suma + tipo.limite, 0);
+                const subidos = tiposDelExpediente.reduce((suma, tipo) => suma + tipo.subidos, 0);
+                const limite = tiposDelExpediente.reduce((suma, tipo) => suma + tipo.limite, 0);
 
                 const nota = document.createElement('p');
                 nota.className = 'documentos-adjuntos-nota';

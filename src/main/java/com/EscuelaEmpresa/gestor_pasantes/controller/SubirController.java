@@ -75,16 +75,18 @@ public class SubirController {
         List<DocumentoSubido> documentos =
                 documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(alumno.getIdAl());
         model.addAttribute("documentos", documentos);
-        
-        // Pasar los tipos de documento disponibles al modelo
-        model.addAttribute("tiposDocumento", TipoDocumento.values());
+
+        // Los cinco tipos del expediente van en la grilla principal.
+        // DOCUMENTOS_ADJUNTOS no entra ahí: tiene su propio apartado, más abajo.
+        List<TipoDocumento> tiposExpediente = limitesDocumentoService.obtenerTiposExpediente();
+        model.addAttribute("tiposDocumento", tiposExpediente);
 
         // Pasar información de límites para cada tipo, como mapas indexados por
         // el nombre del enum (tipo.name()), para poder leerlos en el template
         // con ${limites[tipo.name()]} sin depender de nombres de atributo dinámicos
         Map<String, Integer> limites = new HashMap<>();
         Map<String, Long> subidosPorTipo = new HashMap<>();
-        for (TipoDocumento tipo : TipoDocumento.values()) {
+        for (TipoDocumento tipo : tiposExpediente) {
             subidosPorTipo.put(tipo.name(), limitesDocumentoService.contarDocumentosSubidos(alumno.getIdAl(), tipo));
             limites.put(tipo.name(), limitesDocumentoService.obtenerLimitePorTipo(tipo));
         }
@@ -94,14 +96,20 @@ public class SubirController {
         // El expediente completo son 10 comprobantes: 6 plantillas semanales y uno
         // de cada uno de los otros cuatro tipos. La pantalla no lo decia en ningun
         // lado; los limites vivian escondidos en atributos data del <select>.
-        int totalLimite = 0;
-        long totalSubidos = 0;
-        for (TipoDocumento tipo : TipoDocumento.values()) {
-            totalLimite += limites.get(tipo.name());
-            totalSubidos += subidosPorTipo.get(tipo.name());
-        }
-        model.addAttribute("totalLimite", totalLimite);
-        model.addAttribute("totalSubidos", totalSubidos);
+        model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal());
+        model.addAttribute("totalSubidos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
+
+        // Apartado exclusivo de "Documentos adjuntos": el expediente ya combinado
+        // (ver /alumno/imprimir) firmado y escaneado de vuelta. Solo se habilita
+        // una vez completos los diez comprobantes, y admite un solo archivo.
+        boolean expedienteCompleto = limitesDocumentoService.expedienteCompleto(alumno.getIdAl());
+        DocumentoSubido documentoAdjuntos = documentos.stream()
+                .filter(documento -> documento.getTipoDocumento() == TipoDocumento.DOCUMENTOS_ADJUNTOS)
+                .findFirst()
+                .orElse(null);
+        model.addAttribute("expedienteCompleto", expedienteCompleto);
+        model.addAttribute("documentoAdjuntos", documentoAdjuntos);
+        model.addAttribute("puedeSubirAdjuntos", expedienteCompleto && documentoAdjuntos == null);
 
         // El color de la especialidad del alumno, igual que en su inicio y en la
         // planilla semanal: es su color y este es su expediente.
@@ -135,6 +143,18 @@ public class SubirController {
             tipoDocumento = TipoDocumento.valueOf(tipoDocumentoStr);
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", "Tipo de documento inválido.");
+            return "redirect:/alumno/subir";
+        }
+
+        // DOCUMENTOS_ADJUNTOS es el expediente ya combinado (los otros diez
+        // comprobantes): no tiene sentido subirlo antes de que esos diez estén
+        // completos. La pantalla ya lo deja deshabilitado hasta entonces; esto
+        // es el mismo chequeo del lado del servidor.
+        if (tipoDocumento == TipoDocumento.DOCUMENTOS_ADJUNTOS
+                && !limitesDocumentoService.expedienteCompleto(alumno.getIdAl())) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Todavía no completaste los 10 comprobantes del expediente. " +
+                    "Documentos Adjuntos se habilita recién cuando esa entrega esté completa.");
             return "redirect:/alumno/subir";
         }
 
