@@ -13,8 +13,11 @@ public class DiaForm {
     private LocalDate fecha;
 
     private String descripcion;
-    // BigDecimal y no Float: las horas se suman, y en binario 7.5 + 8.25 no da
-    // 15.75 exacto. Con dos decimales fijos la cuenta cierra siempre.
+    // BigDecimal y no Float ni int: las horas se cargan enteras (sin
+    // fracciones), pero se validan y normalizan en el service antes de
+    // guardar, así que el DTO todavía necesita poder representar lo que el
+    // alumno haya escrito, decimales incluidos, para poder rechazarlo con un
+    // mensaje claro en vez de un error de parseo.
     private BigDecimal horas;
 
     public DiaForm() {}
