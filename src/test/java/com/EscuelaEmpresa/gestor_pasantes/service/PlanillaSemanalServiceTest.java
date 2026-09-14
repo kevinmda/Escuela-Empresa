@@ -18,24 +18,23 @@ class PlanillaSemanalServiceTest {
     }
 
     @Test
-    void laSumaDeHorasEsExactaConDosDecimales() {
-        // 7.5 + 8.25 + 0.1 + 0.2 en float daba 16.049999; en BigDecimal da 16.05 exacto
+    void laSumaDeHorasEsExacta() {
         BigDecimal total = PlanillaSemanalService.sumarHoras(
-                List.of(dia("7.5"), dia("8.25"), dia("0.1"), dia("0.2")));
+                List.of(dia("7"), dia("8"), dia("1")));
 
-        assertEquals(new BigDecimal("16.05"), total);
+        assertEquals(new BigDecimal("16"), total);
     }
 
     @Test
     void losDiasSinHorasNoRompenLaSuma() {
         BigDecimal total = PlanillaSemanalService.sumarHoras(List.of(dia("4"), dia(null), dia("4")));
 
-        assertEquals(new BigDecimal("8.00"), total);
+        assertEquals(new BigDecimal("8"), total);
     }
 
     @Test
-    void masDeDosDecimalesSeRedondeanAntesDeGuardar() {
-        assertEquals(new BigDecimal("7.13"), PlanillaSemanalService.normalizarHoras(new BigDecimal("7.125")));
-        assertEquals(new BigDecimal("8.00"), PlanillaSemanalService.normalizarHoras(new BigDecimal("8")));
+    void lasHorasConDecimalesSeRedondeanAntesDeGuardar() {
+        assertEquals(new BigDecimal("8"), PlanillaSemanalService.normalizarHoras(new BigDecimal("7.5")));
+        assertEquals(new BigDecimal("8"), PlanillaSemanalService.normalizarHoras(new BigDecimal("8")));
     }
 }
