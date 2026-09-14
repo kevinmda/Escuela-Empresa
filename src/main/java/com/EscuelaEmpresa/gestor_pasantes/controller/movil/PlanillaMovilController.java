@@ -1,10 +1,12 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller.movil;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -30,7 +32,9 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalPdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalService;
+import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 // Mismos flujos que PlanillaSemanalController (web), pero en JSON. guardarPlanilla()
 // solo hace INSERT (nunca UPDATE) tanto aca como en la web: no existe "editar" una
@@ -47,16 +51,19 @@ public class PlanillaMovilController {
     private final PlanillaSemanalRepository planillaSemanalRepository;
     private final PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository;
     private final PlanillaSemanalService planillaSemanalService;
+    private final PlanillaSemanalPdfService planillaSemanalPdfService;
 
     public PlanillaMovilController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository,
                                     PlanillaSemanalRepository planillaSemanalRepository,
                                     PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
-                                    PlanillaSemanalService planillaSemanalService) {
+                                    PlanillaSemanalService planillaSemanalService,
+                                    PlanillaSemanalPdfService planillaSemanalPdfService) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
         this.planillaSemanalDetalleRepository = planillaSemanalDetalleRepository;
         this.planillaSemanalService = planillaSemanalService;
+        this.planillaSemanalPdfService = planillaSemanalPdfService;
     }
 
     @GetMapping
@@ -82,6 +89,26 @@ public class PlanillaMovilController {
                 .toList();
 
         return new PlanillaDetalleDTO(planilla, dias);
+    }
+
+    // Mismo PDF que /alumno/planilla/Planilla_Semanal.pdf en la web (sobre la
+    // plantilla oficial del PEL), reusando el mismo service -- nada de logica
+    // nueva aca, solo el transporte a bytes para que la app lo abra con un
+    // visor de PDF del sistema (ver AbrirPdf.java en el proyecto Android).
+    @GetMapping("/{idPs}/pdf")
+    public ResponseEntity<byte[]> pdf(@PathVariable Integer idPs, Authentication authentication) throws IOException {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        PlanillaSemanal planilla = obtenerPlanillaPropia(idPs, alumno);
+
+        List<PlanillaSemanalDetalle> detalles =
+                planillaSemanalDetalleRepository.findByPlanillaSemanal_IdPs(idPs);
+
+        byte[] pdfBytes = planillaSemanalPdfService.generarPdf(alumno, planilla, detalles);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header("Content-Disposition", Descarga.inline("Planilla_Semanal.pdf", "Planilla_Semanal.pdf"))
+                .body(pdfBytes);
     }
 
     @PostMapping
