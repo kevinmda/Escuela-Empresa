@@ -3,6 +3,7 @@
     <string name="app_name">Gestor de Pasantes</string>
 
     <!-- Login -->
+    <string name="subtitulo_login">Portal del alumno pasante</string>
     <string name="hint_email">Email</string>
     <string name="hint_password">Contraseña</string>
     <string name="boton_ingresar">Ingresar</string>

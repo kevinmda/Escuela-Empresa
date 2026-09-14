@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -8,9 +9,7 @@
         android:id="@+id/barraPlanilla"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/primario"
-        android:title="@string/titulo_planilla"
-        android:titleTextColor="@color/blanco" />
+        android:title="@string/titulo_planilla" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -21,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="@dimen/espacio_md">
 
             <LinearLayout
                 android:id="@+id/contenedorDias"
@@ -29,14 +28,11 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="12dp"
-                android:background="#E0E0E0" />
+            <View style="@style/Divisor.GestorPasantes" android:layout_marginVertical="@dimen/espacio_sm" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoSupervisor"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/hint_supervisor">
@@ -50,9 +46,10 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoConocimientos"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/espacio_sm"
                 android:hint="@string/hint_conocimientos">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -65,9 +62,10 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoExperiencia"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/espacio_sm"
                 android:hint="@string/hint_experiencia">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -80,9 +78,10 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoAprendizaje"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/espacio_sm"
                 android:hint="@string/hint_aprendizaje">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -97,7 +96,7 @@
                 android:id="@+id/textoErrorPlanilla"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/espacio_sm"
                 android:textColor="@color/error"
                 android:visibility="gone" />
 
@@ -105,15 +104,16 @@
                 android:id="@+id/botonGuardarPlanilla"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/espacio_md"
                 android:text="@string/boton_guardar_planilla" />
 
-            <ProgressBar
+            <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/progresoPlanilla"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/espacio_md"
+                android:indeterminate="true"
                 android:visibility="gone" />
 
         </LinearLayout>

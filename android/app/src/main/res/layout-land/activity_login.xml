@@ -17,21 +17,42 @@
             android:layout_width="360dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:gravity="center_horizontal"
+            android:padding="@dimen/espacio_lg">
+
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_icono_circular"
+                android:backgroundTint="@color/primario_contenedor"
+                android:padding="12dp"
+                android:contentDescription="@null"
+                app:tint="@color/on_primario_contenedor"
+                app:srcCompat="@drawable/ic_planilla" />
 
             <TextView
                 android:id="@+id/textoTitulo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="@dimen/espacio_sm"
                 android:text="@string/app_name"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="@color/primario"
-                android:layout_marginBottom="24dp" />
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="@color/texto_principal"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="@dimen/espacio_md"
+                android:text="@string/subtitulo_login"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/texto_secundario"
+                android:gravity="center" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoEmail"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/hint_email">
@@ -45,9 +66,10 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoPassword"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/espacio_sm"
                 app:passwordToggleEnabled="true"
                 android:hint="@string/hint_password">
 
@@ -62,15 +84,15 @@
                 android:id="@+id/botonIngresar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/espacio_md"
                 android:text="@string/boton_ingresar" />
 
-            <ProgressBar
+            <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/progresoLogin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/espacio_sm"
+                android:indeterminate="true"
                 android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>

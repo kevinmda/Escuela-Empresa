@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="espacio_xs">4dp</dimen>
+    <dimen name="espacio_sm">8dp</dimen>
+    <dimen name="espacio_md">16dp</dimen>
+    <dimen name="espacio_lg">24dp</dimen>
+    <dimen name="espacio_xl">32dp</dimen>
+    <dimen name="radio_tarjeta">16dp</dimen>
+    <dimen name="tamano_avatar">56dp</dimen>
+    <dimen name="tamano_icono_fila">40dp</dimen>
+</resources>
