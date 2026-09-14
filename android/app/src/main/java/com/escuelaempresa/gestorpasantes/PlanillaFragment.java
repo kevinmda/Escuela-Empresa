@@ -19,11 +19,13 @@ import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.escuelaempresa.gestorpasantes.adapter.PlanillaAdapter;
 import com.escuelaempresa.gestorpasantes.model.PlanillaResumen;
+import com.escuelaempresa.gestorpasantes.network.ApiBytesRequest;
 import com.escuelaempresa.gestorpasantes.network.ApiConfig;
 import com.escuelaempresa.gestorpasantes.network.ApiJsonRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
 import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
+import com.escuelaempresa.gestorpasantes.util.VisorArchivos;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -40,6 +42,7 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
 
     private SwipeRefreshLayout refrescar;
     private MaterialButton botonCargarMas;
+    private MaterialButton botonDescargarInforme;
     private View textoVacio;
 
     private PlanillaAdapter adapter;
@@ -66,6 +69,7 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
         refrescar = view.findViewById(R.id.refrescarPlanillas);
         RecyclerView listaPlanillas = view.findViewById(R.id.listaPlanillas);
         botonCargarMas = view.findViewById(R.id.botonCargarMasPlanillas);
+        botonDescargarInforme = view.findViewById(R.id.botonDescargarInforme);
         textoVacio = view.findViewById(R.id.textoPlanillasVacio);
 
         listaPlanillas.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -73,6 +77,7 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
 
         refrescar.setOnRefreshListener(() -> cargarPagina(0));
         botonCargarMas.setOnClickListener(v -> cargarPagina(paginaActual + 1));
+        botonDescargarInforme.setOnClickListener(v -> descargarInforme());
 
         lanzadorDetalle = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), resultado -> {
             if (resultado.getResultCode() == android.app.Activity.RESULT_OK) {
@@ -127,6 +132,51 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
     private void onError(VolleyError error) {
         refrescar.setRefreshing(false);
         mostrarError(getString(R.string.error_red));
+    }
+
+    private void descargarInforme() {
+        refrescar.setRefreshing(true);
+        botonDescargarInforme.setEnabled(false);
+        String token = sessionManager.obtenerToken();
+
+        ApiBytesRequest pedido = new ApiBytesRequest(
+                ApiConfig.BASE_URL + "/planillas/informe",
+                token,
+                this::onInformeDescargado,
+                this::onInformeFallido);
+
+        VolleySingleton.getInstancia(requireContext()).getRequestQueue().add(pedido);
+    }
+
+    private void onInformeDescargado(byte[] bytes) {
+        refrescar.setRefreshing(false);
+        botonDescargarInforme.setEnabled(true);
+        try {
+            VisorArchivos.abrir(requireContext(), bytes, "Informe_Pasantia.docx",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        } catch (Exception e) {
+            mostrarError(getString(R.string.error_red));
+        }
+    }
+
+    private void onInformeFallido(VolleyError error) {
+        refrescar.setRefreshing(false);
+        botonDescargarInforme.setEnabled(true);
+        mostrarError(extraerMensaje(error));
+    }
+
+    private String extraerMensaje(VolleyError error) {
+        if (error.networkResponse != null && error.networkResponse.data != null) {
+            try {
+                JSONObject cuerpo = new JSONObject(new String(error.networkResponse.data, "UTF-8"));
+                if (cuerpo.has("mensaje")) {
+                    return cuerpo.getString("mensaje");
+                }
+            } catch (Exception ignorada) {
+                // el body no era el JSON esperado -- se usa el mensaje generico de abajo
+            }
+        }
+        return getString(R.string.error_red);
     }
 
     @Override

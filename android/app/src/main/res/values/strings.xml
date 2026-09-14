@@ -10,6 +10,18 @@
     <string name="error_email_requerido">Ingresá tu email</string>
     <string name="error_email_invalido">Ese email no es válido</string>
     <string name="error_password_requerido">Ingresá tu contraseña</string>
+    <string name="boton_olvide_contrasena">¿Olvidaste tu contraseña?</string>
+
+    <!-- Recuperar contraseña -->
+    <string name="titulo_recuperar_contrasena">Recuperar contraseña</string>
+    <string name="subtitulo_recuperar_contrasena">Te mandamos un código de 6 dígitos a tu email.</string>
+    <string name="boton_enviar_codigo">Enviar código</string>
+    <string name="titulo_restablecer_contrasena">Restablecer contraseña</string>
+    <string name="subtitulo_restablecer_contrasena">Ingresá el código que te llegó por email y elegí una contraseña nueva.</string>
+    <string name="hint_codigo">Código de 6 dígitos</string>
+    <string name="boton_restablecer_contrasena">Restablecer</string>
+    <string name="contrasena_restablecida_ok">Contraseña restablecida. Iniciá sesión con la nueva.</string>
+    <string name="aviso_codigo_enviado">Revisá tu email: si la cuenta existe, te llegó un código.</string>
 
     <!-- Navegacion inferior -->
     <string name="tab_perfil">Perfil</string>
@@ -25,6 +37,26 @@
     <string name="etiqueta_email">Email</string>
     <string name="sin_asignar">Sin asignar</string>
     <string name="boton_cerrar_sesion">Cerrar sesión</string>
+    <string name="boton_cambiar_contrasena">Cambiar contraseña</string>
+    <string name="boton_formularios">Formularios</string>
+
+    <!-- Formularios -->
+    <string name="titulo_formularios">Formularios</string>
+    <string name="formulario_contrato">Contrato de pasantía</string>
+    <string name="formulario_autorizacion">Autorización de padres</string>
+    <string name="formulario_ficha_final">Ficha final del alumno</string>
+    <string name="formulario_ficha_final_evaluativa">Ficha final evaluativa</string>
+
+    <!-- Cambiar contraseña -->
+    <string name="titulo_cambiar_contrasena">Cambiar contraseña</string>
+    <string name="aviso_contrasena_por_defecto">Todavía usás la contraseña que te asignaron. Elegí una propia para seguir.</string>
+    <string name="hint_contrasena_actual">Contraseña actual</string>
+    <string name="hint_contrasena_nueva">Contraseña nueva</string>
+    <string name="hint_confirmar_contrasena">Confirmar contraseña nueva</string>
+    <string name="boton_guardar_contrasena">Guardar</string>
+    <string name="contrasena_cambiada_ok">Contraseña actualizada correctamente.</string>
+    <string name="error_confirmacion_no_coincide">Las contraseñas no coinciden</string>
+    <string name="error_contrasena_muy_corta">La contraseña tiene que tener al menos 6 caracteres</string>
 
     <!-- Documentos -->
     <string name="titulo_subir_documento">Subir documento</string>
@@ -51,6 +83,8 @@
     <string name="hint_descripcion_dia">Descripción de la tarea</string>
     <string name="hint_horas">Horas</string>
     <string name="boton_elegir_fecha">Elegir fecha</string>
+    <string name="boton_ver_pdf">Ver PDF</string>
+    <string name="boton_descargar_informe">Descargar informe final</string>
     <string name="boton_guardar_planilla">Guardar planilla</string>
     <string name="planilla_guardada_ok">Planilla guardada correctamente.</string>
     <string name="error_red_completa_el_dia">Completá fecha, descripción y horas en %1$s (o dejalo vacío)</string>

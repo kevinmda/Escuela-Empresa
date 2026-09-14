@@ -6,118 +6,87 @@
     android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/barraPlanilla"
+        android:id="@+id/barraRestablecer"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:title="@string/titulo_planilla" />
+        android:title="@string/titulo_restablecer_contrasena" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/espacio_md">
+            android:padding="@dimen/espacio_lg">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/botonVerPdf"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/espacio_md"
-                android:text="@string/boton_ver_pdf"
-                android:visibility="gone" />
-
-            <LinearLayout
-                android:id="@+id/contenedorDias"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-            <View style="@style/Divisor.GestorPasantes" android:layout_marginVertical="@dimen/espacio_sm" />
+                android:text="@string/subtitulo_restablecer_contrasena"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/texto_secundario" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campoSupervisor"
+                android:id="@+id/campoCodigo"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/hint_supervisor">
+                android:hint="@string/hint_codigo">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputSupervisor"
+                    android:id="@+id/inputCodigo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLength="100" />
+                    android:maxLength="6"
+                    android:inputType="number" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campoConocimientos"
+                android:id="@+id/campoNueva"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_sm"
-                android:hint="@string/hint_conocimientos">
+                app:passwordToggleEnabled="true"
+                android:hint="@string/hint_contrasena_nueva">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputConocimientos"
+                    android:id="@+id/inputNueva"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLength="265"
-                    android:inputType="textMultiLine" />
+                    android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campoExperiencia"
+                android:id="@+id/campoConfirmar"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_sm"
-                android:hint="@string/hint_experiencia">
+                app:passwordToggleEnabled="true"
+                android:hint="@string/hint_confirmar_contrasena">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputExperiencia"
+                    android:id="@+id/inputConfirmar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxLength="200"
-                    android:inputType="textMultiLine" />
+                    android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campoAprendizaje"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_sm"
-                android:hint="@string/hint_aprendizaje">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputAprendizaje"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:maxLength="200"
-                    android:inputType="textMultiLine" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <TextView
-                android:id="@+id/textoErrorPlanilla"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_sm"
-                android:textColor="@color/error"
-                android:visibility="gone" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/botonGuardarPlanilla"
+                android:id="@+id/botonRestablecer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_md"
-                android:text="@string/boton_guardar_planilla" />
+                android:text="@string/boton_restablecer_contrasena" />
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/progresoPlanilla"
+                android:id="@+id/progresoRestablecer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"

@@ -50,6 +50,44 @@ public class LimitesDocumentoService {
     }
 
     /**
+     * Verifica si el alumno ya entregó el expediente completo: los diez
+     * comprobantes (una autorización, un contrato, seis planillas semanales,
+     * una ficha final y una ficha final evaluativa). Es la condición que
+     * habilita imprimir/descargar todo junto en un solo PDF.
+     */
+    public boolean expedienteCompleto(Integer idAlumno) {
+        for (TipoDocumento tipo : TipoDocumento.values()) {
+            if (contarDocumentosSubidos(idAlumno, tipo) < obtenerLimitePorTipo(tipo)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Cuántos comprobantes en total componen el expediente completo (hoy son 10:
+     * autorización + contrato + 6 planillas + ficha final + ficha final evaluativa).
+     */
+    public int obtenerLimiteTotal() {
+        int total = 0;
+        for (TipoDocumento tipo : TipoDocumento.values()) {
+            total += obtenerLimitePorTipo(tipo);
+        }
+        return total;
+    }
+
+    /**
+     * Cuántos comprobantes ya subió el alumno en total, sumando todos los tipos.
+     */
+    public long contarTotalSubidos(Integer idAlumno) {
+        long total = 0;
+        for (TipoDocumento tipo : TipoDocumento.values()) {
+            total += contarDocumentosSubidos(idAlumno, tipo);
+        }
+        return total;
+    }
+
+    /**
      * Obtiene un mensaje de error descriptivo cuando el alumno alcanzó el límite
      */
     public String obtenerMensajeError(TipoDocumento tipo) {

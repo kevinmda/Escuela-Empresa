@@ -15,12 +15,15 @@ import androidx.appcompat.widget.Toolbar;
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.escuelaempresa.gestorpasantes.model.Dia;
+import com.escuelaempresa.gestorpasantes.network.ApiBytesRequest;
 import com.escuelaempresa.gestorpasantes.network.ApiConfig;
 import com.escuelaempresa.gestorpasantes.network.ApiJsonRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
 import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
+import com.escuelaempresa.gestorpasantes.util.VisorArchivos;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.json.JSONArray;
@@ -50,6 +53,7 @@ public class PlanillaDetalleActivity extends AppCompatActivity {
     private TextInputEditText inputAprendizaje;
     private TextView textoError;
     private MaterialButton botonGuardar;
+    private MaterialButton botonVerPdf;
     private ProgressBar progreso;
 
     private SessionManager sessionManager;
@@ -78,18 +82,51 @@ public class PlanillaDetalleActivity extends AppCompatActivity {
         inputAprendizaje = findViewById(R.id.inputAprendizaje);
         textoError = findViewById(R.id.textoErrorPlanilla);
         botonGuardar = findViewById(R.id.botonGuardarPlanilla);
+        botonVerPdf = findViewById(R.id.botonVerPdf);
         progreso = findViewById(R.id.progresoPlanilla);
         AnimacionResorte.feedbackToque(botonGuardar);
+        AnimacionResorte.feedbackToque(botonVerPdf);
 
         armarFilasDeDias();
 
         if (soloLectura) {
             botonGuardar.setVisibility(View.GONE);
+            botonVerPdf.setVisibility(View.VISIBLE);
+            botonVerPdf.setOnClickListener(v -> descargarPdf());
             deshabilitarCampos();
             cargarDetalle();
         } else {
             botonGuardar.setOnClickListener(v -> intentarGuardar());
         }
+    }
+
+    private void descargarPdf() {
+        mostrarCargando(true);
+        String token = sessionManager.obtenerToken();
+
+        ApiBytesRequest pedido = new ApiBytesRequest(
+                ApiConfig.BASE_URL + "/planillas/" + idPs + "/pdf",
+                token,
+                this::onPdfDescargado,
+                error -> {
+                    mostrarCargando(false);
+                    mostrarError(getString(R.string.error_red));
+                });
+
+        VolleySingleton.getInstancia(this).getRequestQueue().add(pedido);
+    }
+
+    private void onPdfDescargado(byte[] bytes) {
+        mostrarCargando(false);
+        try {
+            VisorArchivos.abrir(this, bytes, "Planilla_Semanal_" + idPs + ".pdf", "application/pdf");
+        } catch (Exception e) {
+            mostrarError(getString(R.string.error_red));
+        }
+    }
+
+    private void mostrarError(String mensaje) {
+        Snackbar.make(botonVerPdf, mensaje, Snackbar.LENGTH_LONG).show();
     }
 
     // El layout portrait tiene un solo contenedor (contenedorDias); el de landscape
@@ -315,6 +352,7 @@ public class PlanillaDetalleActivity extends AppCompatActivity {
     private void mostrarCargando(boolean cargando) {
         progreso.setVisibility(cargando ? View.VISIBLE : View.GONE);
         botonGuardar.setEnabled(!cargando);
+        botonVerPdf.setEnabled(!cargando);
     }
 
     private static class FilaDia {

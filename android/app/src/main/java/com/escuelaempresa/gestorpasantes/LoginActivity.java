@@ -57,6 +57,10 @@ public class LoginActivity extends AppCompatActivity {
 
         AnimacionResorte.feedbackToque(botonIngresar);
         botonIngresar.setOnClickListener(v -> intentarLogin());
+
+        MaterialButton botonOlvideContrasena = findViewById(R.id.botonOlvideContrasena);
+        botonOlvideContrasena.setOnClickListener(v ->
+                startActivity(new Intent(this, RecuperarContrasenaActivity.class)));
     }
 
     private void intentarLogin() {
@@ -108,7 +112,22 @@ public class LoginActivity extends AppCompatActivity {
         try {
             String token = respuesta.getString("token");
             sessionManager.guardarToken(token);
-            irAMain();
+
+            // La API movil no pasa por ContrasenaPorDefectoInterceptor (ver WebConfig
+            // en el backend): si la cuenta todavia tiene la contraseña compartida,
+            // es la app la que tiene que mandar a cambiarla antes de dejar entrar.
+            boolean contrasenaPorDefecto = respuesta.optJSONObject("alumno") != null
+                    && respuesta.getJSONObject("alumno").optBoolean("contrasenaPorDefecto", false);
+
+            if (contrasenaPorDefecto) {
+                Intent intent = new Intent(this, CambiarContrasenaActivity.class);
+                intent.putExtra(CambiarContrasenaActivity.EXTRA_FORZADO, true);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            } else {
+                irAMain();
+            }
         } catch (JSONException e) {
             mostrarError(getString(R.string.error_red));
         }

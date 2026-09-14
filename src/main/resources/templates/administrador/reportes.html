@@ -348,11 +348,43 @@
                     tablaResumen.appendChild(tbody);
 
                     lista.appendChild(tablaResumen);
+                    lista.appendChild(crearBloqueDocumentosAdjuntos(tipos, idAl));
                     menu.dataset.cargado = 'true';
                 })
                 .catch(error => {
                     lista.textContent = error.message;
                 });
+        }
+
+        // El expediente completo (autorización, contrato, planillas y las dos
+        // fichas, en ese orden, en un solo PDF) solo existe una vez que el
+        // alumno entregó los diez comprobantes. Con la entrega incompleta no
+        // mostramos un enlace roto: mostramos cuánto falta.
+        function crearBloqueDocumentosAdjuntos(tipos, idAl) {
+            const bloque = document.createElement('div');
+            bloque.className = 'documentos-adjuntos';
+
+            const completo = tipos.every(tipo => tipo.subidos >= tipo.limite);
+
+            if (completo) {
+                const enlace = document.createElement('a');
+                enlace.className = 'btn btn-primary';
+                enlace.href = `/admin/alumnos/${idAl}/documentos-adjuntos.pdf`;
+                enlace.target = '_blank';
+                enlace.rel = 'noopener';
+                enlace.textContent = 'Descargar documentos adjuntos';
+                bloque.appendChild(enlace);
+            } else {
+                const subidos = tipos.reduce((suma, tipo) => suma + tipo.subidos, 0);
+                const limite = tipos.reduce((suma, tipo) => suma + tipo.limite, 0);
+
+                const nota = document.createElement('p');
+                nota.className = 'documentos-adjuntos-nota';
+                nota.textContent = `Documentos adjuntos: se habilita cuando el alumno entregue los ${limite} comprobantes (lleva ${subidos}).`;
+                bloque.appendChild(nota);
+            }
+
+            return bloque;
         }
 
         // --- Filtro por especialidad y sección ---

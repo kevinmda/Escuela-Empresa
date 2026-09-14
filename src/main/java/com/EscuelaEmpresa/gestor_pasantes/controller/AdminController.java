@@ -39,9 +39,12 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.SupervisorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
 import com.EscuelaEmpresa.gestor_pasantes.dto.ResumenDocumentoTipoDTO;
+import com.EscuelaEmpresa.gestor_pasantes.service.ExpedientePdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
 import com.EscuelaEmpresa.gestor_pasantes.service.NombresDeArchivo;
 import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
+
+import java.io.ByteArrayOutputStream;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -56,6 +59,7 @@ public class AdminController {
     private final EmpresaRepository empresaRepository;
     private final DocumentoSubidoRepository documentoSubidoRepository;
     private final LimitesDocumentoService limitesDocumentoService;
+    private final ExpedientePdfService expedientePdfService;
 
     public AdminController(UsuarioRepository usuarioRepository,
                             AdministradorRepository administradorRepository,
@@ -64,7 +68,8 @@ public class AdminController {
                             SupervisorRepository supervisorRepository,
                             EmpresaRepository empresaRepository,
                             DocumentoSubidoRepository documentoSubidoRepository,
-                            LimitesDocumentoService limitesDocumentoService) {
+                            LimitesDocumentoService limitesDocumentoService,
+                            ExpedientePdfService expedientePdfService) {
         this.usuarioRepository = usuarioRepository;
         this.administradorRepository = administradorRepository;
         this.especialidadRepository = especialidadRepository;
@@ -73,6 +78,7 @@ public class AdminController {
         this.empresaRepository = empresaRepository;
         this.documentoSubidoRepository = documentoSubidoRepository;
         this.limitesDocumentoService = limitesDocumentoService;
+        this.expedientePdfService = expedientePdfService;
     }
 
     @GetMapping("/admin/alumnos")
@@ -241,6 +247,25 @@ public class AdminController {
         response.setHeader("Content-Disposition",
                 Descarga.inline(documento.getNombreArchivo(), "documento_" + documento.getIdDs() + ".pdf"));
         Files.copy(archivo.toPath(), response.getOutputStream());
+    }
+
+    // Documentos adjuntos: el mismo PDF combinado que puede bajar el alumno desde
+    // /alumno/imprimir, disponible acá para que admin/coordinador lo consulten sin
+    // pedírselo al alumno. Solo existe cuando el alumno ya entregó el expediente
+    // completo (ExpedientePdfService lo valida y tira ReglaNegocioException si no).
+    @GetMapping("/admin/alumnos/{idAl}/documentos-adjuntos.pdf")
+    public void descargarDocumentosAdjuntos(@PathVariable Integer idAl,
+                                             Authentication authentication,
+                                             HttpServletResponse response) throws IOException {
+
+        Alumno alumno = verificarAccesoAlumno(idAl, authentication);
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        expedientePdfService.generarPdf(alumno, buffer);
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", Descarga.inline("Documentos_Adjuntos.pdf", "Documentos_Adjuntos.pdf"));
+        buffer.writeTo(response.getOutputStream());
     }
 
     // --- Descarga en ZIP de los documentos subidos por los alumnos filtrados ---

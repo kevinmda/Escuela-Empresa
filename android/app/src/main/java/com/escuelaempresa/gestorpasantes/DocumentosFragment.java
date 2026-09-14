@@ -2,7 +2,6 @@ package com.escuelaempresa.gestorpasantes;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +11,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,15 +27,13 @@ import com.escuelaempresa.gestorpasantes.network.ApiJsonRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
 import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
+import com.escuelaempresa.gestorpasantes.util.VisorArchivos;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileOutputStream;
 
 public class DocumentosFragment extends Fragment implements DocumentoAdapter.Escucha {
 
@@ -150,23 +146,7 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
 
     private void abrirPdf(Documento documento, byte[] bytes) {
         try {
-            File carpeta = new File(requireContext().getCacheDir(), "documentos");
-            if (!carpeta.exists()) {
-                carpeta.mkdirs();
-            }
-            File archivo = new File(carpeta, "documento_" + documento.idDs + ".pdf");
-            try (FileOutputStream salida = new FileOutputStream(archivo)) {
-                salida.write(bytes);
-            }
-
-            Uri uri = FileProvider.getUriForFile(requireContext(),
-                    requireContext().getPackageName() + ".fileprovider", archivo);
-
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(uri, "application/pdf");
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
+            VisorArchivos.abrir(requireContext(), bytes, "documento_" + documento.idDs + ".pdf", "application/pdf");
         } catch (Exception e) {
             mostrarError(getString(R.string.error_red));
         }

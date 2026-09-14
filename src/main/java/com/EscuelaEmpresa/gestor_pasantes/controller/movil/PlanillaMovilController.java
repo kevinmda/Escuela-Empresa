@@ -1,10 +1,15 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller.movil;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -26,11 +31,15 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanalDetalle;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import com.EscuelaEmpresa.gestor_pasantes.service.InformePasantiaService;
+import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalPdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalService;
+import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 // Mismos flujos que PlanillaSemanalController (web), pero en JSON. guardarPlanilla()
 // solo hace INSERT (nunca UPDATE) tanto aca como en la web: no existe "editar" una
@@ -47,16 +56,22 @@ public class PlanillaMovilController {
     private final PlanillaSemanalRepository planillaSemanalRepository;
     private final PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository;
     private final PlanillaSemanalService planillaSemanalService;
+    private final PlanillaSemanalPdfService planillaSemanalPdfService;
+    private final InformePasantiaService informePasantiaService;
 
     public PlanillaMovilController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository,
                                     PlanillaSemanalRepository planillaSemanalRepository,
                                     PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
-                                    PlanillaSemanalService planillaSemanalService) {
+                                    PlanillaSemanalService planillaSemanalService,
+                                    PlanillaSemanalPdfService planillaSemanalPdfService,
+                                    InformePasantiaService informePasantiaService) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
         this.planillaSemanalDetalleRepository = planillaSemanalDetalleRepository;
         this.planillaSemanalService = planillaSemanalService;
+        this.planillaSemanalPdfService = planillaSemanalPdfService;
+        this.informePasantiaService = informePasantiaService;
     }
 
     @GetMapping
@@ -82,6 +97,65 @@ public class PlanillaMovilController {
                 .toList();
 
         return new PlanillaDetalleDTO(planilla, dias);
+    }
+
+    // Mismo PDF que /alumno/planilla/Planilla_Semanal.pdf en la web (sobre la
+    // plantilla oficial del PEL), reusando el mismo service -- nada de logica
+    // nueva aca, solo el transporte a bytes para que la app lo abra con un
+    // visor de PDF del sistema (ver VisorArchivos.java en el proyecto Android).
+    @GetMapping("/{idPs}/pdf")
+    public ResponseEntity<byte[]> pdf(@PathVariable Integer idPs, Authentication authentication) throws IOException {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        PlanillaSemanal planilla = obtenerPlanillaPropia(idPs, alumno);
+
+        List<PlanillaSemanalDetalle> detalles =
+                planillaSemanalDetalleRepository.findByPlanillaSemanal_IdPs(idPs);
+
+        byte[] pdfBytes = planillaSemanalPdfService.generarPdf(alumno, planilla, detalles);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header("Content-Disposition", Descarga.inline("Planilla_Semanal.pdf", "Planilla_Semanal.pdf"))
+                .body(pdfBytes);
+    }
+
+    // Mismos tres requisitos que /alumno/planilla/Informe_Pasantia.docx en la web
+    // (6 semanas, supervisor y empresa asignados), con los mismos mensajes de
+    // error -- alli se muestran como flash message, aca como el "mensaje" del
+    // JSON de error que ya interpreta ManejoErroresMovil.
+    @GetMapping("/informe")
+    public ResponseEntity<byte[]> informe(Authentication authentication) throws IOException {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        List<PlanillaSemanal> planillas =
+                planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
+        Collections.reverse(planillas);
+
+        if (planillas.size() < 6) {
+            throw new ReglaNegocioException(
+                    "Todavía no completaste las 6 semanas de planilla, no se puede generar el informe.");
+        }
+        if (alumno.getSupervisor() == null) {
+            throw new ReglaNegocioException(
+                    "Todavía no tenés un supervisor/docente asignado, no se puede generar el informe.");
+        }
+        if (alumno.getEmpresa() == null) {
+            throw new ReglaNegocioException(
+                    "Todavía no tenés una empresa asignada, no se puede generar el informe.");
+        }
+
+        XWPFDocument documento = informePasantiaService.generarInforme(alumno, planillas);
+        ByteArrayOutputStream salida = new ByteArrayOutputStream();
+        documento.write(salida);
+        documento.close();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                .header("Content-Disposition", Descarga.adjunto(
+                        "Informe_Pasantia_" + alumno.getNombres() + "_" + alumno.getApellidos() + ".docx",
+                        "Informe_Pasantia.docx"))
+                .body(salida.toByteArray());
     }
 
     @PostMapping

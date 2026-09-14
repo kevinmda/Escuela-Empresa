@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/barraFormularios"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:title="@string/titulo_formularios" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/espacio_md">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progresoFormularios"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="@dimen/espacio_sm"
+                android:indeterminate="true"
+                android:visibility="gone" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/filaContrato"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/espacio_sm"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/superficie"
+                app:cardCornerRadius="@dimen/radio_tarjeta"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/contorno"
+                app:strokeWidth="1dp">
+
+                <include layout="@layout/item_formulario" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/filaAutorizacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/espacio_sm"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/superficie"
+                app:cardCornerRadius="@dimen/radio_tarjeta"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/contorno"
+                app:strokeWidth="1dp">
+
+                <include layout="@layout/item_formulario" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/filaFichaFinal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/espacio_sm"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/superficie"
+                app:cardCornerRadius="@dimen/radio_tarjeta"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/contorno"
+                app:strokeWidth="1dp">
+
+                <include layout="@layout/item_formulario" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/filaFichaFinalEvaluativa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/superficie"
+                app:cardCornerRadius="@dimen/radio_tarjeta"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/contorno"
+                app:strokeWidth="1dp">
+
+                <include layout="@layout/item_formulario" />
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

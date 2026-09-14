@@ -55,6 +55,13 @@
                 android:layout_height="wrap_content"
                 android:text="@string/boton_cargar_mas"
                 android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/botonDescargarInforme"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/boton_descargar_informe" />
         </LinearLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

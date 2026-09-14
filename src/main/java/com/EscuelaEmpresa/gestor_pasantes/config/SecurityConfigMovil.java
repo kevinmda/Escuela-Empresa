@@ -47,7 +47,8 @@ public class SecurityConfigMovil {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/movil/auth/login").permitAll()
+                .requestMatchers("/api/movil/auth/login", "/api/movil/auth/olvide-contrasena",
+                        "/api/movil/auth/restablecer-contrasena").permitAll()
                 .anyRequest().hasRole("ALUMNO")
             )
             // Estas dos excepciones ocurren en el filtro, ANTES de llegar a cualquier
