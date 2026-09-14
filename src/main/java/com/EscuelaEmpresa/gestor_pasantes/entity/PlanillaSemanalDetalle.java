@@ -21,7 +21,7 @@ public class PlanillaSemanalDetalle {
     @Column(length = 65)
     private String descripcion;
 
-    @Column(precision = 5, scale = 2) // DECIMAL(5,2), mismo motivo que total_horas
+    @Column(precision = 5, scale = 0) // DECIMAL(5,0), mismo motivo que total_horas
     private BigDecimal horas;
 
     public PlanillaSemanalDetalle() {}
