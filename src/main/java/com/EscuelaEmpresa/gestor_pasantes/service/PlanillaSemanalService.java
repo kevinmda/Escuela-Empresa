@@ -234,6 +234,16 @@ public class PlanillaSemanalService {
             throw new ReglaNegocioException("Las horas deben ser mayores a 0 en " + dia.getNombreDia());
         }
 
+        // Sábados se trabaja media jornada: máximo 8 horas contra las 10 de
+        // lunes a viernes.
+        BigDecimal maxHoras = diaEsperado == DayOfWeek.SATURDAY
+                ? new BigDecimal("8")
+                : new BigDecimal("10");
+        if (dia.getHoras().compareTo(maxHoras) > 0) {
+            throw new ReglaNegocioException("Las horas de " + dia.getNombreDia() + " no pueden superar las "
+                    + maxHoras + " (máximo " + (diaEsperado == DayOfWeek.SATURDAY ? "8 horas los sábados" : "10 horas de lunes a viernes") + ").");
+        }
+
         if (dia.getFecha() != null && dia.getFecha().getDayOfWeek() != diaEsperado) {
             throw new ReglaNegocioException(
                 "La fecha ingresada en la fila '" + dia.getNombreDia() + "' no corresponde a ese día de la semana. " +
