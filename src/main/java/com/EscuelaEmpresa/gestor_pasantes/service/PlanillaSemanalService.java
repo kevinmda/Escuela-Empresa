@@ -32,7 +32,7 @@ public class PlanillaSemanalService {
     }
 
     @Transactional
-    public void guardarPlanilla(PlanillaSemanalForm form, Alumno alumno) {
+    public PlanillaSemanal guardarPlanilla(PlanillaSemanalForm form, Alumno alumno) {
 
         // Maximo 6 planillas por alumno (una pasantia dura exactamente 6 semanas)
         List<PlanillaSemanal> planillasExistentes = planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
@@ -140,6 +140,8 @@ public class PlanillaSemanalService {
 
             contador++;
         }
+
+        return planilla;
     }
 
     @Transactional
