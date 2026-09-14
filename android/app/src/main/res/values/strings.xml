@@ -26,6 +26,14 @@
     <string name="sin_asignar">Sin asignar</string>
     <string name="boton_cerrar_sesion">Cerrar sesión</string>
     <string name="boton_cambiar_contrasena">Cambiar contraseña</string>
+    <string name="boton_formularios">Formularios</string>
+
+    <!-- Formularios -->
+    <string name="titulo_formularios">Formularios</string>
+    <string name="formulario_contrato">Contrato de pasantía</string>
+    <string name="formulario_autorizacion">Autorización de padres</string>
+    <string name="formulario_ficha_final">Ficha final del alumno</string>
+    <string name="formulario_ficha_final_evaluativa">Ficha final evaluativa</string>
 
     <!-- Cambiar contraseña -->
     <string name="titulo_cambiar_contrasena">Cambiar contraseña</string>
