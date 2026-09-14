@@ -22,6 +22,7 @@ import com.escuelaempresa.gestorpasantes.network.ApiConfig;
 import com.escuelaempresa.gestorpasantes.network.VolleyMultipartRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
+import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -73,6 +74,8 @@ public class SubirDocumentoActivity extends AppCompatActivity {
         MaterialButton botonElegirArchivo = findViewById(R.id.botonElegirArchivo);
         botonSubir = findViewById(R.id.botonSubirDocumento);
         progreso = findViewById(R.id.progresoSubida);
+        AnimacionResorte.feedbackToque(botonElegirArchivo);
+        AnimacionResorte.feedbackToque(botonSubir);
 
         ArrayAdapter<String> adaptador = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, DESCRIPCIONES_TIPO);

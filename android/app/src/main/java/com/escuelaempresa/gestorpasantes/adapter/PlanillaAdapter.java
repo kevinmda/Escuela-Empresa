@@ -10,9 +10,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.escuelaempresa.gestorpasantes.R;
 import com.escuelaempresa.gestorpasantes.model.PlanillaResumen;
+import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PlanillaAdapter extends RecyclerView.Adapter<PlanillaAdapter.PlanillaViewHolder> {
 
@@ -21,6 +24,7 @@ public class PlanillaAdapter extends RecyclerView.Adapter<PlanillaAdapter.Planil
     }
 
     private final List<PlanillaResumen> planillas = new ArrayList<>();
+    private final Set<Integer> posicionesYaAnimadas = new HashSet<>();
     private final Escucha escucha;
 
     public PlanillaAdapter(Escucha escucha) {
@@ -36,6 +40,7 @@ public class PlanillaAdapter extends RecyclerView.Adapter<PlanillaAdapter.Planil
     public void reemplazarTodo(List<PlanillaResumen> nuevos) {
         planillas.clear();
         planillas.addAll(nuevos);
+        posicionesYaAnimadas.clear();
         notifyDataSetChanged();
     }
 
@@ -47,6 +52,7 @@ public class PlanillaAdapter extends RecyclerView.Adapter<PlanillaAdapter.Planil
     @Override
     public PlanillaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View vista = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_planilla, parent, false);
+        AnimacionResorte.feedbackToque(vista);
         return new PlanillaViewHolder(vista);
     }
 
@@ -56,6 +62,7 @@ public class PlanillaAdapter extends RecyclerView.Adapter<PlanillaAdapter.Planil
         holder.rangoFechas.setText(planilla.fechaDesde + " — " + planilla.fechaHasta);
         holder.totalHoras.setText("Total: " + planilla.totalHoras + " hs");
         holder.itemView.setOnClickListener(v -> escucha.alTocar(planilla));
+        AnimacionResorte.entradaDeFila(holder.itemView, position, posicionesYaAnimadas);
     }
 
     @Override
