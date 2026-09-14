@@ -22,6 +22,15 @@
             android:orientation="vertical"
             android:padding="@dimen/espacio_md">
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/botonVerPdf"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/espacio_md"
+                android:text="@string/boton_ver_pdf"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/contenedorDias"
                 android:layout_width="match_parent"
