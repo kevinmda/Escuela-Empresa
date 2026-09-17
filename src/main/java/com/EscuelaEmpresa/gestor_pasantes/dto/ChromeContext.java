@@ -14,8 +14,28 @@ public record ChromeContext(
         Integer especialidadId,
         String especialidadNombre) {
 
-    /** Un destino del riel de secciones. La clave es la que compara paginaActual. */
-    public record Seccion(String clave, String etiqueta, String destino) {
+    /**
+     * Un destino del riel de secciones. La clave es la que compara paginaActual.
+     * Cuando subsecciones no está vacía, el riel la dibuja como un desplegable
+     * (mismo mecanismo de <details> que ya usa el menú de cuenta) en vez de un
+     * enlace directo; destino queda sin uso en ese caso.
+     */
+    public record Seccion(String clave, String etiqueta, String destino, List<Seccion> subsecciones) {
+        public Seccion(String clave, String etiqueta, String destino) {
+            this(clave, etiqueta, destino, List.of());
+        }
+
+        public boolean tieneSubsecciones() {
+            return subsecciones != null && !subsecciones.isEmpty();
+        }
+
+        /** Activa tanto si es la página actual como si lo es alguna de sus hijas. */
+        public boolean activa(String paginaActual) {
+            if (clave.equals(paginaActual)) {
+                return true;
+            }
+            return subsecciones != null && subsecciones.stream().anyMatch(s -> s.clave().equals(paginaActual));
+        }
     }
 
     /**
@@ -30,10 +50,17 @@ public record ChromeContext(
             return List.of(inicio);
         }
         return switch (rol) {
+            // Imprimir y Planilla Semanal se fusionan en un solo desplegable
+            // "Documentos": separa los mismos documentos que antes vivían todos
+            // juntos en /alumno/imprimir, más el acceso a las planillas y a los
+            // adjuntos, sin agregar una sección nueva al riel.
             case "alumno" -> List.of(
                     inicio,
-                    new Seccion("imprimir", "Imprimir", "/alumno/imprimir"),
-                    new Seccion("planilla", "Planilla Semanal", "/alumno/planilla"),
+                    new Seccion("documentos", "Documentos", null, List.of(
+                            new Seccion("documentos-antes", "Antes de empezar", "/alumno/documentos/antes-de-empezar"),
+                            new Seccion("planilla", "Planillas Semanales", "/alumno/planilla"),
+                            new Seccion("documentos-final", "Al terminar", "/alumno/documentos/al-terminar"),
+                            new Seccion("documentos-adjuntos", "Documentos adjuntos", "/alumno/documentos/adjuntos"))),
                     new Seccion("subir", "Subir", "/alumno/subir"));
             // Administrativo no ve Supervisores ni Empresas: es la misma regla que
             // antes vivía repartida en th:unless="${esAdministrativo}" por plantilla.

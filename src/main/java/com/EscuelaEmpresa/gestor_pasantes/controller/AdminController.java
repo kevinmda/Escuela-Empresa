@@ -250,7 +250,7 @@ public class AdminController {
     }
 
     // Documentos adjuntos: el mismo PDF combinado que puede bajar el alumno desde
-    // /alumno/imprimir, disponible acá para que admin/coordinador lo consulten sin
+    // /alumno/documentos/adjuntos, disponible acá para que admin/coordinador lo consulten sin
     // pedírselo al alumno. Solo existe cuando el alumno ya entregó el expediente
     // completo (ExpedientePdfService lo valida y tira ReglaNegocioException si no).
     @GetMapping("/admin/alumnos/{idAl}/documentos-adjuntos.pdf")

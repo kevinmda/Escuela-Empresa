@@ -48,13 +48,26 @@ public class ImprimirController {
         this.formularioPdfService = formularioPdfService;
     }
 
-    @GetMapping("/alumno/imprimir")
-    public String mostrarImprimir(Model model, Authentication authentication) {
+    // Antes vivían las tres juntas en una sola vista (/alumno/imprimir); ahora
+    // el desplegable "Documentos" del riel las separa en tres páginas. El
+    // contenido y el CSS de cada tarjeta no cambian, solo se reparten.
+    @GetMapping("/alumno/documentos/antes-de-empezar")
+    public String mostrarDocumentosAntesDeEmpezar() {
+        return "alumno/documentos-antes-de-empezar";
+    }
+
+    @GetMapping("/alumno/documentos/al-terminar")
+    public String mostrarDocumentosAlTerminar() {
+        return "alumno/documentos-al-terminar";
+    }
+
+    @GetMapping("/alumno/documentos/adjuntos")
+    public String mostrarDocumentosAdjuntos(Model model, Authentication authentication) {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
         model.addAttribute("expedienteCompleto", expedientePdfService.estaCompleto(alumno.getIdAl()));
         model.addAttribute("totalSubidos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
         model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal());
-        return "alumno/imprimir";
+        return "alumno/documentos-adjuntos";
     }
 
     @GetMapping("/alumno/imprimir/Documentos_Adjuntos.pdf")

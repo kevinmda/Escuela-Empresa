@@ -90,7 +90,9 @@ public class ChromeModelAdvice {
         String ruta = request.getRequestURI().substring(request.getContextPath().length());
         return switch (ruta) {
             case "/home" -> "inicio";
-            case "/alumno/imprimir" -> "imprimir";
+            case "/alumno/documentos/antes-de-empezar" -> "documentos-antes";
+            case "/alumno/documentos/al-terminar" -> "documentos-final";
+            case "/alumno/documentos/adjuntos" -> "documentos-adjuntos";
             case "/alumno/planilla" -> "planilla";
             case "/alumno/subir" -> "subir";
             case "/admin/alumnos" -> "alumnos";

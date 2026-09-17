@@ -148,8 +148,9 @@
 
         <!-- Apartado exclusivo de Documentos adjuntos: no es uno de los cinco
              tipos del expediente, es el expediente ya combinado (autorización +
-             contrato + planillas + las dos fichas, armado en /alumno/imprimir)
-             firmado y escaneado de vuelta. Por eso va separado y no entra en la
+             contrato + planillas + las dos fichas, armado en
+             /alumno/documentos/adjuntos) firmado y escaneado de vuelta. Por eso
+             va separado y no entra en la
              grilla de arriba, y por eso se habilita recién cuando esos diez ya
              están completos: subirlo antes no tendría nada que combinar.
 
@@ -161,7 +162,7 @@
             <h3 class="sb-subidos-titulo" id="sb-adjuntos-titulo">Documentos adjuntos</h3>
             <p class="sb-adjuntos-nota">
                 El expediente completo que armás en
-                <a th:href="@{/alumno/imprimir}">Imprimir</a>, ya firmado y escaneado. Se
+                <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a>, ya firmado y escaneado. Se
                 admite un solo archivo.
             </p>
 

@@ -39,12 +39,35 @@
         </a>
 
         <nav class="barra-riel" th:if="${conNavegacion and chrome != null}" aria-label="Secciones">
-            <a th:each="seccion : ${chrome.secciones()}"
-               th:href="@{${seccion.destino()}}"
-               class="nav-links"
-               th:classappend="${paginaActual == seccion.clave()} ? ' activo'"
-               th:attr="aria-current=${paginaActual == seccion.clave()} ? 'page' : null"
-               th:text="${seccion.etiqueta()}">Sección</a>
+            <th:block th:each="seccion : ${chrome.secciones()}">
+                <a th:unless="${seccion.tieneSubsecciones()}"
+                   th:href="@{${seccion.destino()}}"
+                   class="nav-links"
+                   th:classappend="${paginaActual == seccion.clave()} ? ' activo'"
+                   th:attr="aria-current=${paginaActual == seccion.clave()} ? 'page' : null"
+                   th:text="${seccion.etiqueta()}">Sección</a>
+
+                <!-- Mismo <details> que el menú de cuenta (misma clase .cuenta), así
+                     el desplegable sale con el CSS que ya existe, sin agregar nada. -->
+                <details th:if="${seccion.tieneSubsecciones()}" class="cuenta">
+                    <summary class="nav-links cuenta-boton"
+                             th:classappend="${seccion.activa(paginaActual)} ? ' activo'">
+                        <span th:text="${seccion.etiqueta()}">Documentos</span>
+                        <svg class="cuenta-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                    </summary>
+                    <div class="cuenta-menu">
+                        <a th:each="sub : ${seccion.subsecciones()}"
+                           th:href="@{${sub.destino()}}"
+                           class="cuenta-item"
+                           th:classappend="${paginaActual == sub.clave()} ? ' activo'"
+                           th:attr="aria-current=${paginaActual == sub.clave()} ? 'page' : null"
+                           th:text="${sub.etiqueta()}">Sub</a>
+                    </div>
+                </details>
+            </th:block>
         </nav>
 
         <div class="barra-cuenta">
