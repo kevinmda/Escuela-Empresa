@@ -25,6 +25,81 @@
         actualizar();
     }
 
+    // Muestra el error en el mismo lugar donde aparecería si el servidor
+    // redirigiera con un mensaje (mismo banner, misma clase), pero sin
+    // navegar a ningún lado: #documentos-error siempre existe en la página
+    // (con o sin error inicial), así que esto funciona aunque no haya
+    // arrancado con ninguno.
+    function mostrarError(mensaje) {
+        const contenedor = document.getElementById('documentos-error');
+        if (!contenedor) return;
+
+        contenedor.innerHTML = '';
+        const banner = document.createElement('div');
+        banner.className = 'mensaje-error';
+        const parrafo = document.createElement('p');
+        parrafo.textContent = mensaje;
+        banner.appendChild(parrafo);
+        contenedor.appendChild(banner);
+        banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // El Padre/Encargado (Contrato: solo nombre; Autorización: nombre + cédula)
+    // tiene que coincidir con lo que ya está cargado en la base, y eso solo se
+    // puede saber preguntándole al servidor. Sin este chequeo previo, el
+    // target="_blank" del formulario ya abrió la pestaña nueva para cuando la
+    // respuesta dice que había que rechazarlo -- por eso esto corre ANTES de
+    // dejar que el formulario se someta de verdad, y solo lo deja pasar
+    // (form.requestSubmit(), que sí dispara este mismo listener de nuevo) si
+    // el servidor confirma que coincide.
+    function activarVerificacionPadre(formId, nombreSelector, ciSelector) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+
+        let verificado = false;
+
+        form.addEventListener('submit', function (evento) {
+            if (verificado) {
+                verificado = false;
+                return;
+            }
+
+            evento.preventDefault();
+
+            const boton = form.querySelector('button[type="submit"]');
+            const campoNombre = form.querySelector(nombreSelector);
+            const campoCi = ciSelector ? form.querySelector(ciSelector) : null;
+            if (!campoNombre) return;
+
+            const params = new URLSearchParams({ nombre: campoNombre.value.trim() });
+            if (campoCi) params.set('ci', campoCi.value.trim());
+
+            if (boton) boton.disabled = true;
+
+            fetch('/alumno/documentos/verificar-padre?' + params.toString())
+                .then(function (respuesta) { return respuesta.json(); })
+                .then(function (resultado) {
+                    if (resultado.valido) {
+                        verificado = true;
+                        if (typeof form.requestSubmit === 'function') {
+                            form.requestSubmit();
+                        } else {
+                            verificado = false; // form.submit() no dispara este listener de nuevo
+                            form.submit();
+                        }
+                    } else {
+                        mostrarError(resultado.error
+                            || 'El Padre/Encargado no coincide con lo que tenemos registrado.');
+                        if (boton) boton.disabled = false;
+                    }
+                })
+                .catch(function () {
+                    mostrarError('No se pudo verificar los datos del Padre/Encargado. Probá de nuevo.');
+                    if (boton) boton.disabled = false;
+                });
+        });
+    }
+
     // Misma zona de arrastre que ya usa Subir documentos (subir.html), copiada
     // acá en vez de compartida porque esa vive en un <script> inline de esa
     // página y no en un archivo aparte. Único agregado: el título también
@@ -73,6 +148,9 @@
     document.addEventListener('DOMContentLoaded', function () {
         activarBotonSegunObligatorios('form-contrato', 'btn-generar-contrato');
         activarBotonSegunObligatorios('form-autorizacion', 'btn-generar-autorizacion');
+
+        activarVerificacionPadre('form-contrato', '[name="padreEncargado"]', null);
+        activarVerificacionPadre('form-autorizacion', '[name="padreNombre"]', '[name="padreCi"]');
 
         const tituloVacio = 'Hacé click o arrastrá el PDF acá';
 

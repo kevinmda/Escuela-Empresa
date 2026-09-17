@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.pdfbox.Loader;
@@ -24,6 +25,7 @@ import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -133,17 +135,74 @@ public class ImprimirController {
         buffer.writeTo(response.getOutputStream());
     }
 
+    // Chequeo de solo lectura (GET, sin efectos secundarios) que el JS de la
+    // página llama por fetch ANTES de someter el formulario de verdad. Sirve
+    // para el Padre/Encargado del Contrato (solo nombre) y para el de la
+    // Autorización (nombre + cédula) -- por eso "ci" es opcional. El objetivo es
+    // que un dato que no va a coincidir nunca abra la pestaña nueva del PDF: sin
+    // este paso previo, el navegador ya abrió la pestaña para cuando el servidor
+    // se entera de que hay que rechazarlo.
+    @GetMapping("/alumno/documentos/verificar-padre")
+    @ResponseBody
+    public Map<String, Object> verificarPadre(@RequestParam String nombre,
+                                               @RequestParam(required = false) String ci,
+                                               Authentication authentication) {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        PadreTutor padreTutor = alumno.getPadreTutor();
+
+        if (padreTutor == null) {
+            return Map.of("valido", false, "error",
+                    "Todavía no hay un padre, madre o tutor registrado para vos. Consultá con la coordinación.");
+        }
+
+        boolean nombreOk = nombreCoincide(nombre, padreTutor);
+        boolean ciOk = ci == null || ci.isBlank() || ciCoincide(ci, padreTutor);
+
+        if (!nombreOk || !ciOk) {
+            String mensaje = (ci == null || ci.isBlank())
+                    ? "El nombre y apellido del Padre/Encargado no coincide con lo que tenemos registrado. "
+                            + "Revisalo e intentá de nuevo."
+                    : "El nombre y apellido o la cédula del padre, madre o tutor no coinciden con lo que "
+                            + "tenemos registrado. Revisalos e intentá de nuevo.";
+            return Map.of("valido", false, "error", mensaje);
+        }
+
+        return Map.of("valido", true);
+    }
+
     // supervisor, area y padreEncargado vienen del formulario (ver
     // documentos-antes-de-empezar.html); area es el único opcional. empresa NO
     // se recibe del formulario -- ese campo está bloqueado ahí porque es de la
     // base, así que se resuelve acá con el mismo criterio que el modelo de la
     // página, no con lo que mande el cliente en ese campo de solo lectura.
+    //
+    // padreEncargado se verifica igual que en Autorización (ver
+    // generarPdfAutorizacion): esto es la validación del lado del servidor, la
+    // misma que ya corre /alumno/documentos/verificar-padre antes de que el
+    // navegador llegue a someter este formulario. No hay que confiar solo en el
+    // chequeo del cliente -- alguien podría saltearse el JS.
     @GetMapping("/alumno/imprimir/Contrato.pdf")
-    public void generarPdfContrato(@RequestParam String supervisor,
+    public String generarPdfContrato(@RequestParam String supervisor,
                                     @RequestParam(required = false) String area,
                                     @RequestParam String padreEncargado,
-                                    Authentication authentication, HttpServletResponse response) throws IOException {
+                                    Authentication authentication, HttpServletResponse response,
+                                    RedirectAttributes redirectAttributes) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        PadreTutor padreTutor = alumno.getPadreTutor();
+
+        if (padreTutor == null) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Todavía no hay un padre, madre o tutor registrado para vos. Consultá con la coordinación.");
+            return "redirect:/alumno/documentos/antes-de-empezar";
+        }
+
+        if (!nombreCoincide(padreEncargado, padreTutor)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "El nombre y apellido del Padre/Encargado no coincide con lo que tenemos registrado. "
+                            + "Revisalo e intentá de nuevo.");
+            return "redirect:/alumno/documentos/antes-de-empezar";
+        }
+
         String empresa = alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : null;
 
         byte[] pdf = formularioPdfService.generarContrato(alumno, supervisor.trim(), empresa,
@@ -152,6 +211,7 @@ public class ImprimirController {
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
         response.getOutputStream().write(pdf);
+        return null;
     }
 
     // Antes era un link fijo (GET, sin parámetros); ahora es un formulario con

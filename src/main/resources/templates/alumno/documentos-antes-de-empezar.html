@@ -36,8 +36,10 @@
         <p class="subtitulo-pagina">Cada documento se genera con tus datos ya cargados. También podés bajarlo en
             blanco para completarlo a mano.</p>
 
-        <div th:if="${error}" class="mensaje-error">
-            <p th:text="${error}"></p>
+        <div id="documentos-error">
+            <div th:if="${error}" class="mensaje-error">
+                <p th:text="${error}"></p>
+            </div>
         </div>
 
         <section class="panel impr-pliego" aria-labelledby="impr-antes">
