@@ -6265,3 +6265,28 @@ button:disabled,
         margin-top: 1.5rem;
     }
 }
+
+/* Bloque de marca en la primera pantalla de login: nombre del sistema,
+   colegio y "Escuela Empresa", entre el logo y el título "Ingresar". */
+.auth-marca {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.auth-marca-proyecto {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+}
+
+.auth-marca-colegio {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0.35rem 0 0;
+}

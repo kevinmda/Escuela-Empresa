@@ -10,6 +10,12 @@
             <div class="auth-card">
                 <img th:replace="~{fragments/auth :: logoTarjeta}">
 
+                <div class="auth-marca">
+                    <p class="auth-marca-proyecto">Sistema de Gestión de Pasantías</p>
+                    <p class="auth-marca-colegio">Colegio Técnico Nacional de Asunción</p>
+                    <p class="auth-marca-colegio">Escuela Empresa</p>
+                </div>
+
                 <h1 class="auth-titulo">Ingresar</h1>
 
                 <p th:if="${param.logout}" class="mensaje-exito">
