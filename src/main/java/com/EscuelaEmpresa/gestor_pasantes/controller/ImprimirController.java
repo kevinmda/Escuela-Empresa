@@ -3,20 +3,16 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.Normalizer;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -95,12 +91,6 @@ public class ImprimirController {
                 alumno.getEspecialidad() != null ? alumno.getEspecialidad().getNombre() : "");
         model.addAttribute("empresaAlumno",
                 alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : "Todavía sin asignar");
-
-        Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
-        DateTimeFormatter formatoLargo = new DateTimeFormatterBuilder()
-                .appendPattern("d 'de' MMMM 'de' yyyy")
-                .toFormatter(localeEspanol);
-        model.addAttribute("fechaHoy", LocalDate.now().format(formatoLargo));
 
         return "alumno/documentos-antes-de-empezar";
     }
@@ -400,21 +390,22 @@ public class ImprimirController {
         return new LinkedHashSet<>(Arrays.asList(normalizado.split("\\s+")));
     }
 
-    // Los adjuntos ya se validaron como PDF antes de llegar acá. importPage (y
-    // no addPage con la página del otro documento) porque una PDPage pertenece
-    // a los recursos internos de SU documento; importPage es lo que copia esos
-    // recursos al documento de destino en vez de dejar una referencia rota.
+    // PDFMergerUtility.appendDocument y no un bucle con importPage: es la
+    // herramienta que trae PDFBox específicamente para esto (agregar todas las
+    // páginas de un documento al final de otro), y se hace cargo de recursos y
+    // estructura interna de forma más completa que llamar importPage página por
+    // página a mano.
     private byte[] agregarPaginasAdjuntas(byte[] pdfBase, List<MultipartFile> adjuntos) throws IOException {
         if (adjuntos.isEmpty()) {
             return pdfBase;
         }
 
         try (PDDocument documentoFinal = Loader.loadPDF(pdfBase)) {
+            PDFMergerUtility fusionador = new PDFMergerUtility();
+
             for (MultipartFile adjunto : adjuntos) {
                 try (PDDocument documentoAdjunto = Loader.loadPDF(adjunto.getBytes())) {
-                    for (PDPage pagina : documentoAdjunto.getPages()) {
-                        documentoFinal.importPage(pagina);
-                    }
+                    fusionador.appendDocument(documentoFinal, documentoAdjunto);
                 }
             }
 

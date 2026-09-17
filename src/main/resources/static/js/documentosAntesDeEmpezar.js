@@ -87,6 +87,11 @@
                             verificado = false; // form.submit() no dispara este listener de nuevo
                             form.submit();
                         }
+                        // Se reactiva también en el caso exitoso: el PDF se abre en OTRA
+                        // pestaña y esta página se queda tal cual, así que sin esto el
+                        // botón quedaba deshabilitado para siempre después del primer
+                        // click (antes solo se reactivaba si tocabas de nuevo un campo).
+                        if (boton) boton.disabled = false;
                     } else {
                         mostrarError(resultado.error
                             || 'El Padre/Encargado no coincide con lo que tenemos registrado.');

@@ -119,6 +119,20 @@ public class FormularioPdfService {
         PDType1Font fuente = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
         float tamanioFuente = 10;
 
+        // "Asunción,___de___de 202_": el año ya viene con "202" impreso en la
+        // plantilla, solo falta el último dígito (sirve para cualquier año de
+        // esta década). El documento trae dos copias idénticas de este
+        // formulario en la misma hoja, así que esto se escribe dos veces, una
+        // por copia (ver más abajo, antes de la "segunda autorizacion").
+        LocalDate hoy = LocalDate.now();
+        Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
+        String mes = hoy.format(DateTimeFormatter.ofPattern("MMMM", localeEspanol));
+        String ultimoDigitoAnio = String.valueOf(hoy.getYear() % 10);
+
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 393.5f, 810.2f);
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 452, 810.2f);
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, ultimoDigitoAnio, 523.2f, 810.2f);
+
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 388, 767.2f);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getCi(), 257, 739);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEspecialidad().getNombre(), 156, 719);
@@ -134,6 +148,10 @@ public class FormularioPdfService {
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, pt.getCi(), 137, 617.3f);
         }
         // Segunda autorizacion (la de repuesto)
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 393.5f, 410.0f);
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 452, 410.0f);
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, ultimoDigitoAnio, 523.2f, 410.0f);
+
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 388, 366.8f);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getCi(), 257, 339);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEspecialidad().getNombre(), 156, 319);
