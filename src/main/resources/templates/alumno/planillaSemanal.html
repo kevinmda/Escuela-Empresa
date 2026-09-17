@@ -217,38 +217,11 @@
         </form>
 
         <!-- ================= Descargas =================
-             El informe y la planilla en blanco estaban en dos bloques separados,
-             uno arriba de todo y el otro al final de la pagina, sin nada que los
-             relacionara. Los dos son lo mismo: un archivo para bajar. -->
+             El informe de pasantía se mudó al desplegable "Documentos" del
+             riel (/alumno/documentos/informe); acá solo queda la planilla en
+             blanco, que es del formulario de esta página. -->
         <section class="pl-descargas" aria-labelledby="pl-descargas-titulo">
             <h3 class="pl-descargas-titulo" id="pl-descargas-titulo">Descargas</h3>
-
-            <div class="pl-descarga">
-                <div class="pl-descarga-texto">
-                    <h4 class="pl-descarga-nombre">Informe de Pasantía</h4>
-                    <p class="pl-descarga-desc">El informe final en Word, armado con todo lo que
-                        cargaste en las seis semanas.</p>
-
-                    <!-- Antes esto eran tres renglones con un caracter ✔ o ✘
-                         escrito como texto. Ahora cada requisito dice su estado
-                         con su propia marca, y los cumplidos se leen distinto de
-                         los que faltan sin depender de un simbolo suelto. -->
-                    <ul class="pl-requisitos">
-                        <li class="pl-requisito" th:classappend="${tieneEmpresa} ? ' pl-requisito--listo'">
-                            Una empresa asignada</li>
-                        <li class="pl-requisito" th:classappend="${tieneSupervisor} ? ' pl-requisito--listo'">
-                            Un supervisor o docente asignado</li>
-                        <li class="pl-requisito" th:classappend="${tieneSeisPlanillas} ? ' pl-requisito--listo'">
-                            Las seis semanas cargadas</li>
-                    </ul>
-                </div>
-
-                <div class="pl-descarga-accion">
-                    <a th:if="${informeHabilitado}" th:href="@{/alumno/planilla/Informe_Pasantia.docx}"
-                       class="btn btn-primary">Descargar Word</a>
-                    <button th:unless="${informeHabilitado}" type="button" class="btn btn-primary" disabled>Descargar Word</button>
-                </div>
-            </div>
 
             <div class="pl-descarga">
                 <div class="pl-descarga-texto">

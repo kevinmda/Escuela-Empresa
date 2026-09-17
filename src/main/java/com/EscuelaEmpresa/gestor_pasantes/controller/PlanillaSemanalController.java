@@ -68,6 +68,26 @@ public class PlanillaSemanalController {
         this.plantillaService = plantillaService;
     }
 
+    // Antes vivía como una tarjeta más dentro de /alumno/planilla; ahora es su
+    // propia entrada en el desplegable "Documentos" del riel. La descarga en sí
+    // (Informe_Pasantia.docx, más abajo) no se mueve.
+    @GetMapping("/alumno/documentos/informe")
+    public String mostrarDocumentosInforme(Model model, Authentication authentication) {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        List<PlanillaSemanal> planillas =
+                planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
+
+        boolean tieneSeisPlanillas = planillas.size() >= 6;
+        boolean tieneSupervisor = alumno.getSupervisor() != null;
+        boolean tieneEmpresa = alumno.getEmpresa() != null;
+
+        model.addAttribute("tieneSeisPlanillas", tieneSeisPlanillas);
+        model.addAttribute("tieneSupervisor", tieneSupervisor);
+        model.addAttribute("tieneEmpresa", tieneEmpresa);
+        model.addAttribute("informeHabilitado", tieneSeisPlanillas && tieneSupervisor && tieneEmpresa);
+        return "alumno/documentos-informe";
+    }
+
     @GetMapping("/alumno/planilla")
     public String mostrarFormulario(@RequestParam(required = false) Integer idPs,
                                     Model model,
@@ -209,21 +229,21 @@ public class PlanillaSemanalController {
         if (planillas.size() < 6) {
             redirectAttributes.addFlashAttribute("error",
                     "Todavía no completaste las 6 semanas de planilla, no se puede generar el informe.");
-            response.sendRedirect("/alumno/planilla");
+            response.sendRedirect("/alumno/documentos/informe");
             return;
         }
 
         if (alumno.getSupervisor() == null) {
             redirectAttributes.addFlashAttribute("error",
                     "Todavía no tenés un supervisor/docente asignado, no se puede generar el informe.");
-            response.sendRedirect("/alumno/planilla");
+            response.sendRedirect("/alumno/documentos/informe");
             return;
         }
 
         if (alumno.getEmpresa() == null) {
             redirectAttributes.addFlashAttribute("error",
                     "Todavía no tenés una empresa asignada, no se puede generar el informe.");
-            response.sendRedirect("/alumno/planilla");
+            response.sendRedirect("/alumno/documentos/informe");
             return;
         }
 
@@ -241,11 +261,9 @@ public class PlanillaSemanalController {
         response.getOutputStream().flush();
     }
 
-    // El informe de pasantia solo se puede descargar si el alumno ya completo las 6 semanas,
-    // y tiene supervisor/docente y empresa asignados. Se llama tanto desde el GET como el POST
-    // de /alumno/planilla, para que la pantalla nunca le falten estos atributos al modelo
-    // Estado que necesitan las dos partes de la pantalla: los requisitos del
-    // informe final, y el riel de las seis semanas.
+    // Estado que necesita el riel de las seis semanas. Se llama tanto desde el
+    // GET como el POST de /alumno/planilla, para que la pantalla nunca le
+    // falten estos atributos al modelo.
     private void agregarEstadoInforme(Model model, Alumno alumno, List<PlanillaSemanal> planillas) {
 
         // "planillas" viene ordenada de la mas nueva a la mas vieja, que es lo que
@@ -260,16 +278,6 @@ public class PlanillaSemanalController {
         // bloque base de [data-esp] devuelve el par --ink / --text-on-ink.
         model.addAttribute("idEspecialidad",
                 alumno.getEspecialidad() != null ? alumno.getEspecialidad().getIdEsp() : null);
-
-        boolean tieneSeisPlanillas = planillas.size() >= 6;
-        boolean tieneSupervisor = alumno.getSupervisor() != null;
-        boolean tieneEmpresa = alumno.getEmpresa() != null;
-        boolean informeHabilitado = tieneSeisPlanillas && tieneSupervisor && tieneEmpresa;
-
-        model.addAttribute("informeHabilitado", informeHabilitado);
-        model.addAttribute("tieneSeisPlanillas", tieneSeisPlanillas);
-        model.addAttribute("tieneSupervisor", tieneSupervisor);
-        model.addAttribute("tieneEmpresa", tieneEmpresa);
     }
 
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {

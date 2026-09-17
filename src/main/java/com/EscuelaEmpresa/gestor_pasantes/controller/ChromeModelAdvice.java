@@ -92,6 +92,7 @@ public class ChromeModelAdvice {
             case "/home" -> "inicio";
             case "/alumno/documentos/antes-de-empezar" -> "documentos-antes";
             case "/alumno/documentos/al-terminar" -> "documentos-final";
+            case "/alumno/documentos/informe" -> "documentos-informe";
             case "/alumno/documentos/adjuntos" -> "documentos-adjuntos";
             case "/alumno/planilla" -> "planilla";
             case "/alumno/subir" -> "subir";

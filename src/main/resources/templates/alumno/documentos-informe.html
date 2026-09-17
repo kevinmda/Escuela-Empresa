@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Fija data-theme antes de que el navegador pinte nada: theme.js carga con
+         defer y corre recien despues del primer render, asi que sin esto la
+         pagina arranca en claro (el :root por defecto) y salta a oscuro apenas
+         theme.js llega -- ese salto es el parpadeo al cambiar de pagina. -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('theme')
+                || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.dataset.theme = tema;
+        })();
+    </script>
+
+    <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Pasantía | CTN Pasantías</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script th:src="@{/js/theme.js}" defer></script>
+    <script th:src="@{/js/cookie-consent.js}" defer></script>
+
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
+    <th:block th:replace="~{fragments/chrome :: chrome(${chrome}, ${paginaActual}, true)}"></th:block>
+    <main id="main-content">
+        <h2>Informe de Pasantía</h2>
+
+        <div th:if="${error}" class="mensaje-error">
+            <p th:text="${error}"></p>
+        </div>
+
+        <section class="pl-descargas" aria-labelledby="pl-descargas-titulo">
+            <h3 class="pl-descargas-titulo oculto-visual" id="pl-descargas-titulo">Informe de Pasantía</h3>
+
+            <div class="pl-descarga">
+                <div class="pl-descarga-texto">
+                    <h4 class="pl-descarga-nombre">Informe de Pasantía</h4>
+                    <p class="pl-descarga-desc">El informe final en Word, armado con todo lo que
+                        cargaste en las seis semanas.</p>
+
+                    <ul class="pl-requisitos">
+                        <li class="pl-requisito" th:classappend="${tieneEmpresa} ? ' pl-requisito--listo'">
+                            Una empresa asignada</li>
+                        <li class="pl-requisito" th:classappend="${tieneSupervisor} ? ' pl-requisito--listo'">
+                            Un supervisor o docente asignado</li>
+                        <li class="pl-requisito" th:classappend="${tieneSeisPlanillas} ? ' pl-requisito--listo'">
+                            Las seis semanas cargadas</li>
+                    </ul>
+                </div>
+
+                <div class="pl-descarga-accion">
+                    <a th:if="${informeHabilitado}" th:href="@{/alumno/planilla/Informe_Pasantia.docx}"
+                       class="btn btn-primary">Descargar Word</a>
+                    <button th:unless="${informeHabilitado}" type="button" class="btn btn-primary" disabled>Descargar Word</button>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

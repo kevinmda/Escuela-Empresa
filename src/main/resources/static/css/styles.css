@@ -524,6 +524,35 @@ img {
     display: block;
 }
 
+/* --- Sección del riel con desplegable (p.ej. "Documentos" del alumno) ---
+   Reusa el <details> del menú de cuenta (misma clase .cuenta) para no
+   inventar un mecanismo nuevo, pero .cuenta-boton trae el padding pensado
+   para el disco de iniciales, no para una pastilla del riel: sin este
+   bloque, .nav-links y .cuenta-boton se pisan el padding entre sí (y de
+   forma distinta en escritorio que en el breakpoint móvil), y el botón
+   queda más chico y descentrado que sus hermanos. Esta regla, con dos
+   clases, le gana a las dos de una clase sola sin importar el orden. */
+.barra-riel .cuenta-boton {
+    padding: 0.4rem 0.85rem;
+    gap: 0.4rem;
+}
+
+/* El menú de cuenta cuelga del extremo derecho de la barra y se abre hacia
+   la izquierda porque no hay nada después. Este desplegable va en medio del
+   riel (entre Inicio y Subir), así que se abre hacia la derecha: con
+   right:0 quedaría tapando "Inicio". */
+.barra-riel .cuenta-menu {
+    left: 0;
+    right: auto;
+    transform-origin: top left;
+}
+
+@media (max-width: 720px) {
+    .barra-riel .cuenta-boton {
+        padding: 0.7rem 0.9rem;
+    }
+}
+
 .cuenta {
     position: relative;
 }
