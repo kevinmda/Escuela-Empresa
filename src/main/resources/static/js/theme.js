@@ -162,7 +162,14 @@
     // /olvide-contrasena generan dos códigos y el primero queda invalidado.
     // El disabled va en el tick siguiente: hacerlo dentro del handler de submit
     // puede cancelar el envío en algunos navegadores.
+    //
+    // target="_blank" queda afuera: esos formularios (el del Contrato, en
+    // /alumno/documentos/antes-de-empezar) abren su resultado en otra pestaña y
+    // la pagina actual nunca navega, asi que nada vuelve a habilitar el botón
+    // despues -- se quedaria diciendo "Enviando..." para siempre.
     function marcarEnvioEnCurso(form) {
+        if (form.target === '_blank') return;
+
         const boton = form.querySelector('button[type="submit"]');
         if (!boton || boton.disabled) return;
 

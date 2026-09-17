@@ -43,29 +43,65 @@
             </div>
 
             <ul class="impr-lista">
-                <li class="impr-doc">
-                    <div class="impr-doc-hoja">
-                        <span class="impr-hoja" aria-hidden="true">
-                            <span class="impr-hoja-cara">
-                                <span class="impr-hoja-banda"></span>
-                                <span class="impr-hoja-renglones"></span>
+                <li class="impr-doc impr-doc--formulario">
+                    <div class="impr-doc-cabecera">
+                        <div class="impr-doc-hoja">
+                            <span class="impr-hoja" aria-hidden="true">
+                                <span class="impr-hoja-cara">
+                                    <span class="impr-hoja-banda"></span>
+                                    <span class="impr-hoja-renglones"></span>
+                                </span>
                             </span>
-                        </span>
-                        <span class="impr-hoja-cuenta">1 hoja</span>
+                            <span class="impr-hoja-cuenta">1 hoja</span>
+                        </div>
+                        <div class="impr-doc-texto">
+                            <h4 class="impr-doc-titulo">Contrato de pasantía</h4>
+                            <p class="impr-doc-desc">Tus datos ya están cargados. Completá el resto para generar el
+                                PDF con todo junto.</p>
+                        </div>
                     </div>
-                    <div class="impr-doc-texto">
-                        <h4 class="impr-doc-titulo">Contrato de pasantía</h4>
-                        <p class="impr-doc-desc">Tu nombre, tu especialidad, la empresa y tu tutor. El supervisor lo
-                            toma de tu última planilla semanal.</p>
-                    </div>
-                    <div class="impr-doc-acciones">
-                        <a class="btn btn-primary" th:href="@{/alumno/imprimir/Contrato.pdf}"
-                           target="_blank" rel="noopener"
-                           aria-label="Contrato de pasantía con mis datos">Con mis datos</a>
-                        <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Contrato_Vacio.pdf}"
-                           target="_blank" rel="noopener"
-                           aria-label="Contrato de pasantía en blanco">En blanco</a>
-                    </div>
+
+                    <!-- GET y no POST: es la misma descarga de siempre, solo que ahora con
+                         parámetros en vez de sin ninguno, y target="_blank" sigue abriendo
+                         el PDF en una pestaña aparte como los demás documentos de esta
+                         página. -->
+                    <form class="impr-doc-formulario" method="get" th:action="@{/alumno/imprimir/Contrato.pdf}"
+                          target="_blank" id="form-contrato">
+                        <div class="impr-doc-campos">
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Nombre y apellido</span>
+                                <input type="text" th:value="${nombreCompletoAlumno}" readonly>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Especialidad</span>
+                                <input type="text" th:value="${especialidadAlumno}" readonly>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Fecha</span>
+                                <input type="text" th:value="${fechaHoy}" readonly>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Supervisor de la Empresa</span>
+                                <input type="text" name="supervisor" maxlength="100" required>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Empresa</span>
+                                <input type="text" name="empresa" maxlength="100" required>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Área de Trabajo</span>
+                                <input type="text" name="area" maxlength="100">
+                            </label>
+                        </div>
+
+                        <div class="impr-doc-acciones">
+                            <button type="submit" class="btn btn-primary" id="btn-generar-contrato" disabled
+                                    aria-label="Generar el PDF del contrato de pasantía con estos datos">Generar PDF</button>
+                            <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Contrato_Vacio.pdf}"
+                               target="_blank" rel="noopener"
+                               aria-label="Contrato de pasantía en blanco">En blanco</a>
+                        </div>
+                    </form>
                 </li>
 
                 <li class="impr-doc">
@@ -95,5 +131,7 @@
             </ul>
         </section>
     </main>
+
+    <script th:src="@{/js/documentosContrato.js}"></script>
 </body>
 </html>

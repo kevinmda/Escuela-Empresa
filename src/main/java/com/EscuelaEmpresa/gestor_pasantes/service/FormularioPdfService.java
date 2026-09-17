@@ -34,7 +34,20 @@ public class FormularioPdfService {
         this.plantillaService = plantillaService;
     }
 
+    // Version anterior, usada por la API movil (FormulariosMovilController), que
+    // todavia no tiene este formulario: el supervisor sale de la ultima planilla
+    // y no hay campo de area. No se toca para no romper esa integracion.
     public byte[] generarContrato(Alumno alumno, List<PlanillaSemanal> planillas) throws IOException {
+        String supervisor = planillas.isEmpty() ? null : planillas.get(0).getSupervisor();
+        String empresa = alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : null;
+        return generarContrato(alumno, supervisor, empresa, null);
+    }
+
+    // Version web: supervisor, empresa y area vienen del formulario de
+    // /alumno/documentos/antes-de-empezar, no de la base. El nombre, la
+    // especialidad y la fecha si vienen de la base/del reloj: por eso esos tres
+    // aparecen bloqueados en el formulario y estos tres no.
+    public byte[] generarContrato(Alumno alumno, String supervisor, String empresa, String area) throws IOException {
         PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2025.pdf");
         PDPage pagina = document.getPage(0);
 
@@ -47,14 +60,30 @@ public class FormularioPdfService {
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 411, 861.5f);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEspecialidad().getNombre(), 393, 848.5f);
 
-        String supervisor = planillas.isEmpty() ? null : planillas.get(0).getSupervisor();
         if (supervisor != null && !supervisor.isBlank()) {
             escribirTextoCentrado(contentStream, fuente, 10, supervisor, 368, 835);
         }
 
-        if (alumno.getEmpresa() != null) {
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(), 203, 821.8f);
+        if (empresa != null && !empresa.isBlank()) {
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, empresa, 203, 821.8f);
         }
+
+        // "...oportunidades de pasantía en el área de___, con el objetivo..."
+        // (clausula PRIMERA). Blanco entre x=120 y x=272 aprox.
+        if (area != null && !area.isBlank()) {
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, area, 196, 774.5f);
+        }
+
+        // "...a los___ días del mes de___de año 2025.-" (clausula DUODECIMA).
+        // El año queda tal cual esta impreso en la plantilla: es texto fijo de
+        // la plantilla, no algo que este codigo escribe, y quedo desactualizado
+        // (dice 2025). Cambiarlo requiere editar el PDF fuente, no esta linea.
+        LocalDate hoy = LocalDate.now();
+        Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
+        String mes = hoy.format(DateTimeFormatter.ofPattern("MMMM", localeEspanol));
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 158, 246.7f);
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 305, 246.7f);
+
         if (alumno.getPadreTutor() != null) {
             PadreTutor pt = alumno.getPadreTutor();
             String primerNombre = pt.getNombres().trim().split(" ")[0];

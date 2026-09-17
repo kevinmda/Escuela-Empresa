@@ -5562,6 +5562,40 @@ button:disabled,
     color: var(--accent-ink);
 }
 
+/* ---------- Contrato de pasantía: la única tarjeta con formulario ----------
+   Las demás tarjetas de esta pantalla son "mirá esto y descargalo"; el
+   contrato necesita datos que la base no tiene (supervisor, empresa, área) y
+   otros que sí (nombre, especialidad, fecha) pero conviene mostrar para que
+   el alumno los vea antes de generar. Se abandona la grilla de 3 columnas de
+   .impr-doc (hoja | texto | acciones) por una sola columna apilada: cabecera,
+   campos, acciones. */
+.impr-doc--formulario {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+}
+
+.impr-doc-cabecera {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.impr-doc-campos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem 1.25rem;
+    margin: 1.15rem 0 1.25rem;
+}
+
+/* Campos bloqueados (Nombre, Especialidad, Fecha): ya están en la base, no
+   hay nada que tocar ahí. Fondo plano en vez del hundido de --field es la
+   misma señal que un campo deshabilitado, sin la opacidad de :disabled --
+   ese texto hay que poder leerlo, no que parezca apagado. */
+input:read-only {
+    background-color: var(--bg);
+    cursor: default;
+}
+
 /* ---------- Las dos acciones ---------- */
 
 .impr-doc-acciones {
@@ -5631,6 +5665,13 @@ button:disabled,
         grid-template-columns: auto minmax(0, 1fr);
         align-items: start;
         gap: 0.9rem 1rem;
+    }
+
+    /* La tarjeta del Contrato ya es de una sola columna en escritorio (ver
+       .impr-doc--formulario, mas arriba); en movil sigue siendola, mismo
+       motivo de especificidad-por-orden que el resto de este bloque. */
+    .impr-doc--formulario {
+        grid-template-columns: 1fr;
     }
 
     .impr-doc-acciones {

@@ -2,13 +2,18 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
@@ -52,7 +57,21 @@ public class ImprimirController {
     // el desplegable "Documentos" del riel las separa en tres páginas. El
     // contenido y el CSS de cada tarjeta no cambian, solo se reparten.
     @GetMapping("/alumno/documentos/antes-de-empezar")
-    public String mostrarDocumentosAntesDeEmpezar() {
+    public String mostrarDocumentosAntesDeEmpezar(Model model, Authentication authentication) {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        // Los tres bloqueados del formulario del Contrato: ya están en la base,
+        // así que el alumno los ve pero no los toca.
+        model.addAttribute("nombreCompletoAlumno", alumno.getNombres() + " " + alumno.getApellidos());
+        model.addAttribute("especialidadAlumno",
+                alumno.getEspecialidad() != null ? alumno.getEspecialidad().getNombre() : "");
+
+        Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
+        DateTimeFormatter formatoLargo = new DateTimeFormatterBuilder()
+                .appendPattern("d 'de' MMMM 'de' yyyy")
+                .toFormatter(localeEspanol);
+        model.addAttribute("fechaHoy", LocalDate.now().format(formatoLargo));
+
         return "alumno/documentos-antes-de-empezar";
     }
 
@@ -86,13 +105,19 @@ public class ImprimirController {
         buffer.writeTo(response.getOutputStream());
     }
 
+    // supervisor y empresa son obligatorios en el formulario (ver
+    // documentos-antes-de-empezar.html); area es el único opcional. Sin
+    // required=false, Spring devuelve 400 si faltan -- ya cubierto por el
+    // required del HTML y por el botón deshabilitado hasta llenarlos.
     @GetMapping("/alumno/imprimir/Contrato.pdf")
-    public void generarPdfContrato(Authentication authentication, HttpServletResponse response) throws IOException {
+    public void generarPdfContrato(@RequestParam String supervisor,
+                                    @RequestParam String empresa,
+                                    @RequestParam(required = false) String area,
+                                    Authentication authentication, HttpServletResponse response) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
-        List<PlanillaSemanal> planillas =
-                planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
 
-        byte[] pdf = formularioPdfService.generarContrato(alumno, planillas);
+        byte[] pdf = formularioPdfService.generarContrato(alumno, supervisor.trim(), empresa.trim(),
+                area != null ? area.trim() : null);
 
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
