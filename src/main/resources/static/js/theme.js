@@ -225,26 +225,35 @@
         button.setAttribute('title', etiqueta);
     }
 
-    // Mejora encima de <details>, no el mecanismo: el menu de la cuenta abre y
-    // cierra sin JavaScript, que es lo que garantiza que cerrar sesion y cambiar
-    // la contraseña sigan estando al alcance con el JS caido. Esto solo agrega lo
-    // que el elemento nativo no trae: cerrar con Escape y al tocar afuera.
+    // Mejora encima de <details>, no el mecanismo: el menu de la cuenta (y ahora
+    // tambien el desplegable "Documentos" del riel, que reusa la misma clase)
+    // abre y cierra sin JavaScript, que es lo que garantiza que cerrar sesion y
+    // cambiar la contraseña sigan estando al alcance con el JS caido. Esto solo
+    // agrega lo que el elemento nativo no trae: cerrar con Escape y al tocar
+    // afuera. querySelectorAll y no querySelector: con dos .cuenta en la misma
+    // pagina (cuenta + Documentos), quedarse con "el primero" dejaba al otro sin
+    // esta mejora.
     function prepararMenuCuenta() {
-        const cuenta = document.querySelector('.cuenta');
-        if (!cuenta) return;
+        const cuentas = document.querySelectorAll('.cuenta');
+        if (!cuentas.length) return;
 
         document.addEventListener('click', function (evento) {
-            if (cuenta.open && !cuenta.contains(evento.target)) {
-                cuenta.open = false;
-            }
+            cuentas.forEach(function (cuenta) {
+                if (cuenta.open && !cuenta.contains(evento.target)) {
+                    cuenta.open = false;
+                }
+            });
         });
 
         document.addEventListener('keydown', function (evento) {
-            if (evento.key === 'Escape' && cuenta.open) {
-                cuenta.open = false;
-                const resumen = cuenta.querySelector('summary');
-                if (resumen) resumen.focus();
-            }
+            if (evento.key !== 'Escape') return;
+            cuentas.forEach(function (cuenta) {
+                if (cuenta.open) {
+                    cuenta.open = false;
+                    const resumen = cuenta.querySelector('summary');
+                    if (resumen) resumen.focus();
+                }
+            });
         });
     }
 
