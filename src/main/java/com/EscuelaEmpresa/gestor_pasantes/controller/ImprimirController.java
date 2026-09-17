@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.springframework.beans.factory.annotation.Value;
@@ -351,9 +352,9 @@ public class ImprimirController {
             return pdfBase;
         }
 
-        try (PDDocument documentoFinal = PDDocument.load(pdfBase)) {
+        try (PDDocument documentoFinal = Loader.loadPDF(pdfBase)) {
             for (MultipartFile adjunto : adjuntos) {
-                try (PDDocument documentoAdjunto = PDDocument.load(adjunto.getInputStream())) {
+                try (PDDocument documentoAdjunto = Loader.loadPDF(adjunto.getBytes())) {
                     for (PDPage pagina : documentoAdjunto.getPages()) {
                         documentoFinal.importPage(pagina);
                     }
