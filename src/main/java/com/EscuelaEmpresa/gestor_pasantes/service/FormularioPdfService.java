@@ -35,19 +35,32 @@ public class FormularioPdfService {
     }
 
     // Version anterior, usada por la API movil (FormulariosMovilController), que
-    // todavia no tiene este formulario: el supervisor sale de la ultima planilla
-    // y no hay campo de area. No se toca para no romper esa integracion.
+    // todavia no tiene este formulario: supervisor y padre/encargado salen de la
+    // ultima planilla/de la base, igual que antes. No se toca para no romper esa
+    // integracion.
     public byte[] generarContrato(Alumno alumno, List<PlanillaSemanal> planillas) throws IOException {
         String supervisor = planillas.isEmpty() ? null : planillas.get(0).getSupervisor();
         String empresa = alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : null;
-        return generarContrato(alumno, supervisor, empresa, null);
+
+        String padreEncargado = null;
+        if (alumno.getPadreTutor() != null) {
+            PadreTutor pt = alumno.getPadreTutor();
+            String primerNombre = pt.getNombres().trim().split(" ")[0];
+            String primerApellido = pt.getApellidos().trim().split(" ")[0];
+            padreEncargado = primerNombre + " " + primerApellido;
+        }
+
+        return generarContrato(alumno, supervisor, empresa, null, padreEncargado);
     }
 
-    // Version web: supervisor, empresa y area vienen del formulario de
-    // /alumno/documentos/antes-de-empezar, no de la base. El nombre, la
-    // especialidad y la fecha si vienen de la base/del reloj: por eso esos tres
-    // aparecen bloqueados en el formulario y estos tres no.
-    public byte[] generarContrato(Alumno alumno, String supervisor, String empresa, String area) throws IOException {
+    // Version web: supervisor, area y padre/encargado vienen del formulario de
+    // /alumno/documentos/antes-de-empezar y los escribe el alumno; empresa viene
+    // de la base (ImprimirController la resuelve, no confia en lo que llegue del
+    // formulario para ese campo bloqueado). Nombre, especialidad y fecha tambien
+    // salen de la base/del reloj: por eso esos tres aparecen bloqueados en el
+    // formulario y estos no.
+    public byte[] generarContrato(Alumno alumno, String supervisor, String empresa, String area,
+                                   String padreEncargado) throws IOException {
         PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2025.pdf");
         PDPage pagina = document.getPage(0);
 
@@ -84,12 +97,12 @@ public class FormularioPdfService {
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 158, 246.7f);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 305, 246.7f);
 
-        if (alumno.getPadreTutor() != null) {
-            PadreTutor pt = alumno.getPadreTutor();
-            String primerNombre = pt.getNombres().trim().split(" ")[0];
-            String primerApellido = pt.getApellidos().trim().split(" ")[0];
-            String nombrePadreTutor = primerNombre + " " + primerApellido;
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, nombrePadreTutor, 437, 273);
+        // "...el Padre o Encargado del ESTUDIANTE-PASANTE, el (la) señor(a),___"
+        // (misma clausula DUODECIMA, blanco ancho: x=323.9 a 515.3). Antes salia
+        // solo de la base (primer nombre + primer apellido); ahora lo escribe el
+        // alumno en el formulario, con el nombre completo.
+        if (padreEncargado != null && !padreEncargado.isBlank()) {
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, padreEncargado, 420, 273);
         }
 
         contentStream.close();

@@ -2,21 +2,33 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
+import com.EscuelaEmpresa.gestor_pasantes.entity.PadreTutor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
@@ -26,6 +38,7 @@ import com.EscuelaEmpresa.gestor_pasantes.service.ExpedientePdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.FormularioPdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlantillaService;
+import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService;
 import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,11 +52,19 @@ public class ImprimirController {
     private final ExpedientePdfService expedientePdfService;
     private final LimitesDocumentoService limitesDocumentoService;
     private final FormularioPdfService formularioPdfService;
+    private final ValidacionDocumentoService validacionDocumentoService;
+
+    // Mismo tope y misma fuente que ya usa SubirController: el valor real lo
+    // aplica Spring antes de que esto se ejecute, así que conviene usar el
+    // mismo número para el mensaje de error en vez de inventar uno aparte.
+    private final DataSize tamanioMaximo;
 
     public ImprimirController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository,
                               PlanillaSemanalRepository planillaSemanalRepository, PlantillaService plantillaService,
                               ExpedientePdfService expedientePdfService, LimitesDocumentoService limitesDocumentoService,
-                              FormularioPdfService formularioPdfService) {
+                              FormularioPdfService formularioPdfService,
+                              ValidacionDocumentoService validacionDocumentoService,
+                              @Value("${spring.servlet.multipart.max-file-size}") DataSize tamanioMaximo) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
@@ -51,6 +72,8 @@ public class ImprimirController {
         this.expedientePdfService = expedientePdfService;
         this.limitesDocumentoService = limitesDocumentoService;
         this.formularioPdfService = formularioPdfService;
+        this.validacionDocumentoService = validacionDocumentoService;
+        this.tamanioMaximo = tamanioMaximo;
     }
 
     // Antes vivían las tres juntas en una sola vista (/alumno/imprimir); ahora
@@ -60,11 +83,15 @@ public class ImprimirController {
     public String mostrarDocumentosAntesDeEmpezar(Model model, Authentication authentication) {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
-        // Los tres bloqueados del formulario del Contrato: ya están en la base,
-        // así que el alumno los ve pero no los toca.
+        // Bloqueados en los dos formularios de esta página (Contrato y
+        // Autorización): ya están en la base, así que el alumno los ve pero no
+        // los toca.
         model.addAttribute("nombreCompletoAlumno", alumno.getNombres() + " " + alumno.getApellidos());
+        model.addAttribute("ciAlumno", alumno.getCi());
         model.addAttribute("especialidadAlumno",
                 alumno.getEspecialidad() != null ? alumno.getEspecialidad().getNombre() : "");
+        model.addAttribute("empresaAlumno",
+                alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : "Todavía no tenés una empresa asignada");
 
         Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
         DateTimeFormatter formatoLargo = new DateTimeFormatterBuilder()
@@ -105,30 +132,81 @@ public class ImprimirController {
         buffer.writeTo(response.getOutputStream());
     }
 
-    // supervisor y empresa son obligatorios en el formulario (ver
-    // documentos-antes-de-empezar.html); area es el único opcional. Sin
-    // required=false, Spring devuelve 400 si faltan -- ya cubierto por el
-    // required del HTML y por el botón deshabilitado hasta llenarlos.
+    // supervisor, area y padreEncargado vienen del formulario (ver
+    // documentos-antes-de-empezar.html); area es el único opcional. empresa NO
+    // se recibe del formulario -- ese campo está bloqueado ahí porque es de la
+    // base, así que se resuelve acá con el mismo criterio que el modelo de la
+    // página, no con lo que mande el cliente en ese campo de solo lectura.
     @GetMapping("/alumno/imprimir/Contrato.pdf")
     public void generarPdfContrato(@RequestParam String supervisor,
-                                    @RequestParam String empresa,
                                     @RequestParam(required = false) String area,
+                                    @RequestParam String padreEncargado,
                                     Authentication authentication, HttpServletResponse response) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        String empresa = alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : null;
 
-        byte[] pdf = formularioPdfService.generarContrato(alumno, supervisor.trim(), empresa.trim(),
-                area != null ? area.trim() : null);
+        byte[] pdf = formularioPdfService.generarContrato(alumno, supervisor.trim(), empresa,
+                area != null ? area.trim() : null, padreEncargado.trim());
 
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
         response.getOutputStream().write(pdf);
     }
 
-    @GetMapping("/alumno/imprimir/Autorizacion.pdf")
-    public void generarPdfAutorizacion(Authentication authentication, HttpServletResponse response) throws IOException {
+    // Antes era un link fijo (GET, sin parámetros); ahora es un formulario con
+    // dos campos que el alumno tiene que llenar Y que tienen que coincidir con
+    // el Padre_Tutor que ya está cargado en la base (ver nombreCoincide/
+    // ciCoincide), más dos adjuntos opcionales que se agregan como páginas
+    // nuevas al final del PDF. Un archivo implica multipart/form-data, que un
+    // <form method="get"> no puede mandar (el navegador solo manda el nombre
+    // del archivo, no su contenido), así que pasa a POST.
+    @PostMapping("/alumno/imprimir/Autorizacion.pdf")
+    public void generarPdfAutorizacion(@RequestParam String padreNombre,
+                                        @RequestParam String padreCi,
+                                        @RequestParam(required = false) MultipartFile cedulaAlumno,
+                                        @RequestParam(required = false) MultipartFile cedulaPadre,
+                                        Authentication authentication, HttpServletResponse response,
+                                        RedirectAttributes redirectAttributes) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        PadreTutor padreTutor = alumno.getPadreTutor();
+
+        if (padreTutor == null) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Todavía no hay un padre, madre o tutor registrado para vos. Consultá con la coordinación.");
+            response.sendRedirect("/alumno/documentos/antes-de-empezar");
+            return;
+        }
+
+        if (!nombreCoincide(padreNombre, padreTutor) || !ciCoincide(padreCi, padreTutor)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "El nombre y apellido o la cédula del padre, madre o tutor no coinciden con lo que "
+                            + "tenemos registrado. Revisalos e intentá de nuevo.");
+            response.sendRedirect("/alumno/documentos/antes-de-empezar");
+            return;
+        }
+
+        List<MultipartFile> adjuntos = new ArrayList<>();
+        for (MultipartFile adjunto : Arrays.asList(cedulaAlumno, cedulaPadre)) {
+            if (adjunto == null || adjunto.isEmpty()) {
+                continue;
+            }
+            if (adjunto.getSize() > tamanioMaximo.toBytes()) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Una de las cédulas adjuntas supera el tamaño máximo permitido ("
+                                + tamanioMaximo.toMegabytes() + " MB).");
+                response.sendRedirect("/alumno/documentos/antes-de-empezar");
+                return;
+            }
+            if (!validacionDocumentoService.validarPdfIntegridad(adjunto)) {
+                redirectAttributes.addFlashAttribute("error", "Una de las cédulas adjuntas no es un PDF válido.");
+                response.sendRedirect("/alumno/documentos/antes-de-empezar");
+                return;
+            }
+            adjuntos.add(adjunto);
+        }
 
         byte[] pdf = formularioPdfService.generarAutorizacion(alumno);
+        pdf = agregarPaginasAdjuntas(pdf, adjuntos);
 
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "inline; filename=Autorizacion_alumno.pdf");
@@ -228,5 +306,63 @@ public class ImprimirController {
 
         return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
             .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
+    }
+
+    // Compara por conjunto de palabras y no como texto exacto: "Juan Pérez" y
+    // "Pérez Juan" son la misma persona, y un doble espacio o una mayúscula de
+    // más no deberían bloquear a nadie. Sí hace falta que sean, palabra por
+    // palabra, las mismas -- omitir un nombre o escribir uno de más no coincide.
+    private boolean nombreCoincide(String nombreIngresado, PadreTutor padreTutor) {
+        Set<String> ingresado = palabrasNormalizadas(nombreIngresado);
+        Set<String> base = palabrasNormalizadas(padreTutor.getNombres() + " " + padreTutor.getApellidos());
+        return !ingresado.isEmpty() && ingresado.equals(base);
+    }
+
+    // Se sacan puntos y espacios antes de comparar: "1.234.567" y "1234567" son
+    // la misma cédula escrita distinto, no deberían contar como que no coincide.
+    private boolean ciCoincide(String ciIngresado, PadreTutor padreTutor) {
+        String limpio1 = ciIngresado == null ? "" : ciIngresado.replaceAll("[^0-9A-Za-z]", "");
+        String limpio2 = padreTutor.getCi() == null ? "" : padreTutor.getCi().replaceAll("[^0-9A-Za-z]", "");
+        return !limpio1.isEmpty() && limpio1.equalsIgnoreCase(limpio2);
+    }
+
+    private Set<String> palabrasNormalizadas(String texto) {
+        if (texto == null) {
+            return Set.of();
+        }
+        // NFD + sacar los caracteres combinantes (\p{M}) es como se sacan los
+        // acentos sin mapear letra por letra: "María" y "Maria" quedan iguales.
+        String normalizado = Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase()
+                .trim();
+        if (normalizado.isEmpty()) {
+            return Set.of();
+        }
+        return new LinkedHashSet<>(Arrays.asList(normalizado.split("\\s+")));
+    }
+
+    // Los adjuntos ya se validaron como PDF antes de llegar acá. importPage (y
+    // no addPage con la página del otro documento) porque una PDPage pertenece
+    // a los recursos internos de SU documento; importPage es lo que copia esos
+    // recursos al documento de destino en vez de dejar una referencia rota.
+    private byte[] agregarPaginasAdjuntas(byte[] pdfBase, List<MultipartFile> adjuntos) throws IOException {
+        if (adjuntos.isEmpty()) {
+            return pdfBase;
+        }
+
+        try (PDDocument documentoFinal = PDDocument.load(pdfBase)) {
+            for (MultipartFile adjunto : adjuntos) {
+                try (PDDocument documentoAdjunto = PDDocument.load(adjunto.getInputStream())) {
+                    for (PDPage pagina : documentoAdjunto.getPages()) {
+                        documentoFinal.importPage(pagina);
+                    }
+                }
+            }
+
+            ByteArrayOutputStream salida = new ByteArrayOutputStream();
+            documentoFinal.save(salida);
+            return salida.toByteArray();
+        }
     }
 }

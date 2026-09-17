@@ -36,6 +36,10 @@
         <p class="subtitulo-pagina">Cada documento se genera con tus datos ya cargados. También podés bajarlo en
             blanco para completarlo a mano.</p>
 
+        <div th:if="${error}" class="mensaje-error">
+            <p th:text="${error}"></p>
+        </div>
+
         <section class="panel impr-pliego" aria-labelledby="impr-antes">
             <div class="impr-momento">
                 <h3 class="impr-momento-titulo" id="impr-antes">Antes de empezar</h3>
@@ -81,16 +85,20 @@
                                 <input type="text" th:value="${fechaHoy}" readonly>
                             </label>
                             <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Empresa</span>
+                                <input type="text" th:value="${empresaAlumno}" readonly>
+                            </label>
+                            <label class="pl-campo">
                                 <span class="pl-campo-etiqueta">Supervisor de la Empresa</span>
                                 <input type="text" name="supervisor" maxlength="100" required>
                             </label>
                             <label class="pl-campo">
-                                <span class="pl-campo-etiqueta">Empresa</span>
-                                <input type="text" name="empresa" maxlength="100" required>
+                                <span class="pl-campo-etiqueta">Área de Trabajo</span>
+                                <input type="text" name="area" maxlength="40">
                             </label>
                             <label class="pl-campo">
-                                <span class="pl-campo-etiqueta">Área de Trabajo</span>
-                                <input type="text" name="area" maxlength="100">
+                                <span class="pl-campo-etiqueta">Padre/Encargado</span>
+                                <input type="text" name="padreEncargado" maxlength="45" required>
                             </label>
                         </div>
 
@@ -104,34 +112,99 @@
                     </form>
                 </li>
 
-                <li class="impr-doc">
-                    <div class="impr-doc-hoja">
-                        <span class="impr-hoja" aria-hidden="true">
-                            <span class="impr-hoja-cara">
-                                <span class="impr-hoja-banda"></span>
-                                <span class="impr-hoja-renglones"></span>
+                <li class="impr-doc impr-doc--formulario">
+                    <div class="impr-doc-cabecera">
+                        <div class="impr-doc-hoja">
+                            <span class="impr-hoja" aria-hidden="true">
+                                <span class="impr-hoja-cara">
+                                    <span class="impr-hoja-banda"></span>
+                                    <span class="impr-hoja-renglones"></span>
+                                </span>
                             </span>
-                        </span>
-                        <span class="impr-hoja-cuenta">1 hoja</span>
+                            <span class="impr-hoja-cuenta">1 hoja</span>
+                        </div>
+                        <div class="impr-doc-texto">
+                            <h4 class="impr-doc-titulo">Autorización del padre, madre o tutor</h4>
+                            <p class="impr-doc-desc">Confirmá los datos de tu padre, madre o tutor. Tienen que
+                                coincidir con lo que ya tenemos registrado.</p>
+                        </div>
                     </div>
-                    <div class="impr-doc-texto">
-                        <h4 class="impr-doc-titulo">Autorización del padre, madre o tutor</h4>
-                        <p class="impr-doc-desc">Lleva tus datos y los de tu tutor, y viene por duplicado en la
-                            misma hoja.</p>
-                    </div>
-                    <div class="impr-doc-acciones">
-                        <a class="btn btn-primary" th:href="@{/alumno/imprimir/Autorizacion.pdf}"
-                           target="_blank" rel="noopener"
-                           aria-label="Autorización del padre, madre o tutor con mis datos">Con mis datos</a>
-                        <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Autorizacion_Vacio.pdf}"
-                           target="_blank" rel="noopener"
-                           aria-label="Autorización del padre, madre o tutor en blanco">En blanco</a>
-                    </div>
+
+                    <!-- POST y no GET: hay un archivo de por medio (las cedulas), y un
+                         <form method="get"> con <input type="file"> solo manda el nombre
+                         del archivo, no su contenido. target="_blank" sigue abriendo el
+                         resultado en una pestaña aparte. -->
+                    <form class="impr-doc-formulario" method="post" enctype="multipart/form-data"
+                          th:action="@{/alumno/imprimir/Autorizacion.pdf}" target="_blank" id="form-autorizacion">
+                        <div class="impr-doc-campos">
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Nombres y apellidos completos</span>
+                                <input type="text" th:value="${nombreCompletoAlumno}" readonly>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Cédula de identidad</span>
+                                <input type="text" th:value="${ciAlumno}" readonly>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Especialidad</span>
+                                <input type="text" th:value="${especialidadAlumno}" readonly>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Empresa</span>
+                                <input type="text" th:value="${empresaAlumno}" readonly>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Nombre y apellido del Padre/Encargado</span>
+                                <input type="text" name="padreNombre" maxlength="100" required>
+                            </label>
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Cédula de identidad del Padre/Encargado</span>
+                                <input type="text" name="padreCi" maxlength="25" required>
+                            </label>
+                        </div>
+
+                        <p class="campo-ayuda">
+                            Opcional: adjuntá las fotocopias de las cédulas (tuya y de tu Padre/Encargado) en PDF.
+                            Podés subir un solo PDF con las dos, o uno para cada una. Se agregan como páginas
+                            nuevas al final del documento.
+                        </p>
+
+                        <div class="impr-doc-campos">
+                            <div class="pl-campo">
+                                <span class="pl-campo-etiqueta">Fotocopia de tu cédula</span>
+                                <label for="cedula-alumno-input" class="dropzone" id="dropzone-cedula-alumno">
+                                    <span class="dropzone-titulo" id="dropzone-titulo-cedula-alumno">Hacé click o
+                                        arrastrá el PDF acá</span>
+                                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
+                                </label>
+                                <input type="file" id="cedula-alumno-input" name="cedulaAlumno"
+                                       accept="application/pdf" class="dropzone-input">
+                            </div>
+                            <div class="pl-campo">
+                                <span class="pl-campo-etiqueta">Fotocopia de la cédula del Padre/Encargado</span>
+                                <label for="cedula-padre-input" class="dropzone" id="dropzone-cedula-padre">
+                                    <span class="dropzone-titulo" id="dropzone-titulo-cedula-padre">Hacé click o
+                                        arrastrá el PDF acá</span>
+                                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
+                                </label>
+                                <input type="file" id="cedula-padre-input" name="cedulaPadre"
+                                       accept="application/pdf" class="dropzone-input">
+                            </div>
+                        </div>
+
+                        <div class="impr-doc-acciones">
+                            <button type="submit" class="btn btn-primary" id="btn-generar-autorizacion" disabled
+                                    aria-label="Generar el PDF de la autorización con estos datos">Generar PDF</button>
+                            <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Autorizacion_Vacio.pdf}"
+                               target="_blank" rel="noopener"
+                               aria-label="Autorización del padre, madre o tutor en blanco">En blanco</a>
+                        </div>
+                    </form>
                 </li>
             </ul>
         </section>
     </main>
 
-    <script th:src="@{/js/documentosContrato.js}"></script>
+    <script th:src="@{/js/documentosAntesDeEmpezar.js}"></script>
 </body>
 </html>
