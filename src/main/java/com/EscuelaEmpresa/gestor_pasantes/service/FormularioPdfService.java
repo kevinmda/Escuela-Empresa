@@ -185,15 +185,15 @@ public class FormularioPdfService {
         PDType1Font fuente = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
 
         escribirTexto(contentStream, fuente, 10, alumno.getNombres() + " " + alumno.getApellidos(), 210, 756);
-        escribirTexto(contentStream, fuente, 10, alumno.getCi(), 210, 716);
+        escribirTexto(contentStream, fuente, 10, vacioSiNulo(alumno.getCi()), 210, 716);
         escribirTexto(contentStream, fuente, 10, String.valueOf(alumno.getEdad()), 399, 716);
 
         escribirTexto(contentStream, fuente, 10, alumno.getEspecialidad().getNombre(), 210, 677);
-        escribirTexto(contentStream, fuente, 10, alumno.getCurso(), 402, 677);
-        escribirTexto(contentStream, fuente, 10, alumno.getSeccion(), 488, 677);
+        escribirTexto(contentStream, fuente, 10, vacioSiNulo(alumno.getCurso()), 402, 677);
+        escribirTexto(contentStream, fuente, 10, vacioSiNulo(alumno.getSeccion()), 488, 677);
 
-        escribirTexto(contentStream, fuente, 10, alumno.getEmail(), 210, 599);
-        escribirTexto(contentStream, fuente, 10, alumno.getTelefono(), 451, 599);
+        escribirTexto(contentStream, fuente, 10, vacioSiNulo(alumno.getEmail()), 210, 599);
+        escribirTexto(contentStream, fuente, 10, vacioSiNulo(alumno.getTelefono()), 451, 599);
 
         LocalDate fechaInicioPasantia = todasLasPlanillas.stream()
                 .map(PlanillaSemanal::getFechaDesde)
@@ -291,5 +291,13 @@ public class FormularioPdfService {
         if (!lineaActual.isEmpty()) {
             escribirTexto(contentStream, fuente, tamanioFuente, lineaActual.toString(), x, y);
         }
+    }
+
+    // PDFBox tira una excepción si se le pide escribir null como texto (showText no
+    // lo acepta). Los campos del alumno pueden venir vacíos en la base -- curso,
+    // sección, email y teléfono no son obligatorios al cargarlo -- y sin esto,
+    // justamente esos casos rompían la generación entera del documento.
+    private String vacioSiNulo(String texto) {
+        return texto != null ? texto : "";
     }
 }
