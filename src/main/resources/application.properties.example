@@ -3,9 +3,13 @@
 #
 # Variables de entorno que espera:
 #   MAIL_USERNAME / MAIL_PASSWORD  cuenta de Gmail que manda los codigos
-#   REMEMBER_ME_KEY                cualquier texto largo y fijo. Si no se define,
-#                                  se genera uno al azar en cada arranque y todos
-#                                  los "Recordarme" se caen con cada reinicio.
+#   REMEMBER_ME_KEY                cualquier texto largo y fijo. Recomendado en
+#                                  produccion. Si no se define, la clave se genera
+#                                  una vez y se guarda en ./uploads/remember-me.key
+#                                  (o en app.security.remember-me-archivo, si se
+#                                  fija otra ruta) para sobrevivir a los reinicios;
+#                                  solo se pierde si ese archivo se borra o el disco
+#                                  no admite escritura.
 #   COOKIES_SEGURAS                true en produccion (con HTTPS), false en local
 #   JWT_SECRET                     clave para firmar los tokens de la API movil
 #                                  (32+ caracteres). Si no se define, se genera una
@@ -69,8 +73,10 @@ app.url.base=http://localhost:8080
 app.jwt.expiration-ms=86400000
 
 # --- Producción ---
-# Clave de las cookies "recordarme". Si no se fija, se genera una nueva en cada
-# arranque y todos los usuarios tienen que volver a loguearse tras cada reinicio.
+# Clave de las cookies "recordarme". Si no se fija, ahora se genera una sola vez
+# y se guarda en ./uploads/remember-me.key para sobrevivir a los reinicios; fijarla
+# acá igual sigue siendo lo recomendado (evita depender de que ese archivo no se
+# pierda o de que el disco admita escritura ahí).
 # REMEMBER_ME_KEY=una-cadena-larga-y-secreta
 
 # Redirige todo http a https y hace que las cookies de sesion y "recordarme" viajen

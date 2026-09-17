@@ -96,7 +96,11 @@ public class ImprimirController {
     }
 
     @GetMapping("/alumno/documentos/al-terminar")
-    public String mostrarDocumentosAlTerminar() {
+    public String mostrarDocumentosAlTerminar(Model model, Authentication authentication) {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        boolean tienePlanillas =
+                !planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl()).isEmpty();
+        model.addAttribute("tienePlanillas", tienePlanillas);
         return "alumno/documentos-al-terminar";
     }
 

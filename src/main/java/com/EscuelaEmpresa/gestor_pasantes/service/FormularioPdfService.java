@@ -197,13 +197,17 @@ public class FormularioPdfService {
 
         LocalDate fechaInicioPasantia = todasLasPlanillas.stream()
                 .map(PlanillaSemanal::getFechaDesde)
+                .filter(java.util.Objects::nonNull)
                 .min(LocalDate::compareTo)
-                .orElseThrow();
+                .orElseThrow(() -> new ReglaNegocioException(
+                        "Ninguna de tus planillas tiene fecha de inicio cargada, no se puede generar el documento"));
 
         LocalDate fechaFinPasantia = todasLasPlanillas.stream()
                 .map(PlanillaSemanal::getFechaHasta)
+                .filter(java.util.Objects::nonNull)
                 .max(LocalDate::compareTo)
-                .orElseThrow();
+                .orElseThrow(() -> new ReglaNegocioException(
+                        "Ninguna de tus planillas tiene fecha de fin cargada, no se puede generar el documento"));
 
         Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
 

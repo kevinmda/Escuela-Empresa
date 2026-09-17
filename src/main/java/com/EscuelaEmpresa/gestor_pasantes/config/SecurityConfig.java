@@ -1,5 +1,12 @@
 package com.EscuelaEmpresa.gestor_pasantes.config;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +23,8 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 @EnableWebSecurity //esto activa el modulo de seguridad de Spring (Spring Security) pero aclarandole que vas a personalizar la seguridad por tu cuenta
 public class SecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
     private final LoginFailureHandler loginFailureHandler; // detecta cuenta inactiva/bloqueada y actua en consecuencia
     private final LoginSuccessHandler loginSuccessHandler; // resetea contadores de intentos al loguear con exito
     private final String rememberMeKey;
@@ -25,6 +34,11 @@ public class SecurityConfig {
     public SecurityConfig(LoginFailureHandler loginFailureHandler,
                           LoginSuccessHandler loginSuccessHandler,
                           @Value("${REMEMBER_ME_KEY:}") String rememberMeKey,
+                          // Mismo volumen persistente que ya usa DocumentoAlmacenamientoService
+                          // (app.uploads.directorio) para los PDFs subidos: sobrevive a un
+                          // reinicio del server igual que esos archivos.
+                          @Value("${app.security.remember-me-archivo:./uploads/remember-me.key}")
+                          String rememberMeArchivo,
                           @Value("${server.servlet.session.cookie.secure:false}") boolean cookiesSeguras,
                           // apagado por defecto: en local (http://localhost) forzar https
                           // dejaria a cualquiera afuera. Se prende en produccion, ver
@@ -32,13 +46,51 @@ public class SecurityConfig {
                           @Value("${app.security.forzar-https:false}") boolean forzarHttps) {
         this.loginFailureHandler = loginFailureHandler;
         this.loginSuccessHandler = loginSuccessHandler;
+        // Antes, sin REMEMBER_ME_KEY, se generaba una clave al azar en cada arranque:
+        // como esa clave es la que firma la cookie de "Recordarme", cualquier cookie
+        // emitida antes de un reinicio dejaba de validar apenas el server volvia a
+        // levantar, y a los alumnos les tocaba loguearse de nuevo sin razon aparente.
+        // obtenerOCrearClavePersistida guarda la clave generada en disco la primera
+        // vez, y a partir de ahi la reutiliza en cada arranque siguiente. Definir
+        // REMEMBER_ME_KEY en producción sigue siendo lo recomendado (ver
+        // application.properties.example); esto es la red de seguridad para cuando
+        // no se hizo.
         this.rememberMeKey = rememberMeKey.isBlank()
-                ? java.util.UUID.randomUUID().toString()
+                ? obtenerOCrearClavePersistida(rememberMeArchivo)
                 : rememberMeKey;
         // La misma decision que toma la cookie de sesion en application.properties:
         // asi las dos cookies no pueden quedar con criterios distintos.
         this.cookiesSeguras = cookiesSeguras;
         this.forzarHttps = forzarHttps;
+    }
+
+    private static String obtenerOCrearClavePersistida(String rutaArchivo) {
+        Path archivo = Paths.get(rutaArchivo);
+        try {
+            if (Files.exists(archivo)) {
+                String clave = Files.readString(archivo).trim();
+                if (!clave.isBlank()) {
+                    return clave;
+                }
+            }
+
+            String claveNueva = java.util.UUID.randomUUID().toString();
+            if (archivo.getParent() != null) {
+                Files.createDirectories(archivo.getParent());
+            }
+            Files.writeString(archivo, claveNueva);
+            return claveNueva;
+        } catch (IOException e) {
+            // Si ni siquiera se puede leer/escribir el archivo (permisos, disco de
+            // solo lectura), se cae al comportamiento anterior en vez de no arrancar.
+            // Se loguea porque en ese caso "Recordarme" va a seguir sin funcionar
+            // entre reinicios, y conviene que quede visible por qué.
+            log.warn("No se pudo leer ni crear {} para la clave de remember-me; se genera una "
+                    + "al azar solo para este arranque (Recordarme no sobrevivirá un reinicio "
+                    + "hasta que se resuelva el problema de disco/permisos, o se defina "
+                    + "REMEMBER_ME_KEY)", rutaArchivo, e);
+            return java.util.UUID.randomUUID().toString();
+        }
     }
 
     // el PasswordEncoder ahora vive en PasswordEncoderConfig.java, para evitar dependencia circular

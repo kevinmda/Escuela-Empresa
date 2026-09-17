@@ -63,9 +63,10 @@
                         <p class="impr-doc-requisito">Necesita al menos una planilla semanal cargada.</p>
                     </div>
                     <div class="impr-doc-acciones">
-                        <a class="btn btn-primary" th:href="@{/alumno/imprimir/Ficha_Final_Pel.pdf}"
+                        <a th:if="${tienePlanillas}" class="btn btn-primary" th:href="@{/alumno/imprimir/Ficha_Final_Pel.pdf}"
                            target="_blank" rel="noopener"
                            aria-label="Ficha final con mis datos">Con mis datos</a>
+                        <button th:unless="${tienePlanillas}" type="button" class="btn btn-primary" disabled>Con mis datos</button>
                         <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Ficha_Final_Pel_Vacio.pdf}"
                            target="_blank" rel="noopener"
                            aria-label="Ficha final en blanco">En blanco</a>
