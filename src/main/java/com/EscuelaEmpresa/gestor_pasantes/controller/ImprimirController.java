@@ -162,28 +162,26 @@ public class ImprimirController {
     // <form method="get"> no puede mandar (el navegador solo manda el nombre
     // del archivo, no su contenido), así que pasa a POST.
     @PostMapping("/alumno/imprimir/Autorizacion.pdf")
-    public void generarPdfAutorizacion(@RequestParam String padreNombre,
-                                        @RequestParam String padreCi,
-                                        @RequestParam(required = false) MultipartFile cedulaAlumno,
-                                        @RequestParam(required = false) MultipartFile cedulaPadre,
-                                        Authentication authentication, HttpServletResponse response,
-                                        RedirectAttributes redirectAttributes) throws IOException {
+    public String generarPdfAutorizacion(@RequestParam String padreNombre,
+                                          @RequestParam String padreCi,
+                                          @RequestParam(required = false) MultipartFile cedulaAlumno,
+                                          @RequestParam(required = false) MultipartFile cedulaPadre,
+                                          Authentication authentication, HttpServletResponse response,
+                                          RedirectAttributes redirectAttributes) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
         PadreTutor padreTutor = alumno.getPadreTutor();
 
         if (padreTutor == null) {
             redirectAttributes.addFlashAttribute("error",
                     "Todavía no hay un padre, madre o tutor registrado para vos. Consultá con la coordinación.");
-            response.sendRedirect("/alumno/documentos/antes-de-empezar");
-            return;
+            return "redirect:/alumno/documentos/antes-de-empezar";
         }
 
         if (!nombreCoincide(padreNombre, padreTutor) || !ciCoincide(padreCi, padreTutor)) {
             redirectAttributes.addFlashAttribute("error",
                     "El nombre y apellido o la cédula del padre, madre o tutor no coinciden con lo que "
                             + "tenemos registrado. Revisalos e intentá de nuevo.");
-            response.sendRedirect("/alumno/documentos/antes-de-empezar");
-            return;
+            return "redirect:/alumno/documentos/antes-de-empezar";
         }
 
         List<MultipartFile> adjuntos = new ArrayList<>();
@@ -195,13 +193,11 @@ public class ImprimirController {
                 redirectAttributes.addFlashAttribute("error",
                         "Una de las cédulas adjuntas supera el tamaño máximo permitido ("
                                 + tamanioMaximo.toMegabytes() + " MB).");
-                response.sendRedirect("/alumno/documentos/antes-de-empezar");
-                return;
+                return "redirect:/alumno/documentos/antes-de-empezar";
             }
             if (!validacionDocumentoService.validarPdfIntegridad(adjunto)) {
                 redirectAttributes.addFlashAttribute("error", "Una de las cédulas adjuntas no es un PDF válido.");
-                response.sendRedirect("/alumno/documentos/antes-de-empezar");
-                return;
+                return "redirect:/alumno/documentos/antes-de-empezar";
             }
             adjuntos.add(adjunto);
         }
@@ -212,6 +208,7 @@ public class ImprimirController {
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "inline; filename=Autorizacion_alumno.pdf");
         response.getOutputStream().write(pdf);
+        return null;
     }
 
     @GetMapping("/alumno/imprimir/Ficha_Final_Pel.pdf")

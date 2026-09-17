@@ -216,7 +216,7 @@ public class PlanillaSemanalController {
     }
 
     @GetMapping("/alumno/planilla/Informe_Pasantia.docx")
-    public void generarInformePasantia(Authentication authentication, HttpServletResponse response,
+    public String generarInformePasantia(Authentication authentication, HttpServletResponse response,
                                         RedirectAttributes redirectAttributes) throws IOException {
 
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
@@ -229,22 +229,19 @@ public class PlanillaSemanalController {
         if (planillas.size() < 6) {
             redirectAttributes.addFlashAttribute("error",
                     "Todavía no completaste las 6 semanas de planilla, no se puede generar el informe.");
-            response.sendRedirect("/alumno/documentos/informe");
-            return;
+            return "redirect:/alumno/documentos/informe";
         }
 
         if (alumno.getSupervisor() == null) {
             redirectAttributes.addFlashAttribute("error",
                     "Todavía no tenés un supervisor/docente asignado, no se puede generar el informe.");
-            response.sendRedirect("/alumno/documentos/informe");
-            return;
+            return "redirect:/alumno/documentos/informe";
         }
 
         if (alumno.getEmpresa() == null) {
             redirectAttributes.addFlashAttribute("error",
                     "Todavía no tenés una empresa asignada, no se puede generar el informe.");
-            response.sendRedirect("/alumno/documentos/informe");
-            return;
+            return "redirect:/alumno/documentos/informe";
         }
 
         XWPFDocument documento = informePasantiaService.generarInforme(alumno, planillas);
@@ -259,6 +256,7 @@ public class PlanillaSemanalController {
                         "Informe_Pasantia.docx"));
         response.getOutputStream().write(salida.toByteArray());
         response.getOutputStream().flush();
+        return null;
     }
 
     // Estado que necesita el riel de las seis semanas. Se llama tanto desde el
