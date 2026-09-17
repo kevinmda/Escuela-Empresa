@@ -92,7 +92,7 @@ public class ImprimirController {
         model.addAttribute("especialidadAlumno",
                 alumno.getEspecialidad() != null ? alumno.getEspecialidad().getNombre() : "");
         model.addAttribute("empresaAlumno",
-                alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : "Todavía no tenés una empresa asignada");
+                alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : "Todavía sin asignar");
 
         Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
         DateTimeFormatter formatoLargo = new DateTimeFormatterBuilder()

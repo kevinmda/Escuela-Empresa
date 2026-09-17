@@ -119,7 +119,7 @@
         <section class="ahub-asignaciones" aria-label="Asignaciones de tu pasantía">
             <div class="ahub-asignacion"
                  th:classappend="${alumno.supervisor == null} ? ' ahub-asignacion--vacia'">
-                <p class="ahub-asignacion-rol">Supervisor</p>
+                <p class="ahub-asignacion-rol">Supervisor/Docente</p>
                 <p class="ahub-asignacion-valor"
                    th:text="${alumno.supervisor != null
                              ? alumno.supervisor.nombres + ' ' + alumno.supervisor.apellidos
