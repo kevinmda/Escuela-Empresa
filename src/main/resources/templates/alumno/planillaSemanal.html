@@ -131,6 +131,7 @@
              le da al campo de descripcion, que es el que mas se escribe, todo el
              ancho que necesita. -->
         <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post" id="formPlanilla">
+            <input type="hidden" id="indice-fecha-ancla" th:field="*{indiceFechaAncla}">
             <fieldset id="fieldsetPlanilla" th:disabled="${!habilitado}" class="fieldset-planilla">
 
                 <section class="panel pl-bloque">

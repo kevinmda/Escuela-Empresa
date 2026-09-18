@@ -60,10 +60,26 @@ function limpiarFormulario() {
 // alumno borra la fecha ancla.
 function liberarFechas() {
     indiceAnclaFecha = null;
+    guardarIndiceAnclaEnCampoOculto();
     document.querySelectorAll('.dia-bloque input[type="date"]').forEach(input => {
         input.value = '';
         input.readOnly = false;
     });
+}
+
+// El campo oculto "indiceFechaAncla" viaja con el formulario. Sirve para el
+// caso en que el servidor rechaza el envío (por ejemplo, falta el campo
+// Supervisor) y vuelve a mostrar la misma página con los seis días ya
+// completos (la ancla que el alumno cargó, más las cinco que se calcularon):
+// sin este campo, al recargar no hay forma de saber cuál de los seis fue la
+// que el alumno realmente tocó -- se veian todos con un valor por igual, y
+// "el primero que tenga algo" siempre termina siendo el Lunes, sea o no el
+// que el alumno eligio.
+function guardarIndiceAnclaEnCampoOculto() {
+    const campoOculto = document.getElementById('indice-fecha-ancla');
+    if (campoOculto) {
+        campoOculto.value = indiceAnclaFecha === null ? '' : String(indiceAnclaFecha);
+    }
 }
 
 // Recalcula las otras cinco fechas a partir de la fecha ancla y las deja
@@ -72,6 +88,8 @@ function recalcularDesdeAncla() {
     const inputsFecha = document.querySelectorAll('.dia-bloque input[type="date"]');
     const inputAncla = inputsFecha[indiceAnclaFecha];
     if (!inputAncla || !inputAncla.value) return;
+
+    guardarIndiceAnclaEnCampoOculto();
 
     const fechaAncla = new Date(inputAncla.value + 'T00:00:00');
 
@@ -87,20 +105,31 @@ function recalcularDesdeAncla() {
     });
 }
 
-// Si la planilla ya viene con fechas cargadas (al editar una que se guardo con
-// el esquema viejo, con varias fechas tocadas a mano), la del primer campo con
-// valor pasa a ser la ancla y el resto se recalcula y se bloquea a partir de
-// ella, aunque no coincidan con lo que ya estaba guardado ahi.
+// Si la planilla ya viene con fechas cargadas, primero se confía en el campo
+// oculto "indiceFechaAncla" (ver guardarIndiceAnclaEnCampoOculto) -- es lo que
+// distingue "el alumno eligió el Martes" de "el Lunes es el primero que tiene
+// algo". Ese campo solo existe si esta página ya pasó por el JS antes (un
+// reintento después de un error); si no hay nada ahí (primera carga, o una
+// planilla vieja para editar), se cae al criterio anterior: el primer campo
+// con valor.
 function inicializarFechas() {
     const inputsFecha = document.querySelectorAll('.dia-bloque input[type="date"]');
     if (inputsFecha.length === 0) return;
 
     indiceAnclaFecha = null;
-    inputsFecha.forEach((input, indice) => {
-        if (input.value && indiceAnclaFecha === null) {
-            indiceAnclaFecha = indice;
-        }
-    });
+
+    const campoOculto = document.getElementById('indice-fecha-ancla');
+    const indiceGuardado = campoOculto && campoOculto.value !== '' ? parseInt(campoOculto.value, 10) : null;
+
+    if (indiceGuardado !== null && inputsFecha[indiceGuardado] && inputsFecha[indiceGuardado].value) {
+        indiceAnclaFecha = indiceGuardado;
+    } else {
+        inputsFecha.forEach((input, indice) => {
+            if (input.value && indiceAnclaFecha === null) {
+                indiceAnclaFecha = indice;
+            }
+        });
+    }
 
     if (indiceAnclaFecha !== null) {
         recalcularDesdeAncla();
