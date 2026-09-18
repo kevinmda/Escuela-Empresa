@@ -264,6 +264,37 @@
         });
     }
 
+    // Tercera capa del crédito de autoría (las otras dos: el <footer> de
+    // fragments/chrome.html y fragments/auth.html, y el respaldo en CSS de
+    // styles.css que se activa con :has() cuando ese <footer> no está). Esta
+    // corre en caliente: si alguien lo borra del DOM ya cargado -a mano desde
+    // devtools, o un script que limpia el <body>- el MutationObserver lo nota
+    // y lo vuelve a poner. Las tres capas son independientes a propósito: hay
+    // que tocar plantilla, CSS y este archivo para que el crédito desaparezca
+    // de verdad, no solo uno de los tres.
+    function crearCreditoDisenio() {
+        const footer = document.createElement('footer');
+        footer.className = 'credito-disenio';
+        footer.setAttribute('aria-label', 'Créditos de diseño y desarrollo');
+        footer.innerHTML =
+            '<span>Diseñado por:</span> ' +
+            '<a href="#" target="_blank" rel="noopener noreferrer">[Nombre 1]</a> ' +
+            '<span>y por:</span> ' +
+            '<a href="#" target="_blank" rel="noopener noreferrer">[Nombre 2]</a>';
+        return footer;
+    }
+
+    function asegurarCreditoDisenio() {
+        if (!document.body || document.querySelector('.credito-disenio')) return;
+        document.body.appendChild(crearCreditoDisenio());
+    }
+
+    function vigilarCreditoDisenio() {
+        asegurarCreditoDisenio();
+        new MutationObserver(asegurarCreditoDisenio)
+            .observe(document.body, { childList: true, subtree: true });
+    }
+
     window.addEventListener('pageshow', restaurarBotones);
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -272,6 +303,7 @@
         inicializarTogglesPassword();
         prepararMenuCuenta();
         prepararGiroMarca();
+        vigilarCreditoDisenio();
         actualizarBoton();
         const button = document.getElementById('theme-toggle');
         if (!button) return;

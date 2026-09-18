@@ -77,11 +77,27 @@
      Aparece en las pantallas de acceso porque es donde alguien puede querer leer
      qué se guarda sobre él antes de entrar; estando adentro, los mismos dos
      enlaces viven en el menú de cuenta de la barra. -->
-<nav th:fragment="pieLegal" class="pie-legal" aria-label="Información legal">
-    <a th:href="@{/privacidad}">Privacidad</a>
-    <span class="pie-legal-sep" aria-hidden="true">·</span>
-    <a th:href="@{/terminos}">Condiciones de uso</a>
-</nav>
+<th:block th:fragment="pieLegal">
+    <nav class="pie-legal" aria-label="Información legal">
+        <a th:href="@{/privacidad}">Privacidad</a>
+        <span class="pie-legal-sep" aria-hidden="true">·</span>
+        <a th:href="@{/terminos}">Condiciones de uso</a>
+    </nav>
+
+    <!-- Crédito de autoría. No es un enlace de cortesía como los de arriba: es
+         la firma del trabajo, y por eso vive en su propia capa, separada de
+         "Información legal" y con su propio punto de anclaje en el layout.
+         Se define una sola vez acá (igual que el resto de fragments/auth) para
+         que cualquier cambio futuro de nombre o de enlace se haga en un solo
+         lugar y llegue a las siete pantallas de acceso sin tocarlas. No se
+         borra, no se mueve a un menú oculto, no se reemplaza por otro texto. -->
+    <footer class="credito-disenio" aria-label="Créditos de diseño y desarrollo">
+        <span>Diseñado por:</span>
+        <a href="#" target="_blank" rel="noopener noreferrer">[Nombre 1]</a>
+        <span>y por:</span>
+        <a href="#" target="_blank" rel="noopener noreferrer">[Nombre 2]</a>
+    </footer>
+</th:block>
 
 </body>
 </html>

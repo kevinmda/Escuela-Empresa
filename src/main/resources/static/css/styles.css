@@ -25,6 +25,13 @@
     --danger-soft: #fae7e5;
     --text-on-ink: #ffffff;
 
+    /* Navy fijo del logo, para el wash de body y .auth-split--login: --ink SIRVE
+       para eso en claro (es navy), pero en oscuro se invierte a casi blanco para
+       seguir siendo legible como texto, y ese blanco se colaba en el degradado
+       como una esquina lavada. Una sola declaración, sin par en
+       :root[data-theme="dark"]: el navy del logo no cambia con el tema. */
+    --logo-navy: #16233d;
+
     /* El anillo de foco no puede ser --accent: dorado sobre blanco da ~2.2:1 y el
        mínimo para elementos no textuales es 3:1. Cada modo usa el que contrasta. */
     --focus: #16233d;
@@ -197,15 +204,18 @@ body {
        del degradado en vez de taparlo. Sigue [data-theme] como el resto de la
        app (no está forzado a oscuro, eso es solo cosa del login). Sin parada
        intermedia en --bg puro: los tres colores se funden entre sí en vez de
-       dejar un tramo blanco/crema en el medio. */
+       dejar un tramo blanco/crema en el medio.
+       --logo-navy en vez de --ink: --ink es navy en claro pero se invierte a
+       casi blanco en oscuro (para seguir siendo legible como texto), y ese
+       blanco se colaba como una esquina lavada en el degradado oscuro. */
     background-image:
         linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
         linear-gradient(
             135deg,
-            color-mix(in srgb, var(--ink) 24%, var(--bg)) 0%,
-            color-mix(in srgb, var(--danger) 18%, var(--bg)) 50%,
-            color-mix(in srgb, var(--accent) 28%, var(--bg)) 100%
+            color-mix(in srgb, var(--logo-navy) 32%, var(--bg)) 0%,
+            color-mix(in srgb, var(--danger) 22%, var(--bg)) 50%,
+            color-mix(in srgb, var(--accent) 34%, var(--bg)) 100%
         );
     background-size: 24px 24px, 24px 24px, cover;
     min-height: 100dvh;
@@ -1177,6 +1187,11 @@ main h3 {
     --danger-soft: #4a2927;
     --text-on-ink: #14171c;
     --focus: #e5b04d;
+    /* --field solo se declara en :root, así que ya sale resuelto contra el --bg
+       y el --surface globales (los del tema claro/oscuro guardado del usuario)
+       antes de heredarse acá: sin redeclararlo, los inputs de estas pantallas
+       quedaban con el campo claro aunque el resto ya esté oscuro. */
+    --field: color-mix(in srgb, var(--bg) 55%, var(--surface));
     color-scheme: dark;
     /* body ya trae "color: var(--ink)", pero resuelto con el --ink de afuera
        (el de <html>, que puede seguir en claro): sin repetirlo acá, el texto
@@ -1189,12 +1204,14 @@ main h3 {
        (ilustración) y el texto también, así que el fondo tiene que quedar
        como ambiente, no protagonismo. Sin parada intermedia en --bg puro:
        navy, rojo y dorado se funden entre sí en vez de dejar un tramo
-       blanco/crema en el medio. */
+       blanco/crema en el medio. --logo-navy en vez de --ink: acá --ink ya
+       está invertido a casi blanco (línea de arriba), así que mezclarlo
+       dejaba una esquina lavada en vez de navy. */
     background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--ink) 24%, var(--bg)) 0%,
-        color-mix(in srgb, var(--danger) 18%, var(--bg)) 50%,
-        color-mix(in srgb, var(--accent) 28%, var(--bg)) 100%
+        color-mix(in srgb, var(--logo-navy) 32%, var(--bg)) 0%,
+        color-mix(in srgb, var(--danger) 22%, var(--bg)) 50%,
+        color-mix(in srgb, var(--accent) 34%, var(--bg)) 100%
     );
 }
 
@@ -1707,6 +1724,19 @@ select {
                 background-color 0.15s ease;
 }
 
+/* El autocompletado de Chrome pinta el campo con su propio fondo (blanco/crema),
+   por encima de --field: en las pantallas de login, siempre oscuras, eso deja el
+   campo de email con el aspecto de modo claro. La transición larga es el truco
+   estándar para pisar ese fondo sin usar !important; el color de texto se fija
+   aparte porque -webkit-text-fill-color ignora "color". */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    transition: background-color 600000s 0s, color 600000s 0s;
+    -webkit-text-fill-color: var(--ink);
+    caret-color: var(--ink);
+}
+
 input:focus,
 textarea:focus,
 select:focus {
@@ -1837,6 +1867,31 @@ button[type="submit"]:hover,
         color-mix(in srgb, #ffffff 13%, var(--accent-ink)),
         var(--accent-ink));
     border-color: color-mix(in srgb, #000000 16%, var(--accent-ink));
+}
+
+/* En .auth-split--login, --ink queda invertido (claro) para que el texto se lea
+   sobre el fondo oscuro, pero eso deja al primario con fondo casi blanco: un
+   boton de modo claro flotando en una pantalla oscura. Estas pantallas no tienen
+   toggle, asi que se fuerza el mismo tratamiento oscuro que el resto de la
+   superficie en vez de heredar el --ink invertido. */
+.auth-split--login button[type="submit"],
+.auth-split--login .btn-primary {
+    background-color: var(--surface);
+    background-image: linear-gradient(to bottom,
+        color-mix(in srgb, #ffffff 10%, var(--surface)),
+        var(--surface));
+    color: #eaeef5;
+    border-color: color-mix(in srgb, #000000 25%, var(--surface));
+}
+
+.auth-split--login button[type="submit"]:hover,
+.auth-split--login .btn-primary:hover {
+    background-color: var(--accent);
+    background-image: linear-gradient(to bottom,
+        color-mix(in srgb, #ffffff 13%, var(--accent)),
+        var(--accent));
+    color: #14171c;
+    border-color: color-mix(in srgb, #000000 16%, var(--accent));
 }
 
 /* El secundario deja de ser transparente: apoyado sobre la superficie y con su
@@ -6386,6 +6441,57 @@ input:read-only {
     opacity: 0.5;
 }
 
+/* Firma fija en la esquina opuesta a .pie-legal (que vive abajo a la derecha) y
+   a .barra-cuenta (arriba a la derecha, en las pantallas internas): no compite
+   con ningún otro elemento fijo de la pantalla y está siempre en el mismo
+   lugar, en las catorce plantillas que la incluyen. */
+.credito-disenio {
+    position: fixed;
+    left: 1.25rem;
+    bottom: 1rem;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: var(--ink-soft);
+    pointer-events: none;
+}
+
+.credito-disenio a {
+    color: var(--ink-soft);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0.75rem 0.25rem;
+    margin: -0.75rem 0;
+    pointer-events: auto;
+}
+
+.credito-disenio a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+}
+
+/* Segunda capa, independiente de la plantilla: si el <footer class="credito-
+   disenio"> de fragments/chrome.html o fragments/auth.html se llega a borrar,
+   :has() lo detecta (no hay ningún elemento con esa clase adentro de <body>) y
+   este contenido generado por CSS ocupa su lugar, con el mismo texto. No hace
+   falta HTML para que exista: vive entero en este archivo, así que borrar el
+   crédito de verdad exige editar también esta regla, no solo la plantilla.
+   Repetir el texto acá (en vez de leerlo de una variable) es a propósito: nada
+   en este archivo depende de que el HTML siga existiendo. */
+body:not(:has(.credito-disenio))::after {
+    content: "Diseñado por: [Nombre 1] y por: [Nombre 2]";
+    position: fixed;
+    left: 1.25rem;
+    bottom: 1rem;
+    z-index: 10;
+    font-size: 0.8125rem;
+    color: var(--ink-soft);
+    pointer-events: none;
+}
+
 /* En movil la hoja usa el ancho completo: con 2.5rem de padding a cada lado, en
    360px quedaban 15 caracteres por renglon. */
 @media (max-width: 720px) {
@@ -6408,6 +6514,12 @@ input:read-only {
         position: static;
         justify-content: center;
         margin-top: 1.5rem;
+    }
+
+    .credito-disenio {
+        position: static;
+        justify-content: center;
+        margin-top: 0.5rem;
     }
 }
 
