@@ -55,7 +55,10 @@ public class PlanillaSemanalService {
             validarDia(dias.get(i), diasEsperados[i]);
         }
 
-        // 1. Filtrar solo los días que el alumno realmente cargó (fecha no vacía)
+        // 1. Filtrar los días con fecha. Con el esquema de fecha ancla esto ahora
+        // incluye los seis (las cinco que no son la ancla se autocompletan solas),
+        // así que en la práctica esta lista siempre representa la semana
+        // calendario completa, no solo los días que el alumno trabajó.
         List<DiaForm> diasCargados = form.getDias().stream()
                 .filter(dia -> dia.getFecha() != null)
                 .toList();
@@ -79,7 +82,21 @@ public class PlanillaSemanalService {
 
         validarSuperposicion(fechaDesde, fechaHasta, planillasExistentes);
 
-        BigDecimal totalHoras = sumarHoras(diasCargados);
+        // 3. De esos días con fecha, los que el alumno realmente trabajó son los
+        // que tienen horas cargadas (validarDia ya garantiza que si hay horas,
+        // también hay descripción y fecha). Los demás son fechas que se
+        // autocompletaron solas a partir de la ancla, sin ningún dato real
+        // detrás -- no tiene que crearse un detalle para esos, y no se les
+        // puede pedir normalizarHoras() porque su horas es null.
+        List<DiaForm> diasTrabajados = diasCargados.stream()
+                .filter(dia -> dia.getHoras() != null)
+                .toList();
+
+        if (diasTrabajados.isEmpty()) {
+            throw new ReglaNegocioException("Debe cargar al menos un día trabajado");
+        }
+
+        BigDecimal totalHoras = sumarHoras(diasTrabajados);
 
         //valida el tamano de lo introducido en los campos de texto
         if (form.getSupervisor() == null || form.getSupervisor().trim().isEmpty()) {
@@ -124,9 +141,9 @@ public class PlanillaSemanalService {
 
         planillaSemanalRepository.save(planilla);
 
-        // 4. Armar y guardar cada detalle (los días trabajados)
+        // 4. Armar y guardar cada detalle (los días efectivamente trabajados)
         int contador = 1;
-        for (DiaForm dia : diasCargados) {
+        for (DiaForm dia : diasTrabajados) {
             PlanillaSemanalDetalleId detalleId = new PlanillaSemanalDetalleId(planilla.getIdPs(), contador);
 
             PlanillaSemanalDetalle detalle = new PlanillaSemanalDetalle();
