@@ -336,11 +336,10 @@ public class ImprimirController {
     public void generarPdfAutorizacionVacio(Authentication authentication, HttpServletResponse response) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
-        // 1. Cargar la plantilla PDF -- la misma que usa la versión con datos
-        // (AUTORIZACION_PADRES_PEL.pdf); antes esta apuntaba a
-        // AUTORIZACION_PADRES_PEL_25.pdf, una versión vieja que ya no es la que
-        // está en uso (esa incluso todavía traía el "202…" del año, que se sacó).
-        PDDocument document = plantillaService.cargarPdf("AUTORIZACION_PADRES_PEL.pdf");
+        // 1. Cargar la plantilla PDF -- distinta de la que usa la versión con
+        // datos: esta trae "202…" para completar el año a mano, pensada para
+        // llenarse con lapicera.
+        PDDocument document = plantillaService.cargarPdf("AUTORIZACION_PADRES_PEL_25.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");

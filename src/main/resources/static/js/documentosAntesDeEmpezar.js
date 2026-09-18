@@ -121,8 +121,16 @@
     // simples, sin archivos, y no tienen este problema). En vez de dejar que
     // el <form> se someta nativamente, se arma con FormData (que junta solo,
     // sin recorrerlo a mano, todos los campos Y los archivos elegidos) y se
-    // manda por fetch; el PDF que devuelve se abre como blob en una pestaña
-    // nueva, mismo resultado para el alumno.
+    // manda por fetch; el PDF que devuelve se descarga con el nombre correcto.
+    //
+    // Nota: esto descarga el archivo directo en vez de abrirlo primero en una
+    // pestaña como el resto de los documentos. window.open(url) con una URL de
+    // blob no respeta el nombre del archivo -- el navegador termina mostrando
+    // el identificador interno del blob (algo como
+    // "a0e4b4ed-755a-4588-a44d-17e15940d67f") en vez de
+    // "Autorizacion_...". El truco de <a download="..."> sí funciona en todos
+    // los navegadores para el nombre, pero fuerza la descarga en vez de abrir
+    // un visor.
     function enviarFormularioPorFetch(form, boton) {
         const datos = new FormData(form);
 
@@ -133,19 +141,36 @@
                     throw new Error('respuesta-no-pdf');
                 }
 
-                // El nombre que se ve al guardar desde el visor de PDF del navegador
-                // sale de Content-Disposition, el mismo que ya manda el servidor.
+                // El nombre con el que se guarda sale de Content-Disposition, el
+                // mismo que ya manda el servidor. Con nombres que llevan tildes
+                // (casi todos) Spring lo manda codificado como
+                // filename*=UTF-8''...: hay que preferir ese y decodificarlo:
+                // si solo se mirara filename="...", con un nombre así ni
+                // siquiera matchea (el "*" antes del "=" lo saca de la pinta
+                // que espera esa expresión regular).
                 const disposicion = respuesta.headers.get('content-disposition') || '';
-                const coincidencia = disposicion.match(/filename="?([^"]+)"?/);
-                const nombreArchivo = coincidencia ? coincidencia[1] : 'Autorizacion.pdf';
+                let nombreArchivo = 'Autorizacion.pdf';
+                const conTilde = disposicion.match(/filename\*=UTF-8''([^;]+)/i);
+                if (conTilde) {
+                    nombreArchivo = decodeURIComponent(conTilde[1]);
+                } else {
+                    const simple = disposicion.match(/filename="?([^";]+)"?/i);
+                    if (simple) nombreArchivo = simple[1];
+                }
 
                 return respuesta.blob().then(function (blob) {
-                    return new File([blob], nombreArchivo, { type: 'application/pdf' });
+                    return { blob: blob, nombreArchivo: nombreArchivo };
                 });
             })
-            .then(function (archivo) {
-                const url = URL.createObjectURL(archivo);
-                window.open(url, '_blank');
+            .then(function (resultado) {
+                const url = URL.createObjectURL(resultado.blob);
+                const enlace = document.createElement('a');
+                enlace.href = url;
+                enlace.download = resultado.nombreArchivo;
+                document.body.appendChild(enlace);
+                enlace.click();
+                document.body.removeChild(enlace);
+                setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
                 if (boton) boton.disabled = false;
             })
             .catch(function () {
