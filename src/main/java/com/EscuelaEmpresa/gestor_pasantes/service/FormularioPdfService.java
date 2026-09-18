@@ -61,7 +61,7 @@ public class FormularioPdfService {
     // formulario y estos no.
     public byte[] generarContrato(Alumno alumno, String supervisor, String empresa, String area,
                                    String padreEncargado) throws IOException {
-        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2026.pdf");
         PDPage pagina = document.getPage(0);
 
         PDPageContentStream contentStream = new PDPageContentStream(
@@ -176,7 +176,7 @@ public class FormularioPdfService {
             throw new ReglaNegocioException("El alumno no tiene planillas cargadas, no se puede generar el documento");
         }
 
-        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL_2026.pdf");
         PDPage pagina = document.getPage(0);
 
         PDPageContentStream contentStream = new PDPageContentStream(
