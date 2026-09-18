@@ -49,10 +49,13 @@
     // puede saber preguntándole al servidor. Sin este chequeo previo, el
     // target="_blank" del formulario ya abrió la pestaña nueva para cuando la
     // respuesta dice que había que rechazarlo -- por eso esto corre ANTES de
-    // dejar que el formulario se someta de verdad, y solo lo deja pasar
-    // (form.requestSubmit(), que sí dispara este mismo listener de nuevo) si
-    // el servidor confirma que coincide.
-    function activarVerificacionPadre(formId, nombreSelector, ciSelector) {
+    // dejar que el formulario se someta de verdad.
+    //
+    // "enviarPorFetch": true (solo Autorización) manda el formulario por fetch
+    // en vez del envío nativo del <form> -- ver enviarFormularioPorFetch más
+    // abajo para el motivo. Contrato (GET, sin archivos) sigue con
+    // form.requestSubmit(), que ahí funciona bien.
+    function activarVerificacionPadre(formId, nombreSelector, ciSelector, enviarPorFetch) {
         const form = document.getElementById(formId);
         if (!form) return;
 
@@ -79,30 +82,76 @@
             fetch('/alumno/documentos/verificar-padre?' + params.toString())
                 .then(function (respuesta) { return respuesta.json(); })
                 .then(function (resultado) {
-                    if (resultado.valido) {
-                        verificado = true;
-                        if (typeof form.requestSubmit === 'function') {
-                            form.requestSubmit();
-                        } else {
-                            verificado = false; // form.submit() no dispara este listener de nuevo
-                            form.submit();
-                        }
-                        // Se reactiva también en el caso exitoso: el PDF se abre en OTRA
-                        // pestaña y esta página se queda tal cual, así que sin esto el
-                        // botón quedaba deshabilitado para siempre después del primer
-                        // click (antes solo se reactivaba si tocabas de nuevo un campo).
-                        if (boton) boton.disabled = false;
-                    } else {
+                    if (!resultado.valido) {
                         mostrarError(resultado.error
                             || 'El Padre/Encargado no coincide con lo que tenemos registrado.');
                         if (boton) boton.disabled = false;
+                        return;
                     }
+
+                    if (enviarPorFetch) {
+                        enviarFormularioPorFetch(form, boton);
+                        return;
+                    }
+
+                    verificado = true;
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit();
+                    } else {
+                        verificado = false; // form.submit() no dispara este listener de nuevo
+                        form.submit();
+                    }
+                    // Se reactiva también en el caso exitoso: el PDF se abre en OTRA
+                    // pestaña y esta página se queda tal cual, así que sin esto el
+                    // botón quedaba deshabilitado para siempre después del primer
+                    // click (antes solo se reactivaba si tocabas de nuevo un campo).
+                    if (boton) boton.disabled = false;
                 })
                 .catch(function () {
                     mostrarError('No se pudo verificar los datos del Padre/Encargado. Probá de nuevo.');
                     if (boton) boton.disabled = false;
                 });
         });
+    }
+
+    // Autorización es el único formulario de esta página que junta POST +
+    // multipart/form-data (por los archivos adjuntos) + target="_blank" -- y
+    // esa combinación es la que algunos navegadores reportan como "problema
+    // de red" al abrir la pestaña nueva (el resto de los documentos son GET
+    // simples, sin archivos, y no tienen este problema). En vez de dejar que
+    // el <form> se someta nativamente, se arma con FormData (que junta solo,
+    // sin recorrerlo a mano, todos los campos Y los archivos elegidos) y se
+    // manda por fetch; el PDF que devuelve se abre como blob en una pestaña
+    // nueva, mismo resultado para el alumno.
+    function enviarFormularioPorFetch(form, boton) {
+        const datos = new FormData(form);
+
+        fetch(form.action, { method: 'POST', body: datos, credentials: 'same-origin' })
+            .then(function (respuesta) {
+                const tipo = respuesta.headers.get('content-type') || '';
+                if (!respuesta.ok || tipo.indexOf('application/pdf') === -1) {
+                    throw new Error('respuesta-no-pdf');
+                }
+
+                // El nombre que se ve al guardar desde el visor de PDF del navegador
+                // sale de Content-Disposition, el mismo que ya manda el servidor.
+                const disposicion = respuesta.headers.get('content-disposition') || '';
+                const coincidencia = disposicion.match(/filename="?([^"]+)"?/);
+                const nombreArchivo = coincidencia ? coincidencia[1] : 'Autorizacion.pdf';
+
+                return respuesta.blob().then(function (blob) {
+                    return new File([blob], nombreArchivo, { type: 'application/pdf' });
+                });
+            })
+            .then(function (archivo) {
+                const url = URL.createObjectURL(archivo);
+                window.open(url, '_blank');
+                if (boton) boton.disabled = false;
+            })
+            .catch(function () {
+                mostrarError('No se pudo generar el PDF. Revisá los datos e intentá de nuevo.');
+                if (boton) boton.disabled = false;
+            });
     }
 
     // Misma zona de arrastre que ya usa Subir documentos (subir.html), copiada
@@ -154,8 +203,8 @@
         activarBotonSegunObligatorios('form-contrato', 'btn-generar-contrato');
         activarBotonSegunObligatorios('form-autorizacion', 'btn-generar-autorizacion');
 
-        activarVerificacionPadre('form-contrato', '[name="padreEncargado"]', null);
-        activarVerificacionPadre('form-autorizacion', '[name="padreNombre"]', '[name="padreCi"]');
+        activarVerificacionPadre('form-contrato', '[name="padreEncargado"]', null, false);
+        activarVerificacionPadre('form-autorizacion', '[name="padreNombre"]', '[name="padreCi"]', true);
 
         const tituloVacio = 'Hacé click o arrastrá el PDF acá';
 

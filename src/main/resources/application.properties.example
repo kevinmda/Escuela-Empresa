@@ -64,7 +64,11 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 # Relativo al directorio desde donde se lanza la app (o absoluto en el servidor)
 app.uploads.directorio=./uploads/planillas
 spring.servlet.multipart.max-file-size=10MB
-spring.servlet.multipart.max-request-size=10MB
+# Antes era igual a max-file-size (10MB): la Autorización puede llevar DOS
+# adjuntos (cédula del alumno y del Padre/Encargado), así que dos archivos de
+# 10MB cada uno superaban este límite total aunque ninguno pasara el límite
+# por archivo -- eso rechazaba el envío entero.
+spring.servlet.multipart.max-request-size=25MB
 
 app.url.base=http://localhost:8080
 

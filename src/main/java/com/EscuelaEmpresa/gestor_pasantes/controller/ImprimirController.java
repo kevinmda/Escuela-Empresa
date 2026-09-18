@@ -125,7 +125,9 @@ public class ImprimirController {
         expedientePdfService.generarPdf(alumno, buffer);
 
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", Descarga.inline("Documentos_Adjuntos.pdf", "Documentos_Adjuntos.pdf"));
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Documentos_Adjuntos", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Documentos_Adjuntos.pdf"));
         buffer.writeTo(response.getOutputStream());
     }
 
@@ -203,7 +205,9 @@ public class ImprimirController {
                 area != null ? area.trim() : null, padreEncargado.trim());
 
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Contrato", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Contrato.pdf"));
         response.getOutputStream().write(pdf);
         return null;
     }
@@ -260,7 +264,9 @@ public class ImprimirController {
         pdf = agregarPaginasAdjuntas(pdf, adjuntos);
 
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Autorizacion_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Autorizacion", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Autorizacion.pdf"));
         response.getOutputStream().write(pdf);
         return null;
     }
@@ -287,7 +293,9 @@ public class ImprimirController {
         byte[] pdf = formularioPdfService.generarFichaFinal(alumno, todasLasPlanillas, area.trim());
 
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Ficha_Final_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Ficha_Final", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Ficha_Final.pdf"));
         response.getOutputStream().write(pdf);
         return null;
     }
@@ -299,20 +307,25 @@ public class ImprimirController {
         byte[] pdf = formularioPdfService.generarFichaFinalEvaluativa(alumno);
 
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Ficha_Final_Eval_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Ficha_Final_Eval", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Ficha_Final_Eval.pdf"));
         response.getOutputStream().write(pdf);
     }
 
     //----------------------------------------------------------------//
     @GetMapping("/alumno/imprimir/Contrato_Vacio.pdf")
     public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 1. Cargar la plantilla PDF
         PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2026.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Contrato", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Contrato.pdf"));
 
         // 3. Enviar el PDF final al navegador
         document.save(response.getOutputStream());
@@ -321,13 +334,19 @@ public class ImprimirController {
 
     @GetMapping("/alumno/imprimir/Autorizacion_Vacio.pdf")
     public void generarPdfAutorizacionVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
-        // 1. Cargar la plantilla PDF
-        PDDocument document = plantillaService.cargarPdf("AUTORIZACION_PADRES_PEL_25.pdf");
+        // 1. Cargar la plantilla PDF -- la misma que usa la versión con datos
+        // (AUTORIZACION_PADRES_PEL.pdf); antes esta apuntaba a
+        // AUTORIZACION_PADRES_PEL_25.pdf, una versión vieja que ya no es la que
+        // está en uso (esa incluso todavía traía el "202…" del año, que se sacó).
+        PDDocument document = plantillaService.cargarPdf("AUTORIZACION_PADRES_PEL.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Autorizacion", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Autorizacion.pdf"));
 
         // 3. Enviar el PDF final al navegador
         document.save(response.getOutputStream());
@@ -336,13 +355,16 @@ public class ImprimirController {
 
     @GetMapping("/alumno/imprimir/Ficha_Final_Pel_Vacio.pdf")
     public void generarPdfFichaFinalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 1. Cargar la plantilla PDF
         PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Ficha_Final", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Ficha_Final.pdf"));
 
         // 3. Enviar el PDF final al navegador
         document.save(response.getOutputStream());
@@ -351,13 +373,16 @@ public class ImprimirController {
 
     @GetMapping("/alumno/imprimir/Ficha_Final_Eval_Pel_Vacio.pdf")
     public void generarPdfFichaFinalEvalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 1. Cargar la plantilla PDF
         PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_EVAL_PASANTE_PEL.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Ficha_Final_Eval", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Ficha_Final_Eval.pdf"));
 
         // 3. Enviar el PDF final al navegador
         document.save(response.getOutputStream());

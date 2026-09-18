@@ -191,9 +191,25 @@ public class PlanillaSemanalController {
         // 4. Generar el PDF usando el service compartido
         byte[] pdfBytes = planillaSemanalPdfService.generarPdf(alumno, planilla, detalles);
 
+        // El número de semana que va al final del nombre es el mismo que ya se
+        // ve en el riel de semanas ("Semana 3"): la posición de esta planilla
+        // entre todas las del alumno, de la más vieja a la más nueva.
+        List<PlanillaSemanal> planillasAsc = new ArrayList<>(
+                planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl()));
+        Collections.reverse(planillasAsc);
+        int numeroPlanilla = 1;
+        for (PlanillaSemanal p : planillasAsc) {
+            if (p.getIdPs().equals(idPs)) {
+                break;
+            }
+            numeroPlanilla++;
+        }
+
         // 5. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Planilla_Semanal_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Planilla_Semanal", alumno.getNombres(), alumno.getApellidos(),
+                        numeroPlanilla, "pdf"), "Planilla_Semanal.pdf"));
 
         // 6. Enviar el PDF final al navegador
         response.getOutputStream().write(pdfBytes);
@@ -201,14 +217,17 @@ public class PlanillaSemanalController {
     }
 
     @GetMapping("/alumno/planilla/Planilla_Semanal_Vacio.pdf")
-    public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+    public void generarPdfPlanillaSemanalVacio(Authentication authentication, HttpServletResponse response) throws IOException {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         // 1. Cargar la plantilla PDF
         PDDocument document = plantillaService.cargarPdf("CONTROL_SEMANAL_PEL.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline; filename=Contrato_alumno.pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Planilla_Semanal", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Planilla_Semanal.pdf"));
 
         // 3. Enviar el PDF final al navegador
         document.save(response.getOutputStream());
@@ -252,7 +271,7 @@ public class PlanillaSemanalController {
 
         response.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         response.setHeader("Content-Disposition",
-                Descarga.adjunto("Informe_Pasantia_" + alumno.getNombres() + "_" + alumno.getApellidos() + ".docx",
+                Descarga.adjunto(Descarga.nombreDocumento("Informe_Pasantia", alumno.getNombres(), alumno.getApellidos(), "docx"),
                         "Informe_Pasantia.docx"));
         response.getOutputStream().write(salida.toByteArray());
         response.getOutputStream().flush();

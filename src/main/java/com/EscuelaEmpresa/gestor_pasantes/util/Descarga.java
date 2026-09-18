@@ -31,6 +31,39 @@ public final class Descarga {
                 .toString();
     }
 
+    // Nombre de archivo para lo que el alumno genera y descarga de sí mismo
+    // (Contrato, Autorización, Ficha Final, Informe...): "Documento_NombreApellido.ext",
+    // con el primer nombre y el primer apellido, cada uno con su primera letra en
+    // mayúscula, pegados sin espacio ni guión bajo entre sí.
+    public static String nombreDocumento(String documento, String nombres, String apellidos, String extension) {
+        return nombreDocumento(documento, nombres, apellidos, null, extension);
+    }
+
+    // Igual que el de arriba, pero para una planilla puntual: agrega el número
+    // de esa semana al final ("..._3.pdf"), el mismo número que ya se muestra
+    // en el riel de semanas ("Semana 3").
+    public static String nombreDocumento(String documento, String nombres, String apellidos,
+                                          Integer numeroPlanilla, String extension) {
+        String nombre = documento + "_" + primeraPalabraCapitalizada(nombres) + primeraPalabraCapitalizada(apellidos);
+        if (numeroPlanilla != null) {
+            nombre += "_" + numeroPlanilla;
+        }
+        return nombre + "." + extension;
+    }
+
+    // Toma la primera palabra (nombres y apellidos suelen traer más de una) y le
+    // pone mayúscula inicial, sea cual sea cómo esté cargada en la base.
+    private static String primeraPalabraCapitalizada(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return "";
+        }
+        String primeraPalabra = texto.trim().split("\\s+")[0];
+        if (primeraPalabra.isEmpty()) {
+            return "";
+        }
+        return Character.toUpperCase(primeraPalabra.charAt(0)) + primeraPalabra.substring(1).toLowerCase();
+    }
+
     // El nombre original puede venir nulo o vacio (subidas viejas), o traer una
     // ruta entera si el navegador la mando asi: se queda solo el nombre.
     private static String nombreSeguro(String nombreArchivo, String respaldo) {
