@@ -1119,7 +1119,13 @@ main h3 {
      izquierdo y el formulario a la derecha. No hay panel ni divisor.
    - cambiar-contrasena conserva el header con su nav, porque el usuario ya está
      adentro y necesita poder salir. Usa .auth-main con la tarjeta centrada.
-   Comparten tokens, inputs, botones, mensajes y escala de radios. */
+   Comparten tokens, inputs, botones, mensajes y escala de radios.
+
+   De esas 6, solo el flujo de login propiamente dicho (login-email, login,
+   verificar-codigo, olvide-contrasena, restablecer-contrasena) lleva además la
+   clase .auth-split--login: fuerza modo oscuro (sin toggle, ver los templates)
+   y el degradado con los colores del logo. Términos y condiciones y la pantalla
+   de error se quedan con la superficie plana de siempre y su propio toggle. */
 
 .auth-split {
     position: relative;
@@ -1136,6 +1142,47 @@ main h3 {
     margin-inline: auto;
 }
 
+/* Pantallas de login: sin modo claro (el botón se saca directo del HTML, ver
+   login.html y compañía) y con un wash de los tres colores del logo (navy,
+   rojo, dorado). Reescribe las custom properties acá en vez de depender de
+   [data-theme="dark"] en <html>: así el resto de la app puede seguir en claro
+   mientras estas pantallas quedan siempre oscuras, sin tocar la preferencia
+   guardada del usuario. */
+.auth-split--login {
+    --bg: #14171c;
+    --surface: #1d222a;
+    --ink: #eaeef5;
+    --ink-soft: #a4b0c2;
+    --accent: #e5b04d;
+    --accent-ink: #f5cf85;
+    --accent-soft: #3d2f18;
+    --line: #333d4c;
+    --success: #72c491;
+    --success-soft: #203d2c;
+    --danger: #f08a7d;
+    --danger-soft: #4a2927;
+    --text-on-ink: #14171c;
+    --focus: #e5b04d;
+    color-scheme: dark;
+    /* body ya trae "color: var(--ink)", pero resuelto con el --ink de afuera
+       (el de <html>, que puede seguir en claro): sin repetirlo acá, el texto
+       que no fija su propio color (el <h1>, por ejemplo) hereda ese valor ya
+       resuelto en vez de volver a evaluarlo con el --ink oscuro de arriba. */
+    color: var(--ink);
+    /* Mezclados con --bg vía color-mix en vez de tonos fijos: si el día de
+       mañana cambia alguno de los tres colores de arriba, el degradado los
+       sigue solo. Porcentajes moderados a propósito: el logo va sobre esto
+       (ilustración) y el texto también, así que el fondo tiene que quedar
+       como ambiente, no protagonismo. */
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--ink) 20%, var(--bg)) 0%,
+        var(--bg) 36%,
+        color-mix(in srgb, var(--danger) 15%, var(--bg)) 62%,
+        color-mix(in srgb, var(--accent) 26%, var(--bg)) 100%
+    );
+}
+
 /* La ilustración vive en una capa propia sobre el MISMO --bg que el formulario:
    una sola superficie, sin panel ni divisor. El WebP ya es transparente en su lado
    derecho, así que las cintas se disuelven solas en el fondo por el propio dibujo
@@ -1144,15 +1191,26 @@ main h3 {
    y oscuro: las cintas navy/rojo/dorado/crema se leen sobre crema y sobre carbón. */
 .auth-split::before {
     content: "";
-    position: absolute;
+    /* Fixed, no absolute: así la ilustración queda pegada a la ventana en vez
+       de al documento. Con absolute, si el contenido queda más alto que la
+       pantalla (el paso 2 del login con más campos, o simplemente zoom del
+       navegador) el usuario podía scrollear más abajo de donde termina la
+       imagen (que mide 100dvh) y ahí se veía un corte duro contra el fondo.
+       Fixed la mantiene siempre ocupando la ventana entera, se scrollee lo
+       que se scrollee. */
+    position: fixed;
     top: 0;
-    left: 0;
-    /* Alto FIJO a la ventana, no a .auth-split. Si se ata al contenedor (inset:0),
-       .auth-split crece cuando el formulario es más alto que la pantalla (el paso
-       2 del login, con más campos) y, como background-size es "auto 100%", la
-       imagen crece de alto y por lo tanto de ancho: se "expande" al pasar de
-       login-email a login. Con height fijo la ilustración mide igual en todas
-       las pantallas del flujo. */
+    /* left:0 sería el borde de la ventana, no el de .auth-split. Por debajo de
+       1760px de ancho son el mismo punto (margin-inline:auto no hace nada),
+       pero por encima .auth-split se centra y deja una franja de --bg a los
+       lados (ver max-width ahí arriba); hay que replicar ese mismo hueco a
+       mano porque fixed ya no lo hereda de .auth-split. */
+    left: max(0px, calc((100vw - 1760px) / 2));
+    /* Alto atado a la ventana, no al contenido. Como background-size es
+       "auto 100%", si este alto se atara al contenedor la imagen crecería de
+       alto y por lo tanto de ancho cuando el formulario es más alto: se
+       "expande" al pasar de login-email a login. Con la ventana como
+       referencia la ilustración mide igual en todas las pantallas del flujo. */
     height: 100dvh;
     /* Ancho generoso a propósito: el recorte cae dentro de la zona ya transparente
        del WebP, no sobre las cintas, así que no se ve ninguna línea recta. El
@@ -1175,7 +1233,9 @@ main h3 {
        El origen va en el borde izquierdo, que es por donde la ilustración sangra.
        Escalando desde el centro se despegaría de ese borde y aparecería una franja
        de --bg. Por lo mismo solo escala hacia arriba, nunca por debajo de 1: lo
-       que sobra lo recorta el overflow:hidden de .auth-split. */
+       que sobra en alto queda fuera de la ventana (fixed no se recorta con el
+       overflow:hidden de .auth-split, pero al ser solo 3-4% de más no llega a
+       notarse) y en ancho sigue cayendo sobre la zona transparente del WebP. */
     transform-origin: left center;
     animation:
         ilustracion-entra 1s cubic-bezier(0.16, 1, 0.3, 1) both,
