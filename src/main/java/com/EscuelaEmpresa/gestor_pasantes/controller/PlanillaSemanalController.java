@@ -204,7 +204,7 @@ public class PlanillaSemanalController {
     public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = plantillaService.cargarPdf("CONTROL_SEMANAL_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("CONTROL_SEMANAL_PEL.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
