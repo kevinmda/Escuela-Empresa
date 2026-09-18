@@ -102,7 +102,7 @@ public class FormularioPdfService {
         // solo de la base (primer nombre + primer apellido); ahora lo escribe el
         // alumno en el formulario, con el nombre completo.
         if (padreEncargado != null && !padreEncargado.isBlank()) {
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, padreEncargado, 440, 273);
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, padreEncargado, 438, 273);
         }
 
         contentStream.close();
