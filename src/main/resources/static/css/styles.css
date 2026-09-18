@@ -190,10 +190,23 @@ body {
     line-height: 1.5;
     color: var(--ink);
     background-color: var(--bg);
+    /* Mismo wash que el login (navy/rojo/dorado del logo, mezclados con --bg
+       vía color-mix), ahora detrás de la grilla de puntos de toda la app en
+       vez de un color plano. Va último en la lista porque los background-image
+       se pintan en orden: el primero encima, así que la grilla queda arriba
+       del degradado en vez de taparlo. Sigue [data-theme] como el resto de la
+       app (no está forzado a oscuro, eso es solo cosa del login). */
     background-image:
         linear-gradient(var(--grid-line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size: 24px 24px;
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--ink) 20%, var(--bg)) 0%,
+            var(--bg) 36%,
+            color-mix(in srgb, var(--danger) 15%, var(--bg)) 62%,
+            color-mix(in srgb, var(--accent) 26%, var(--bg)) 100%
+        );
+    background-size: 24px 24px, 24px 24px, cover;
     min-height: 100dvh;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
