@@ -131,13 +131,14 @@
              le da al campo de descripcion, que es el que mas se escribe, todo el
              ancho que necesita. -->
         <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post" id="formPlanilla">
+            <input type="hidden" id="indice-fecha-ancla" th:field="*{indiceFechaAncla}">
             <fieldset id="fieldsetPlanilla" th:disabled="${!habilitado}" class="fieldset-planilla">
 
                 <section class="panel pl-bloque">
                     <div class="pl-bloque-encabezado">
                         <h3 class="pl-bloque-titulo">Los días de la semana</h3>
-                        <p class="pl-bloque-nota">Cargá los días que trabajaste. Cada día que cargues
-                            necesita sus tres datos: fecha, qué hiciste y horas.</p>
+                        <p class="pl-bloque-nota">Cargá la fecha del primer día que trabajaste: el resto se completa
+                            solo. Para cada día que hayas trabajado, completá también qué hiciste y las horas.</p>
                     </div>
 
                     <div class="pl-dias">

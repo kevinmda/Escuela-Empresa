@@ -55,31 +55,37 @@ public class PlanillaSemanalService {
             validarDia(dias.get(i), diasEsperados[i]);
         }
 
-        // 1. Filtrar solo los días que el alumno realmente cargó (fecha no vacía)
-        List<DiaForm> diasCargados = form.getDias().stream()
-                .filter(dia -> dia.getFecha() != null)
+        // Los días que el alumno realmente trabajó son los que tienen horas
+        // cargadas (validarDia ya garantiza que si hay horas, también hay
+        // descripción y fecha). Todo lo que define la planilla -- el rango de
+        // fechas, el orden, la superposición con otras semanas, el total de
+        // horas y los detalles que se guardan -- sale de estos días, no de los
+        // seis: las cinco fechas que no son la ancla se autocompletan solas y
+        // no dicen nada sobre si el alumno trabajó ese día.
+        List<DiaForm> diasTrabajados = form.getDias().stream()
+                .filter(dia -> dia.getHoras() != null)
                 .toList();
 
-        if (diasCargados.isEmpty()) {
+        if (diasTrabajados.isEmpty()) {
             throw new ReglaNegocioException("Debe cargar al menos un día trabajado");
         }
 
-        validarOrdenYRango(diasCargados);
+        validarOrdenYRango(diasTrabajados);
 
         // 2. Calcular fecha_desde, fecha_hasta y total_horas
-        LocalDate fechaDesde = diasCargados.stream()
+        LocalDate fechaDesde = diasTrabajados.stream()
                 .map(DiaForm::getFecha)
                 .min(LocalDate::compareTo)
                 .orElseThrow();
 
-        LocalDate fechaHasta = diasCargados.stream()
+        LocalDate fechaHasta = diasTrabajados.stream()
                 .map(DiaForm::getFecha)
                 .max(LocalDate::compareTo)
                 .orElseThrow();
 
         validarSuperposicion(fechaDesde, fechaHasta, planillasExistentes);
 
-        BigDecimal totalHoras = sumarHoras(diasCargados);
+        BigDecimal totalHoras = sumarHoras(diasTrabajados);
 
         //valida el tamano de lo introducido en los campos de texto
         if (form.getSupervisor() == null || form.getSupervisor().trim().isEmpty()) {
@@ -124,9 +130,9 @@ public class PlanillaSemanalService {
 
         planillaSemanalRepository.save(planilla);
 
-        // 4. Armar y guardar cada detalle (los días trabajados)
+        // 4. Armar y guardar cada detalle (los días efectivamente trabajados)
         int contador = 1;
-        for (DiaForm dia : diasCargados) {
+        for (DiaForm dia : diasTrabajados) {
             PlanillaSemanalDetalleId detalleId = new PlanillaSemanalDetalleId(planilla.getIdPs(), contador);
 
             PlanillaSemanalDetalle detalle = new PlanillaSemanalDetalle();
@@ -172,12 +178,12 @@ public class PlanillaSemanalService {
         return horas.setScale(2, RoundingMode.HALF_UP);
     }
 
-    private void validarOrdenYRango(List<DiaForm> diasCargados) {
+    private void validarOrdenYRango(List<DiaForm> diasTrabajados) {
         // Opción 1: orden cronológico -- cada día cargado tiene que tener una fecha
         // posterior al día anterior (evita "Martes antes que Lunes")
-        for (int i = 1; i < diasCargados.size(); i++) {
-            LocalDate anterior = diasCargados.get(i - 1).getFecha();
-            LocalDate actual = diasCargados.get(i).getFecha();
+        for (int i = 1; i < diasTrabajados.size(); i++) {
+            LocalDate anterior = diasTrabajados.get(i - 1).getFecha();
+            LocalDate actual = diasTrabajados.get(i).getFecha();
             if (!actual.isAfter(anterior)) {
                 throw new ReglaNegocioException("Las fechas cargadas no siguen el orden correcto de los días de la semana.");
             }
@@ -185,8 +191,8 @@ public class PlanillaSemanalService {
 
         // Opción 2: rango máximo de 5 días (Lunes a Sábado) -- evita que las fechas
         // cargadas pertenezcan a semanas distintas, aunque estén en el orden correcto
-        LocalDate minFecha = diasCargados.get(0).getFecha();
-        LocalDate maxFecha = diasCargados.get(diasCargados.size() - 1).getFecha();
+        LocalDate minFecha = diasTrabajados.get(0).getFecha();
+        LocalDate maxFecha = diasTrabajados.get(diasTrabajados.size() - 1).getFecha();
         if (java.time.temporal.ChronoUnit.DAYS.between(minFecha, maxFecha) > 5) {
             throw new ReglaNegocioException("Las fechas cargadas abarcan más de una semana. Revisá que todas correspondan a la misma semana.");
         }
@@ -205,8 +211,12 @@ public class PlanillaSemanalService {
 
     private void validarDia(DiaForm dia, DayOfWeek diaEsperado) {
 
-        boolean tieneAlgunDato = dia.getFecha() != null 
-                || dia.getHoras() != null 
+        // La fecha ya no sirve como señal de "este día tiene datos": con el
+        // esquema de fecha ancla, las otras cinco se autocompletan solas y
+        // siempre llegan con un valor, aunque el alumno no haya trabajado ese
+        // día. Lo único que dice si el alumno quiso cargar el día es si puso
+        // horas o descripción.
+        boolean tieneAlgunDato = dia.getHoras() != null
                 || (dia.getDescripcion() != null && !dia.getDescripcion().isBlank());
 
         if (!tieneAlgunDato) {

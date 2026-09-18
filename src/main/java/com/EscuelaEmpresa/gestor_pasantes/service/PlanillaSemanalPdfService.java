@@ -30,7 +30,7 @@ public class PlanillaSemanalPdfService {
     public byte[] generarPdf(Alumno alumno, PlanillaSemanal planilla, List<PlanillaSemanalDetalle> detalles) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = plantillaService.cargarPdf("CONTROL_SEMANAL_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("CONTROL_SEMANAL_PEL.pdf");
         PDPage pagina = document.getPage(0);
 
         // 2. Abrir el "lienzo" para escribir encima del PDF

@@ -98,9 +98,9 @@ public class ImprimirController {
     @GetMapping("/alumno/documentos/al-terminar")
     public String mostrarDocumentosAlTerminar(Model model, Authentication authentication) {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
-        boolean tienePlanillas =
-                !planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl()).isEmpty();
-        model.addAttribute("tienePlanillas", tienePlanillas);
+        boolean tieneSeisPlanillas =
+                planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl()).size() >= 6;
+        model.addAttribute("tieneSeisPlanillas", tieneSeisPlanillas);
         return "alumno/documentos-al-terminar";
     }
 
@@ -265,17 +265,31 @@ public class ImprimirController {
         return null;
     }
 
+    // area es obligatorio en el formulario (ver documentos-al-terminar.html),
+    // que además deja el campo deshabilitado hasta que hay 6 planillas -- pero
+    // eso es solo la puerta de entrada del lado del cliente. El chequeo real es
+    // este: si alguien llega igual con menos de 6 (JS desactivado, URL armada a
+    // mano), se rechaza acá antes de generar nada.
     @GetMapping("/alumno/imprimir/Ficha_Final_Pel.pdf")
-    public void generarPdfFichaFinalPel(Authentication authentication, HttpServletResponse response) throws IOException {
+    public String generarPdfFichaFinalPel(@RequestParam String area,
+                                         Authentication authentication, HttpServletResponse response,
+                                         RedirectAttributes redirectAttributes) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
         List<PlanillaSemanal> todasLasPlanillas =
                 planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
 
-        byte[] pdf = formularioPdfService.generarFichaFinal(alumno, todasLasPlanillas);
+        if (todasLasPlanillas.size() < 6) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Todavía no completaste las 6 semanas de planilla, no se puede generar la ficha final.");
+            return "redirect:/alumno/documentos/al-terminar";
+        }
+
+        byte[] pdf = formularioPdfService.generarFichaFinal(alumno, todasLasPlanillas, area.trim());
 
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "inline; filename=Ficha_Final_alumno.pdf");
         response.getOutputStream().write(pdf);
+        return null;
     }
 
     @GetMapping("/alumno/imprimir/Ficha_Final_Eval_Pel.pdf")
