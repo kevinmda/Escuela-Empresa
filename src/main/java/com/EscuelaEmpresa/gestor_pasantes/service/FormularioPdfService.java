@@ -110,7 +110,7 @@ public class FormularioPdfService {
     }
 
     public byte[] generarAutorizacion(Alumno alumno) throws IOException {
-        PDDocument document = plantillaService.cargarPdf("AUTORIZACION_PADRES_PEL_25.pdf");
+        PDDocument document = plantillaService.cargarPdf("AUTORIZACION_PADRES_PEL.pdf");
         PDPage pagina = document.getPage(0);
 
         PDPageContentStream contentStream = new PDPageContentStream(
@@ -127,11 +127,11 @@ public class FormularioPdfService {
         LocalDate hoy = LocalDate.now();
         Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
         String mes = hoy.format(DateTimeFormatter.ofPattern("MMMM", localeEspanol));
-        String ultimoDigitoAnio = String.valueOf(hoy.getYear() % 10);
+        String Anio = String.valueOf(hoy.getYear());
 
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 393.5f, 811);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 452, 811);
-        escribirTexto(contentStream, fuente, tamanioFuente, ultimoDigitoAnio, 520, 811);
+        escribirTexto(contentStream, fuente, tamanioFuente, Anio, 505, 809);
 
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 388, 767.2f);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getCi(), 257, 739);
@@ -150,7 +150,7 @@ public class FormularioPdfService {
         // Segunda autorizacion (la de repuesto)
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 393.5f, 411);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 452, 411);
-        escribirTexto(contentStream, fuente, tamanioFuente, ultimoDigitoAnio, 520, 411);
+        escribirTexto(contentStream, fuente, tamanioFuente, Anio, 505, 409);
 
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 388, 366.8f);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getCi(), 257, 339);
@@ -176,7 +176,7 @@ public class FormularioPdfService {
             throw new ReglaNegocioException("El alumno no tiene planillas cargadas, no se puede generar el documento");
         }
 
-        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL_2026.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL.pdf");
         PDPage pagina = document.getPage(0);
 
         PDPageContentStream contentStream = new PDPageContentStream(
@@ -223,7 +223,7 @@ public class FormularioPdfService {
     }
 
     public byte[] generarFichaFinalEvaluativa(Alumno alumno) throws IOException {
-        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_EVAL_PASANTE_PEL.pdf");
         PDPage pagina = document.getPage(3);
 
         PDPageContentStream contentStream = new PDPageContentStream(

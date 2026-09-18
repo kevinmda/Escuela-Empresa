@@ -324,7 +324,7 @@ public class ImprimirController {
     public void generarPdfFichaFinalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL_2026.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -339,7 +339,7 @@ public class ImprimirController {
     public void generarPdfFichaFinalEvalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_EVAL_PASANTE_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_EVAL_PASANTE_PEL.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
