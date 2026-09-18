@@ -17,7 +17,10 @@ public class PlanillaSemanalForm {
     // campos de fecha eligió como ancla -- sin esto, al recargar con los seis
     // ya completos (la ancla más las cinco calculadas), no hay forma de
     // distinguir cuál fue la que el alumno realmente tocó.
-    private Integer indiceFechaAncla;
+    // String y no Integer: el campo oculto llega vacío ("") cuando todavía no
+    // hay ancla, y Spring no sabe convertir un string vacío a Integer -- tira
+    // una excepción antes de llegar siquiera al controller (error 500).
+    private String indiceFechaAncla;
 
     public PlanillaSemanalForm() {
         dias.add(new DiaForm("Lunes"));
@@ -43,6 +46,6 @@ public class PlanillaSemanalForm {
     public String getAprendizaje() { return aprendizaje; }
     public void setAprendizaje(String aprendizaje) { this.aprendizaje = aprendizaje; }
 
-    public Integer getIndiceFechaAncla() { return indiceFechaAncla; }
-    public void setIndiceFechaAncla(Integer indiceFechaAncla) { this.indiceFechaAncla = indiceFechaAncla; }
+    public String getIndiceFechaAncla() { return indiceFechaAncla; }
+    public void setIndiceFechaAncla(String indiceFechaAncla) { this.indiceFechaAncla = indiceFechaAncla; }
 }
