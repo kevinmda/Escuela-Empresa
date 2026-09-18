@@ -195,16 +195,17 @@ body {
        vez de un color plano. Va último en la lista porque los background-image
        se pintan en orden: el primero encima, así que la grilla queda arriba
        del degradado en vez de taparlo. Sigue [data-theme] como el resto de la
-       app (no está forzado a oscuro, eso es solo cosa del login). */
+       app (no está forzado a oscuro, eso es solo cosa del login). Sin parada
+       intermedia en --bg puro: los tres colores se funden entre sí en vez de
+       dejar un tramo blanco/crema en el medio. */
     background-image:
         linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
         linear-gradient(
             135deg,
-            color-mix(in srgb, var(--ink) 20%, var(--bg)) 0%,
-            var(--bg) 36%,
-            color-mix(in srgb, var(--danger) 15%, var(--bg)) 62%,
-            color-mix(in srgb, var(--accent) 26%, var(--bg)) 100%
+            color-mix(in srgb, var(--ink) 24%, var(--bg)) 0%,
+            color-mix(in srgb, var(--danger) 18%, var(--bg)) 50%,
+            color-mix(in srgb, var(--accent) 28%, var(--bg)) 100%
         );
     background-size: 24px 24px, 24px 24px, cover;
     min-height: 100dvh;
@@ -1186,13 +1187,14 @@ main h3 {
        mañana cambia alguno de los tres colores de arriba, el degradado los
        sigue solo. Porcentajes moderados a propósito: el logo va sobre esto
        (ilustración) y el texto también, así que el fondo tiene que quedar
-       como ambiente, no protagonismo. */
+       como ambiente, no protagonismo. Sin parada intermedia en --bg puro:
+       navy, rojo y dorado se funden entre sí en vez de dejar un tramo
+       blanco/crema en el medio. */
     background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--ink) 20%, var(--bg)) 0%,
-        var(--bg) 36%,
-        color-mix(in srgb, var(--danger) 15%, var(--bg)) 62%,
-        color-mix(in srgb, var(--accent) 26%, var(--bg)) 100%
+        color-mix(in srgb, var(--ink) 24%, var(--bg)) 0%,
+        color-mix(in srgb, var(--danger) 18%, var(--bg)) 50%,
+        color-mix(in srgb, var(--accent) 28%, var(--bg)) 100%
     );
 }
 
