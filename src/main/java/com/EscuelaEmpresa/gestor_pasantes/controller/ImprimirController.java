@@ -294,7 +294,7 @@ public class ImprimirController {
     public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2026.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
@@ -324,7 +324,7 @@ public class ImprimirController {
     public void generarPdfFichaFinalPelVacio(Authentication authentication, HttpServletResponse response) throws IOException {
 
         // 1. Cargar la plantilla PDF
-        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL_2025.pdf");
+        PDDocument document = plantillaService.cargarPdf("FICHA_FINAL_PEL_2026.pdf");
 
         // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
