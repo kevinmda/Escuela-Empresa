@@ -131,7 +131,7 @@ public class FormularioPdfService {
 
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 393.5f, 811);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 452, 811);
-        escribirTexto(contentStream, fuente, tamanioFuente, Anio, 505, 809);
+        escribirTexto(contentStream, fuente, tamanioFuente, Anio, 505, 809.4f);
 
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 388, 767.2f);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getCi(), 257, 739);
@@ -150,7 +150,7 @@ public class FormularioPdfService {
         // Segunda autorizacion (la de repuesto)
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 393.5f, 411);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 452, 411);
-        escribirTexto(contentStream, fuente, tamanioFuente, Anio, 505, 409);
+        escribirTexto(contentStream, fuente, tamanioFuente, Anio, 505, 409.4f);
 
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getNombres() + " " + alumno.getApellidos(), 388, 366.8f);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getCi(), 257, 339);
@@ -235,7 +235,7 @@ public class FormularioPdfService {
         escribirParrafo(contentStream, fuente, 10, fechaFinPasantia.format(formatoLargo), 451, 560, 106, 14);
 
         if (area != null && !area.isBlank()) {
-            escribirParrafo(contentStream, fuente, 10, area, 210, 484, 340, 14);
+            escribirParrafo(contentStream, fuente, 10, area, 210, 482.5f, 340, 14);
         }
 
         contentStream.close();
