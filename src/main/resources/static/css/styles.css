@@ -5671,6 +5671,17 @@ input:read-only {
     cursor: default;
 }
 
+/* Las cinco fechas que se autocompletan a partir de la fecha ancla (ver
+   planillaSemanal.js): además del fondo plano genérico de arriba, se atenúan
+   un poco más para que a simple vista se note cuál de los seis campos es el
+   que el alumno realmente cargó. Acá sí conviene la opacidad -- a diferencia
+   de un campo bloqueado con datos de la base (Contrato, Autorización), estas
+   cinco fechas son un cálculo, no información que haga falta leer con
+   atención. */
+.dia-bloque input[type="date"]:read-only {
+    opacity: 0.55;
+}
+
 /* ---------- Las dos acciones ---------- */
 
 .impr-doc-acciones {

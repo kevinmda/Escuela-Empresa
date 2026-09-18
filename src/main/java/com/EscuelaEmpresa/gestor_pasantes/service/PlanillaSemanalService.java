@@ -205,8 +205,12 @@ public class PlanillaSemanalService {
 
     private void validarDia(DiaForm dia, DayOfWeek diaEsperado) {
 
-        boolean tieneAlgunDato = dia.getFecha() != null 
-                || dia.getHoras() != null 
+        // La fecha ya no sirve como señal de "este día tiene datos": con el
+        // esquema de fecha ancla, las otras cinco se autocompletan solas y
+        // siempre llegan con un valor, aunque el alumno no haya trabajado ese
+        // día. Lo único que dice si el alumno quiso cargar el día es si puso
+        // horas o descripción.
+        boolean tieneAlgunDato = dia.getHoras() != null
                 || (dia.getDescripcion() != null && !dia.getDescripcion().isBlank());
 
         if (!tieneAlgunDato) {
