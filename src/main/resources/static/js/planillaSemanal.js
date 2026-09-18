@@ -1,8 +1,11 @@
-// Guarda los indices de los dias que el alumno ya toco a mano (escribio o borro),
-// para no pisarle ese campo con el autocompletado. Como este script nunca hace
-// input.value = ... a traves de un evento del navegador, cualquier evento "input"
-// que llegue es garantizado que vino de una accion real del alumno.
-const camposTocados = new Set();
+// La primera fecha que el alumno carga (en cualquiera de los seis días) es el
+// "ancla": a partir de ella se calculan las otras cinco (ancla ±1, ±2... según
+// la posición de cada día) y esas cinco quedan bloqueadas -- ya no hace falta
+// escribirlas a mano, ni se pueden desalinear de la primera. Si el alumno
+// borra la fecha ancla, se borran las otras cinco y los seis campos vuelven a
+// quedar libres para elegir una nueva ancla (no tiene que ser la misma fila
+// de antes).
+let indiceAnclaFecha = null;
 
 function habilitarFormulario() {
     limpiarFormulario();
@@ -23,14 +26,11 @@ function habilitarFormulario() {
     if (formEliminar) {
         formEliminar.style.display = 'none';
     }
-
-    camposTocados.clear(); // arranca una planilla nueva, se olvida de lo tocado antes
-    actualizarLimitesFecha();
 }
 
 // Suma las horas de los seis dias mientras el alumno escribe. Es el numero que
-// despues aparece en el PDF y en el informe, y hasta ahora habia que sacarlo de
-// cabeza sumando los seis campos.
+// despues aparece en el PDF y en el informe, y hasta ahora habia que sacarlo
+// de cabeza sumando los seis campos.
 function actualizarTotalHoras() {
     const salida = document.getElementById('totalHoras');
     if (!salida) return;
@@ -51,65 +51,60 @@ function limpiarFormulario() {
     const campos = document.querySelectorAll('#fieldsetPlanilla input, #fieldsetPlanilla textarea');
     campos.forEach(campo => campo.value = '');
     document.querySelectorAll('.aviso-limite').forEach(aviso => aviso.style.display = 'none');
-    camposTocados.clear();
-    actualizarLimitesFecha();
+    liberarFechas();
     actualizarTotalHoras();
 }
 
-// En cuanto el alumno elige/cambia la fecha de un día, calculamos cuál es la única fecha
-// posible para los demás días (según su posición Lunes->Sábado), se la ponemos como min/max
-// (para que el calendario del navegador no deje elegir otra cosa), y AUTOCOMPLETAMOS con esa
-// fecha los campos que el alumno todavia no toco a mano.
-//
-// "indiceAnclaForzado" es el indice del campo que el alumno acaba de editar (si vino de un
-// evento de input) -- lo usamos como ancla en vez de "el primero que tenga algo cargado",
-// para que si el alumno corrige una fecha que ya tenia (por ej. el Miercoles autocompletado
-// antes) todo el resto se recalcule en base a ESE cambio, no al valor viejo del Lunes.
-function actualizarLimitesFecha(indiceAnclaForzado) {
+// Vuelve los seis campos de fecha a su estado inicial: vacios, editables, sin
+// ancla. Es lo que pasa al arrancar una planilla nueva y lo que pasa cuando el
+// alumno borra la fecha ancla.
+function liberarFechas() {
+    indiceAnclaFecha = null;
+    document.querySelectorAll('.dia-bloque input[type="date"]').forEach(input => {
+        input.value = '';
+        input.readOnly = false;
+    });
+}
+
+// Recalcula las otras cinco fechas a partir de la fecha ancla y las deja
+// bloqueadas. La fecha ancla en si no se toca (sigue editable).
+function recalcularDesdeAncla() {
+    const inputsFecha = document.querySelectorAll('.dia-bloque input[type="date"]');
+    const inputAncla = inputsFecha[indiceAnclaFecha];
+    if (!inputAncla || !inputAncla.value) return;
+
+    const fechaAncla = new Date(inputAncla.value + 'T00:00:00');
+
+    inputsFecha.forEach((input, indice) => {
+        if (indice === indiceAnclaFecha) return;
+
+        const diferenciaDias = indice - indiceAnclaFecha;
+        const fechaEsperada = new Date(fechaAncla);
+        fechaEsperada.setDate(fechaEsperada.getDate() + diferenciaDias);
+
+        input.value = fechaEsperada.toISOString().split('T')[0];
+        input.readOnly = true;
+    });
+}
+
+// Si la planilla ya viene con fechas cargadas (al editar una que se guardo con
+// el esquema viejo, con varias fechas tocadas a mano), la del primer campo con
+// valor pasa a ser la ancla y el resto se recalcula y se bloquea a partir de
+// ella, aunque no coincidan con lo que ya estaba guardado ahi.
+function inicializarFechas() {
     const inputsFecha = document.querySelectorAll('.dia-bloque input[type="date"]');
     if (inputsFecha.length === 0) return;
 
-    let indiceAncla = null;
-    let fechaAncla = null;
-
-    if (indiceAnclaForzado !== undefined && inputsFecha[indiceAnclaForzado].value) {
-        indiceAncla = indiceAnclaForzado;
-        fechaAncla = new Date(inputsFecha[indiceAnclaForzado].value + 'T00:00:00');
-    } else {
-        inputsFecha.forEach((input, indice) => {
-            if (input.value && fechaAncla === null) {
-                indiceAncla = indice;
-                fechaAncla = new Date(input.value + 'T00:00:00');
-            }
-        });
-    }
-
-    if (fechaAncla === null) {
-        // no queda ningun dia cargado: no restringimos nada
-        inputsFecha.forEach(input => {
-            input.removeAttribute('min');
-            input.removeAttribute('max');
-        });
-        return;
-    }
-
+    indiceAnclaFecha = null;
     inputsFecha.forEach((input, indice) => {
-        if (indice === indiceAncla) return; // el ancla no se toca a si misma
-
-        const diferenciaDias = indice - indiceAncla;
-        const fechaEsperada = new Date(fechaAncla);
-        fechaEsperada.setDate(fechaEsperada.getDate() + diferenciaDias);
-        const fechaTexto = fechaEsperada.toISOString().split('T')[0];
-
-        input.min = fechaTexto;
-        input.max = fechaTexto;
-
-        // autocompletamos (o realineamos) el campo, siempre y cuando el alumno
-        // no lo haya tocado el a mano
-        if (!camposTocados.has(indice)) {
-            input.value = fechaTexto;
+        if (input.value && indiceAnclaFecha === null) {
+            indiceAnclaFecha = indice;
         }
     });
+
+    if (indiceAnclaFecha !== null) {
+        recalcularDesdeAncla();
+    }
 }
 
 // Para cada campo con "maxlength" dentro del formulario, agrega un pequeño mensaje
@@ -136,7 +131,7 @@ function inicializarAvisosLimite() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    actualizarLimitesFecha();
+    inicializarFechas();
     inicializarAvisosLimite();
     actualizarTotalHoras();
 
@@ -148,41 +143,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inputsFecha.forEach((input, indice) => {
         input.addEventListener('input', () => {
-
-            // ¿queda algun OTRO campo tocado a mano que todavia tenga una fecha cargada?
-            // (los que tienen valor solo porque se autocompletaron no cuentan). Si la
-            // respuesta es NO, este campo es el UNICO dato real que queda en la planilla
-            // -- lo tratamos como el nuevo punto de partida: nos olvidamos de que los
-            // demas habian sido tocados (aunque el alumno los haya borrado a mano antes),
-            // para que se puedan volver a autocompletar en base a este campo.
-            let quedaOtraAnclaTocada = false;
-            for (let i = 0; i < inputsFecha.length; i++) {
-                if (i === indice) continue;
-                if (inputsFecha[i].value !== '' && camposTocados.has(i)) {
-                    quedaOtraAnclaTocada = true;
-                    break;
-                }
-            }
-
-            if (!quedaOtraAnclaTocada) {
-                camposTocados.clear();
-                camposTocados.add(indice);
-
-                if (input.value === '') {
-                    // tambien se vacio este (ya no queda ningun dato cargado): borramos
-                    // el resto por las dudas y no restringimos nada hasta que carguen algo
-                    inputsFecha.forEach(otro => otro.value = '');
-                    actualizarLimitesFecha();
-                } else {
-                    // este campo tiene una fecha nueva: recalculamos y autocompletamos
-                    // el resto en base a el, de cero
-                    actualizarLimitesFecha(indice);
+            if (indiceAnclaFecha === null) {
+                // Todavia no hay ancla: el primer campo que el alumno complete
+                // pasa a serlo, y el resto se calcula y se bloquea a partir de el.
+                if (input.value) {
+                    indiceAnclaFecha = indice;
+                    recalcularDesdeAncla();
                 }
                 return;
             }
 
-            camposTocados.add(indice); // el alumno escribio o borro este campo a mano
-            actualizarLimitesFecha(indice);
+            // Los demas campos estan bloqueados (readonly) mientras hay una
+            // ancla, asi que un input real solo puede venir de ese mismo campo.
+            if (indice !== indiceAnclaFecha) return;
+
+            if (!input.value) {
+                // Se borro la fecha ancla: se borran las otras cinco y los
+                // seis quedan libres de nuevo.
+                liberarFechas();
+            } else {
+                // La ancla cambio de fecha (no se borro): se recalcula el
+                // resto en base a la fecha nueva.
+                recalcularDesdeAncla();
+            }
         });
     });
 });
