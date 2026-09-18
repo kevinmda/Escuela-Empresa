@@ -36,41 +36,58 @@
         <p class="subtitulo-pagina">Cada documento se genera con tus datos ya cargados. También podés bajarlo en
             blanco para completarlo a mano.</p>
 
+        <div id="documentos-error">
+            <div th:if="${error}" class="mensaje-error">
+                <p th:text="${error}"></p>
+            </div>
+        </div>
+
         <section class="panel impr-pliego" aria-labelledby="impr-final">
             <div class="impr-momento">
                 <h3 class="impr-momento-titulo" id="impr-final">Al terminar</h3>
             </div>
 
             <ul class="impr-lista">
-                <li class="impr-doc">
-                    <div class="impr-doc-hoja">
-                        <span class="impr-hoja" aria-hidden="true">
-                            <span class="impr-hoja-cara">
-                                <span class="impr-hoja-banda"></span>
-                                <span class="impr-hoja-renglones"></span>
+                <li class="impr-doc impr-doc--formulario">
+                    <div class="impr-doc-cabecera">
+                        <div class="impr-doc-hoja">
+                            <span class="impr-hoja" aria-hidden="true">
+                                <span class="impr-hoja-cara">
+                                    <span class="impr-hoja-banda"></span>
+                                    <span class="impr-hoja-renglones"></span>
+                                </span>
                             </span>
-                        </span>
-                        <span class="impr-hoja-cuenta">1 hoja</span>
+                            <span class="impr-hoja-cuenta">1 hoja</span>
+                        </div>
+                        <div class="impr-doc-texto">
+                            <h4 class="impr-doc-titulo">Ficha final</h4>
+                            <p class="impr-doc-desc">Tus datos completos y las fechas de inicio y fin de la pasantía,
+                                sacadas de tus planillas.</p>
+                            <!-- Sin las 6 semanas completas, el servidor no puede calcular esas
+                                 fechas y la descarga termina en una pantalla de error. Decirlo
+                                 antes cuesta un renglón; toparse con el error, una consulta al
+                                 coordinador. -->
+                            <p class="impr-doc-requisito">Necesita las 6 planillas semanales completas.</p>
+                        </div>
                     </div>
-                    <div class="impr-doc-texto">
-                        <h4 class="impr-doc-titulo">Ficha final</h4>
-                        <p class="impr-doc-desc">Tus datos completos y las fechas de inicio y fin de la pasantía,
-                            sacadas de tus planillas.</p>
-                        <!-- Sin ninguna planilla cargada, el servidor no puede calcular esas
-                             fechas y la descarga termina en una pantalla de error. Decirlo
-                             antes cuesta un renglón; toparse con el error, una consulta al
-                             coordinador. -->
-                        <p class="impr-doc-requisito">Necesita al menos una planilla semanal cargada.</p>
-                    </div>
-                    <div class="impr-doc-acciones">
-                        <a th:if="${tienePlanillas}" class="btn btn-primary" th:href="@{/alumno/imprimir/Ficha_Final_Pel.pdf}"
-                           target="_blank" rel="noopener"
-                           aria-label="Ficha final con mis datos">Con mis datos</a>
-                        <button th:unless="${tienePlanillas}" type="button" class="btn btn-primary" disabled>Con mis datos</button>
-                        <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Ficha_Final_Pel_Vacio.pdf}"
-                           target="_blank" rel="noopener"
-                           aria-label="Ficha final en blanco">En blanco</a>
-                    </div>
+
+                    <form class="impr-doc-formulario" method="get" th:action="@{/alumno/imprimir/Ficha_Final_Pel.pdf}"
+                          target="_blank" id="form-ficha-final">
+                        <div class="impr-doc-campos">
+                            <label class="pl-campo">
+                                <span class="pl-campo-etiqueta">Área de pasantía</span>
+                                <input type="text" name="area" maxlength="150" th:disabled="${!tieneSeisPlanillas}" required>
+                            </label>
+                        </div>
+
+                        <div class="impr-doc-acciones">
+                            <button type="submit" class="btn btn-primary" id="btn-generar-ficha-final" disabled
+                                    aria-label="Generar la ficha final con mis datos">Con mis datos</button>
+                            <a class="btn btn-vacio" th:href="@{/alumno/imprimir/Ficha_Final_Pel_Vacio.pdf}"
+                               target="_blank" rel="noopener"
+                               aria-label="Ficha final en blanco">En blanco</a>
+                        </div>
+                    </form>
                 </li>
 
                 <li class="impr-doc">
@@ -100,5 +117,7 @@
             </ul>
         </section>
     </main>
+
+    <script th:src="@{/js/documentosAlTerminar.js}"></script>
 </body>
 </html>

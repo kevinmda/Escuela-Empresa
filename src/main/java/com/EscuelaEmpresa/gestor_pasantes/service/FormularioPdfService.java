@@ -171,7 +171,23 @@ public class FormularioPdfService {
         return aBytes(document);
     }
 
+    // Version anterior, usada por la API movil (FormulariosMovilController), que
+    // todavia no pide el Área de pasantía. No se toca para no romper esa
+    // integracion; tampoco exige las 6 planillas, solo que haya alguna.
     public byte[] generarFichaFinal(Alumno alumno, List<PlanillaSemanal> todasLasPlanillas) throws IOException {
+        if (todasLasPlanillas.isEmpty()) {
+            throw new ReglaNegocioException("El alumno no tiene planillas cargadas, no se puede generar el documento");
+        }
+        return generarFichaFinal(alumno, todasLasPlanillas, null);
+    }
+
+    // Version web: area viene del formulario de /alumno/documentos/al-terminar,
+    // habilitado recien con las 6 planillas completas (ver
+    // ImprimirController.generarPdfFichaFinalPel). "Área de Pasantía" ya
+    // estaba en la plantilla, sin usar -- por eso no hizo falta agregar nada
+    // a la plantilla, solo escribir ahí.
+    public byte[] generarFichaFinal(Alumno alumno, List<PlanillaSemanal> todasLasPlanillas, String area)
+            throws IOException {
         if (todasLasPlanillas.isEmpty()) {
             throw new ReglaNegocioException("El alumno no tiene planillas cargadas, no se puede generar el documento");
         }
@@ -217,6 +233,10 @@ public class FormularioPdfService {
 
         escribirParrafo(contentStream, fuente, 10, fechaInicioPasantia.format(formatoLargo), 210, 560, 106, 14);
         escribirParrafo(contentStream, fuente, 10, fechaFinPasantia.format(formatoLargo), 451, 560, 106, 14);
+
+        if (area != null && !area.isBlank()) {
+            escribirParrafo(contentStream, fuente, 10, area, 210, 484, 340, 14);
+        }
 
         contentStream.close();
         return aBytes(document);
