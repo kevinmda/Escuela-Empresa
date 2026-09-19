@@ -110,7 +110,7 @@ public class ChromeModelAdvice {
                     "Ya se habilitaron tus documentos finales",
                     "/alumno/documentos/al-terminar",
                     "listo",
-                    fechaSextaPlanilla));
+                    fechaSextaPlanilla.atStartOfDay()));
         }
 
         // findByAlumno_IdAlOrderByFechaDesdeDesc: la más nueva va primera.
@@ -133,7 +133,7 @@ public class ChromeModelAdvice {
                 "Falta cargar la planilla",
                 "/alumno/planilla",
                 "pendiente",
-                sabadoProximaSemana));
+                sabadoProximaSemana.atStartOfDay()));
     }
 
     // usado por fragments/auth.html para armar og:image con URL absoluta: las

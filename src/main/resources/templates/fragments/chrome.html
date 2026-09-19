@@ -104,12 +104,22 @@
                     </svg>
                     <span class="aviso-caja-punto" aria-hidden="true"></span>
                 </summary>
-                <div class="cuenta-menu">
-                    <a th:each="aviso : ${chrome.avisosOrdenados()}"
-                       th:href="@{${aviso.destino()}}"
-                       class="cuenta-item aviso-item"
-                       th:classappend="${aviso.tipo() == 'listo'} ? ' aviso-item--listo' : ' aviso-item--pendiente'"
-                       th:text="${aviso.texto()}">Aviso</a>
+                <div class="cuenta-menu aviso-menu">
+                    <th:block th:each="aviso, iterAviso : ${chrome.avisosOrdenados()}">
+                        <!-- Encabezado de grupo: solo antes del primer aviso de cada día
+                             distinto. Como avisosOrdenados() ya viene del más reciente al más
+                             viejo, alcanza con comparar contra el anterior de la misma lista
+                             (o no comparar nada si es el primero de todos). -->
+                        <p class="aviso-grupo-titulo"
+                           th:if="${iterAviso.index == 0 or aviso.etiquetaDia() != chrome.avisosOrdenados().get(iterAviso.index - 1).etiquetaDia()}"
+                           th:text="${aviso.etiquetaDia()}">Hoy</p>
+                        <a th:href="@{${aviso.destino()}}"
+                           class="cuenta-item aviso-item"
+                           th:classappend="${aviso.tipo() == 'listo'} ? ' aviso-item--listo' : ' aviso-item--pendiente'">
+                            <span class="aviso-item-texto" th:text="${aviso.texto()}">Aviso</span>
+                            <span class="aviso-item-hora" th:text="${aviso.hora()}">00:00</span>
+                        </a>
+                    </th:block>
                 </div>
             </details>
 

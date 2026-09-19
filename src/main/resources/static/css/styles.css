@@ -487,6 +487,41 @@ img {
     border-left-color: var(--success);
 }
 
+/* Encabezado de grupo ("Hoy", "Ayer", "Hace 3 días"...): mismo tratamiento que
+   un <legend> chico, no es un aviso en sí, así que no lleva el fondo ni el
+   hover de .cuenta-item. */
+.aviso-grupo-titulo {
+    margin: 0.5rem 0.6rem 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+}
+
+.aviso-grupo-titulo:first-child {
+    margin-top: 0.2rem;
+}
+
+/* Texto a la izquierda, hora a la derecha: .cuenta-item de por sí es
+   display:block (una sola línea de texto), así que hace falta el flex acá
+   para las dos columnas. .aviso-item.cuenta-item (dos clases) le gana a
+   .cuenta-item (una clase) sin depender de en qué orden quedaron en el
+   archivo. */
+.aviso-item.cuenta-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.aviso-item-hora {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+}
+
 /* En las pantallas de acceso no hay header donde alojar el toggle, así que flota
    sobre la ilustración. Siguiendo el uso de materiales de Apple, no es una ficha
    opaca sino una capa translúcida: deja ver el color que tiene detrás, con blur
