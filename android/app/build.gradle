@@ -2,6 +2,18 @@ plugins {
     id 'com.android.application'
 }
 
+// Firma de la release: las contraseñas viven en keystore.properties (gitignored,
+// junto con el .jks), igual que application.properties con las credenciales del
+// backend. Sin ese archivo (clon nuevo, CI sin secretos) la release simplemente
+// sale sin firmar -- el build no se rompe, solo esa APK no se puede instalar
+// todavía. Ver keystore.properties.example para la plantilla.
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+def hayKeystore = keystorePropertiesFile.exists()
+if (hayKeystore) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace 'com.escuelaempresa.gestorpasantes'
     compileSdk 35
@@ -14,10 +26,24 @@ android {
         versionName "1.0"
     }
 
+    signingConfigs {
+        release {
+            if (hayKeystore) {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hayKeystore) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 

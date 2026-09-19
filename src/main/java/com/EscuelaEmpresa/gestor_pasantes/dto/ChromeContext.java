@@ -185,4 +185,15 @@ public record ChromeContext(
             default -> null;
         };
     }
+
+    /**
+     * La app Android (android/) es solo para alumnos -- planilla semanal,
+     * subir documentos, formularios -- así que el enlace de descarga no
+     * aparece para coordinación ni administración, que no tienen pantallas
+     * pensadas para ese rol ahí. Actualizar el APK es reemplazar el archivo
+     * en static/apk/, no tocar este método.
+     */
+    public String apkDescarga() {
+        return "alumno".equals(rol) ? "/apk/gestor-pasantes.apk" : null;
+    }
 }

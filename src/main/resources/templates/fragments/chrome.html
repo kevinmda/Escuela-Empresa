@@ -159,6 +159,18 @@
                        th:href="@{${chrome.pdfAyuda()}}" target="_blank" rel="noopener">
                         Ayuda <span class="cuenta-item-nota">PDF</span>
                     </a>
+                    <!-- Descarga directa y no target="_blank": es un binario, no
+                         algo para abrir en una pestaña. download sugiere el
+                         nombre de archivo aunque el navegador muestre otra cosa
+                         en la URL. Solo para alumno (ver apkDescarga en
+                         ChromeContext): es la única app que existe hoy, y
+                         mostrarla en coordinación/administración prometería una
+                         pantalla que esos roles no tienen. -->
+                    <a class="cuenta-item"
+                       th:if="${chrome != null and chrome.apkDescarga() != null}"
+                       th:href="@{${chrome.apkDescarga()}}" download="GestorPasantes.apk">
+                        Descargar app <span class="cuenta-item-nota">APK</span>
+                    </a>
                     <!-- Acá y no en un pie de página: agregarle un pie a las once
                          pantallas costaría altura en todas para dos enlaces que se
                          consultan una vez. En el menú de la cuenta están donde uno

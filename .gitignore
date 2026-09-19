@@ -66,6 +66,11 @@ android/*/.cxx/
 android/captures/
 android/*.hprof
 android/app/release/
+# Firma de la app: keystore.properties (contraseñas) y el .jks en sí. La
+# plantilla (keystore.properties.example) SI se versiona, mismo criterio que
+# application.properties.example arriba.
+android/keystore.properties
+android/keystore/
 
 ### Claude Code (configuracion local del asistente) ###
 .claude/
