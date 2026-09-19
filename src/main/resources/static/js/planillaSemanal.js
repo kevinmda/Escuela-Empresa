@@ -22,6 +22,15 @@ function habilitarFormulario() {
         btnPdf.disabled = true;
     }
 
+    // "Semana N (Cargar)" no navega -- a diferencia de un link a una semana ya
+    // cargada, es un botón, así que la página nunca se recarga con datos
+    // limpios. Sin esto, Editar/Generar PDF/Eliminar seguían mostrando la
+    // semana que se estaba mirando antes de tocar "Cargar" acá.
+    const btnEditar = document.getElementById('btnEditar');
+    if (btnEditar) {
+        btnEditar.disabled = true;
+    }
+
     const formEliminar = document.getElementById('formEliminar');
     if (formEliminar) {
         formEliminar.style.display = 'none';
@@ -73,6 +82,18 @@ function limpiarFormulario() {
     liberarFechas();
     actualizarTotalHoras();
     ocultarAvisoCambiosSinGuardar();
+
+    // La causa real del bug de guardar sobre la semana equivocada: este campo
+    // vive fuera del fieldset (como indice-fecha-ancla) y por eso el bucle de
+    // arriba no lo toca. Si la página venía de mirar una semana ya guardada
+    // (cargarParaEdicion lo dejó con ese id), y de ahí se pasaba a "Cargar
+    // semana nueva" -- que no navega, solo corre este JS -- el id viejo se
+    // quedaba puesto y "Cargar la planilla" terminaba actualizando esa semana
+    // en vez de crear una nueva.
+    const idPsEdicion = document.getElementById('id-ps-edicion');
+    if (idPsEdicion) {
+        idPsEdicion.value = '';
+    }
 }
 
 // Aviso de "tenés cambios sin guardar": aparece con el primer input real
