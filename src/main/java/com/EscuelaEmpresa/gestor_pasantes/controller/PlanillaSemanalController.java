@@ -85,6 +85,17 @@ public class PlanillaSemanalController {
         model.addAttribute("tieneSupervisor", tieneSupervisor);
         model.addAttribute("tieneEmpresa", tieneEmpresa);
         model.addAttribute("informeHabilitado", tieneSeisPlanillas && tieneSupervisor && tieneEmpresa);
+
+        // El detalle de cada requisito (a qué empresa, quién supervisa, cuántas
+        // semanas llevás) para que la pantalla diga algo concreto en vez de
+        // solo tres tildes: son los mismos datos que ya usa el informe, así
+        // que mostrarlos acá no pide una consulta extra.
+        model.addAttribute("nombreEmpresa", tieneEmpresa ? alumno.getEmpresa().getNombre() : null);
+        model.addAttribute("nombreSupervisor", tieneSupervisor
+                ? alumno.getSupervisor().getNombres() + " " + alumno.getSupervisor().getApellidos()
+                : null);
+        model.addAttribute("cantidadPlanillas", planillas.size());
+
         return "alumno/documentos-informe";
     }
 

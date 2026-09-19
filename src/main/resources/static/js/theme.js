@@ -190,12 +190,17 @@
         });
     }
 
-    // Botón "Mostrar/Ocultar" para campos de contraseña. Se activa con
+    // Botón de ojo (mostrar/ocultar) para campos de contraseña. Se activa con
     // data-target apuntando al id del <input>, ej:
     // <div class="campo-password">
     //   <input type="password" id="password" ...>
-    //   <button type="button" class="toggle-password" data-target="password">Mostrar</button>
+    //   <button type="button" class="toggle-password" data-target="password">
+    //     <svg class="ico-ojo">...</svg>
+    //     <svg class="ico-ojo-tachado">...</svg>
+    //   </button>
     // </div>
+    // El estado visual (qué ojo se ve) lo decide el CSS a partir de la clase
+    // "mostrando"; acá solo se togglea esa clase y el texto va por aria-label.
     function inicializarTogglesPassword() {
         document.querySelectorAll('.toggle-password').forEach(function (boton) {
             boton.addEventListener('click', function () {
@@ -204,7 +209,7 @@
 
                 const seVaAMostrar = campo.type === 'password';
                 campo.type = seVaAMostrar ? 'text' : 'password';
-                boton.textContent = seVaAMostrar ? 'Ocultar' : 'Mostrar';
+                boton.classList.toggle('mostrando', seVaAMostrar);
                 boton.setAttribute('aria-label', seVaAMostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
                 // aria-pressed comunica el estado del botón a los lectores de pantalla,
                 // que con solo el aria-label no sabrían si está activo o no.
@@ -322,11 +327,31 @@
         footer.className = 'credito-disenio';
         footer.setAttribute('aria-label', 'Créditos de diseño y desarrollo');
         footer.innerHTML =
-            '<span>Diseñado por:</span> ' +
+            '<span>Desarrollado por:</span> ' +
             '<a href="#" target="_blank" rel="noopener noreferrer">[Nombre 1]</a> ' +
             '<span>y por:</span> ' +
             '<a href="#" target="_blank" rel="noopener noreferrer">[Nombre 2]</a>';
         return footer;
+    }
+
+    // En movil .barra-riel se desplaza en horizontal (ver el media query en
+    // styles.css) y sin nada que lo indique, el riel de cuatro o cinco
+    // secciones (coordinación, administración) parece una lista corta y
+    // completa: no hay ninguna pista de que sigue hacia la derecha. Estas
+    // clases prenden un degradado en cada borde solo cuando de verdad hay
+    // contenido tapado de ese lado, y se apagan solas al llegar al final.
+    function inicializarRielDesbordado() {
+        document.querySelectorAll('.barra-riel').forEach(function (riel) {
+            function actualizar() {
+                const desborda = riel.scrollWidth > riel.clientWidth + 1;
+                riel.classList.toggle('riel-desborda-izq', desborda && riel.scrollLeft > 1);
+                riel.classList.toggle('riel-desborda-der',
+                    desborda && riel.scrollLeft < riel.scrollWidth - riel.clientWidth - 1);
+            }
+            riel.addEventListener('scroll', actualizar, { passive: true });
+            window.addEventListener('resize', actualizar);
+            actualizar();
+        });
     }
 
     function asegurarCreditoDisenio() {
@@ -346,6 +371,7 @@
         actualizarIndicadorCarga();
         document.querySelectorAll('form').forEach(prepararValidacion);
         inicializarTogglesPassword();
+        inicializarRielDesbordado();
         prepararMenuCuenta();
         prepararGiroMarca();
         vigilarCreditoDisenio();

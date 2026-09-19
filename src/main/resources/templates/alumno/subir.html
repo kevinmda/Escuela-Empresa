@@ -115,6 +115,59 @@
             <p>Para reemplazar alguno, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
         </div>
 
+        <!-- Apartado exclusivo de Documentos adjuntos: no es uno de los cinco
+             tipos del expediente, es el expediente ya combinado (autorización +
+             contrato + planillas + las dos fichas, armado en
+             /alumno/documentos/adjuntos) firmado y escaneado de vuelta. Va
+             justo debajo del formulario de arriba (con el que comparte la
+             misma acción de "subir un PDF"), antes de la tabla de "Lo que ya
+             subiste" -- que es una lista de estado, no otro formulario -- y
+             se habilita recién cuando esos diez ya están completos: subirlo
+             antes no tendría nada que combinar.
+
+             Acá no hay ningún tipo que elegir -- a diferencia de la grilla de
+             arriba, donde sí hay una decisión real entre cinco -- así que no
+             lleva ninguna tarjeta de tipo: el formulario ya manda
+             tipoDocumento=DOCUMENTOS_ADJUNTOS en un campo oculto, y directo
+             debajo está la única zona de arrastre de este apartado. -->
+        <section class="panel sb-form" aria-labelledby="sb-adjuntos-titulo">
+            <h3 class="sb-subidos-titulo" id="sb-adjuntos-titulo">Documentos adjuntos</h3>
+            <p class="sb-adjuntos-nota">
+                El expediente completo que armás en
+                <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a>, ya firmado y escaneado. Se
+                admite un solo archivo.
+            </p>
+
+            <form th:if="${puedeSubirAdjuntos}" th:action="@{/alumno/subir}" method="post"
+                  enctype="multipart/form-data" class="sb-form-adjuntos-cuerpo">
+                <input type="hidden" name="tipoDocumento" value="DOCUMENTOS_ADJUNTOS">
+
+                <label for="archivo-input-adjuntos" class="dropzone" id="dropzone-adjuntos">
+                    <span class="dropzone-titulo" id="dropzone-titulo-adjuntos">Hacé click o arrastrá tu PDF acá</span>
+                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
+                </label>
+                <input type="file" id="archivo-input-adjuntos" name="archivo" accept="application/pdf" required
+                       class="dropzone-input">
+
+                <div class="sb-form-acciones">
+                    <button type="submit" class="btn btn-primary">Subir documento</button>
+                </div>
+            </form>
+
+            <!-- Mismo tratamiento que "Todavía no subiste ningún documento" más
+                 abajo: es el mismo tipo de estado (nada para hacer todavía acá),
+                 así que se ve igual, no una variante nueva. -->
+            <p th:unless="${expedienteCompleto}" class="sb-vacio">
+                Se habilita cuando completes los <span th:text="${totalLimite}">10</span> comprobantes de arriba
+                (llevás <span th:text="${totalSubidos}">0</span>).
+            </p>
+
+            <div th:if="${expedienteCompleto and documentoAdjuntos != null}" class="sb-vacio">
+                <p>Ya lo subiste.</p>
+                <p>Para reemplazarlo, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
+            </div>
+        </section>
+
         <section class="sb-subidos" aria-labelledby="sb-subidos-titulo">
             <h3 class="sb-subidos-titulo" id="sb-subidos-titulo">Lo que ya subiste</h3>
 
@@ -155,57 +208,6 @@
                 Todavía no subiste ningún documento. Elegí arriba de qué tipo es y
                 arrastrá el PDF.
             </p>
-        </section>
-
-        <!-- Apartado exclusivo de Documentos adjuntos: no es uno de los cinco
-             tipos del expediente, es el expediente ya combinado (autorización +
-             contrato + planillas + las dos fichas, armado en
-             /alumno/documentos/adjuntos) firmado y escaneado de vuelta. Por eso
-             va separado y no entra en la
-             grilla de arriba, y por eso se habilita recién cuando esos diez ya
-             están completos: subirlo antes no tendría nada que combinar.
-
-             Acá no hay ningún tipo que elegir -- a diferencia de la grilla de
-             arriba, donde sí hay una decisión real entre cinco -- así que no
-             lleva ninguna tarjeta de tipo: el formulario ya manda
-             tipoDocumento=DOCUMENTOS_ADJUNTOS en un campo oculto, y directo
-             debajo está la única zona de arrastre de este apartado. -->
-        <section class="panel sb-form" aria-labelledby="sb-adjuntos-titulo">
-            <h3 class="sb-subidos-titulo" id="sb-adjuntos-titulo">Documentos adjuntos</h3>
-            <p class="sb-adjuntos-nota">
-                El expediente completo que armás en
-                <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a>, ya firmado y escaneado. Se
-                admite un solo archivo.
-            </p>
-
-            <form th:if="${puedeSubirAdjuntos}" th:action="@{/alumno/subir}" method="post"
-                  enctype="multipart/form-data" class="sb-form-adjuntos-cuerpo">
-                <input type="hidden" name="tipoDocumento" value="DOCUMENTOS_ADJUNTOS">
-
-                <label for="archivo-input-adjuntos" class="dropzone" id="dropzone-adjuntos">
-                    <span class="dropzone-titulo" id="dropzone-titulo-adjuntos">Hacé click o arrastrá tu PDF acá</span>
-                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
-                </label>
-                <input type="file" id="archivo-input-adjuntos" name="archivo" accept="application/pdf" required
-                       class="dropzone-input">
-
-                <div class="sb-form-acciones">
-                    <button type="submit" class="btn btn-primary">Subir documento</button>
-                </div>
-            </form>
-
-            <!-- Mismo tratamiento que "Todavía no subiste ningún documento" más
-                 arriba: es el mismo tipo de estado (nada para hacer todavía acá),
-                 así que se ve igual, no una variante nueva. -->
-            <p th:unless="${expedienteCompleto}" class="sb-vacio">
-                Se habilita cuando completes los <span th:text="${totalLimite}">10</span> comprobantes de arriba
-                (llevás <span th:text="${totalSubidos}">0</span>).
-            </p>
-
-            <div th:if="${expedienteCompleto and documentoAdjuntos != null}" class="sb-vacio">
-                <p>Ya lo subiste.</p>
-                <p>Para reemplazarlo, eliminalo en la tabla de arriba y subí el nuevo acá.</p>
-            </div>
         </section>
     </main>
 

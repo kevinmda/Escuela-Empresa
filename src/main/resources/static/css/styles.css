@@ -288,8 +288,8 @@ img {
 }
 
 .barra-marca-logo {
-    width: 30px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
 }
 
 /* El logo es un engranaje, asi que gira mientras hay una peticion en curso: el
@@ -1452,14 +1452,16 @@ main h3 {
     padding: 0.95rem 1.1rem;
 }
 
-/* Los campos de contraseña llevan el botón "Mostrar" superpuesto: más reserva a la
-   derecha ahora que el input es más alto y el texto más grande. */
+/* Los campos de contraseña llevan el botón de ojo superpuesto: más reserva a la
+   derecha ahora que el input es más alto. */
 .auth-panel .auth-form .campo-password input {
-    padding-right: 4.75rem;
+    padding-right: 3.1rem;
 }
 
 .auth-panel .toggle-password {
-    font-size: 0.8rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    right: 0.5rem;
 }
 
 .auth-panel .auth-form button[type="submit"] {
@@ -1636,31 +1638,51 @@ main h3 {
     }
 }
 
-/* Campo de contraseña con botón "Mostrar/Ocultar" superpuesto */
+/* Campo de contraseña con botón de ojo (mostrar/ocultar) superpuesto */
 .campo-password {
     position: relative;
 }
 
 .campo-password input {
     width: 100%;
-    padding-right: 4.25rem;
+    padding-right: 2.75rem;
 }
 
 .toggle-password {
     position: absolute;
     top: 50%;
-    right: 0.5rem;
+    right: 0.35rem;
     transform: translateY(-50%);
-    /* --surface (no --bg) para que tape el texto del input sin leerse como una
-       ficha aparte: comparte el color del campo y solo se ve la palabra. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    /* --surface (no --bg) para que tape el borde del input sin leerse como una
+       ficha aparte: comparte el color del campo y solo se ve el icono. */
     background: var(--surface);
     border: none;
-    padding: 0.3rem 0.6rem;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    font-weight: 500;
+    border-radius: 50%;
+    padding: 0;
     color: var(--ink-soft);
     cursor: pointer;
+}
+
+.toggle-password svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.toggle-password .ico-ojo-tachado {
+    display: none;
+}
+
+.toggle-password.mostrando .ico-ojo {
+    display: none;
+}
+
+.toggle-password.mostrando .ico-ojo-tachado {
+    display: block;
 }
 
 .toggle-password:hover {
@@ -2793,9 +2815,7 @@ main > .hub-destinos { animation-delay: 0.18s; }
 
 .hub-estado {
     display: grid;
-    /* desiguales a propósito: el total de alumnos es la base, el pendiente
-       es una nota al margen */
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
 }
 
@@ -3167,7 +3187,7 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
 
 .chub-estado {
     display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
 }
 
@@ -4297,6 +4317,7 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
        secciones (coordinacion) no entran en el ancho de un telefono, y
        apilarlas verticalmente devolveria la columna que se acaba de sacar. */
     .barra-riel {
+        position: relative;
         order: 3;
         flex-basis: 100%;
         padding: 0.15rem;
@@ -4307,6 +4328,45 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
     .barra-riel::-webkit-scrollbar {
         display: none;
+    }
+
+    /* Degradado que asoma en el borde tapado, la única pista de que el riel
+       sigue para ese lado (ver inicializarRielDesbordado en theme.js, que
+       prende y apaga estas clases según el scroll real). Sin esto, cuatro o
+       cinco secciones en un riel sin scrollbar visible leen como una lista
+       corta y completa. */
+    .barra-riel::before,
+    .barra-riel::after {
+        content: "";
+        position: sticky;
+        width: 1.25rem;
+        height: 100%;
+        flex: 0 0 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        z-index: 1;
+    }
+
+    .barra-riel::before {
+        left: 0;
+        order: -1;
+        margin-right: -1.25rem;
+        background: linear-gradient(to right, var(--surface), transparent);
+    }
+
+    .barra-riel::after {
+        right: 0;
+        margin-left: -1.25rem;
+        background: linear-gradient(to left, var(--surface), transparent);
+    }
+
+    .barra-riel.riel-desborda-izq::before {
+        opacity: 1;
+    }
+
+    .barra-riel.riel-desborda-der::after {
+        opacity: 1;
     }
 
     /* 44px de alto real para el dedo: los enlaces no heredan el line-height del
@@ -6488,7 +6548,7 @@ input:read-only {
    Repetir el texto acá (en vez de leerlo de una variable) es a propósito: nada
    en este archivo depende de que el HTML siga existiendo. */
 body:not(:has(.credito-disenio))::after {
-    content: "Diseñado por: [Nombre 1] y por: [Nombre 2]";
+    content: "Desarrollado por: [Nombre 1] y por: [Nombre 2]";
     position: fixed;
     left: 1.25rem;
     bottom: 1rem;

@@ -49,11 +49,16 @@
 
                     <ul class="pl-requisitos">
                         <li class="pl-requisito" th:classappend="${tieneEmpresa} ? ' pl-requisito--listo'">
-                            Una empresa asignada</li>
+                            <span th:if="${tieneEmpresa}">Empresa: <strong th:text="${nombreEmpresa}"></strong></span>
+                            <span th:unless="${tieneEmpresa}">Una empresa asignada</span>
+                        </li>
                         <li class="pl-requisito" th:classappend="${tieneSupervisor} ? ' pl-requisito--listo'">
-                            Un supervisor o docente asignado</li>
+                            <span th:if="${tieneSupervisor}">Supervisor: <strong th:text="${nombreSupervisor}"></strong></span>
+                            <span th:unless="${tieneSupervisor}">Un supervisor o docente asignado</span>
+                        </li>
                         <li class="pl-requisito" th:classappend="${tieneSeisPlanillas} ? ' pl-requisito--listo'">
-                            Las seis semanas cargadas</li>
+                            <span>Semanas cargadas: <strong th:text="${cantidadPlanillas} + ' de 6'"></strong></span>
+                        </li>
                     </ul>
                 </div>
 
