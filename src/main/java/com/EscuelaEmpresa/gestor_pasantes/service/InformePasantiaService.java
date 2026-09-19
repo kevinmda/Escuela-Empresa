@@ -4,6 +4,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanalDetalle;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepository;
+import org.apache.poi.xwpf.usermodel.IBodyElement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
@@ -124,15 +125,17 @@ public class InformePasantiaService {
                         .findFirst()
                         .orElse(null);
 
-                String textoFinal;
                 if (detalleDelDia != null) {
                     String fecha = detalleDelDia.getFecha().format(FORMATO_FECHA_CORTA);
-                    textoFinal = NOMBRE_DIA_TEXTO[dia] + " " + fecha + ": " + detalleDelDia.getDescripcion();
+                    String textoFinal = NOMBRE_DIA_TEXTO[dia] + " " + fecha + ": " + detalleDelDia.getDescripcion();
+                    reemplazarParrafoCompleto(documento, bookmarkDia, textoFinal);
                 } else {
-                    textoFinal = NOMBRE_DIA_TEXTO[dia] + ": Sin actividades registradas";
+                    // Sin actividad registrada ese día: se saca la línea entera
+                    // del informe en vez de dejarla con un "Sin actividades
+                    // registradas" -- si el alumno solo trabajó el lunes de esa
+                    // semana, el resto de los días ni aparece.
+                    eliminarParrafoPorBookmark(documento, bookmarkDia);
                 }
-
-                reemplazarParrafoCompleto(documento, bookmarkDia, textoFinal);
             }
         }
 
@@ -220,6 +223,21 @@ public class InformePasantiaService {
                 }
                 if (acumulado.length() > textoOriginal.length()) break;
             }
+        }
+    }
+
+    // Para los días sin actividad: se saca el párrafo entero del cuerpo del
+    // documento, no solo se le cambia el texto. Mismo mecanismo que
+    // eliminarSemanasSobrantes (buscar la posición real en getBodyElements()
+    // y sacarla de ahí), pero acá es un párrafo suelto en vez de un rango.
+    private void eliminarParrafoPorBookmark(XWPFDocument documento, String bookmarkName) {
+        XWPFParagraph parrafo = buscarParrafoPorBookmark(documento, bookmarkName);
+        if (parrafo == null) return;
+
+        List<IBodyElement> elementos = documento.getBodyElements();
+        int indice = elementos.indexOf(parrafo);
+        if (indice != -1) {
+            documento.removeBodyElement(indice);
         }
     }
 
