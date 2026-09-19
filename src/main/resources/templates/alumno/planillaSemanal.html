@@ -113,7 +113,14 @@
                    target="_blank" rel="noopener"
                    class="btn btn-secondary btn-generar-pdf">Generar PDF de esta semana</a>
 
-                <form id="formEliminar"
+                <button type="button" id="btnEditar" class="btn btn-secondary"
+                        th:disabled="${habilitado}" onclick="habilitarEdicion()">Editar</button>
+
+                <!-- Solo la más reciente: borrar una del medio dejaría un hueco
+                     en la numeración de semanas sin correr las que vinieron
+                     después. El servidor aplica la misma regla por su cuenta
+                     (ver PlanillaSemanalController.eliminarPlanilla). -->
+                <form id="formEliminar" th:if="${idPsSeleccionado == idPsMasReciente}"
                       th:action="@{/alumno/planilla/{id}/eliminar(id=${idPsSeleccionado})}"
                       method="post"
                       onsubmit="return confirm('¿Estás seguro que querés eliminar esta planilla? Esta acción no se puede deshacer.');">
@@ -132,6 +139,7 @@
              ancho que necesita. -->
         <form th:action="@{/alumno/planilla}" th:object="${planillaForm}" method="post" id="formPlanilla">
             <input type="hidden" id="indice-fecha-ancla" th:field="*{indiceFechaAncla}">
+            <input type="hidden" id="id-ps-edicion" th:field="*{idPsEdicion}">
             <fieldset id="fieldsetPlanilla" th:disabled="${!habilitado}" class="fieldset-planilla">
 
                 <section class="panel pl-bloque">
@@ -208,6 +216,10 @@
                         </label>
                     </div>
                 </section>
+
+                <p id="aviso-cambios-sin-guardar" class="mensaje-error" hidden>
+                    Tenés cambios sin guardar en esta planilla.
+                </p>
 
                 <div class="acciones-planilla">
                     <button type="submit" class="btn btn-primary">Cargar la planilla</button>

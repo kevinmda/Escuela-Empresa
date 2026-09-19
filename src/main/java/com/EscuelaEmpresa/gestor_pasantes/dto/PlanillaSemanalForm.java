@@ -22,6 +22,12 @@ public class PlanillaSemanalForm {
     // una excepción antes de llegar siquiera al controller (error 500).
     private String indiceFechaAncla;
 
+    // Puramente de UI, mismo motivo que indiceFechaAncla (String para evitar el
+    // 500 con string vacío -> Integer). Vacío/null significa "planilla nueva";
+    // con un valor, guardarPlanilla actualiza esa planilla en vez de crear una
+    // séptima.
+    private String idPsEdicion;
+
     public PlanillaSemanalForm() {
         dias.add(new DiaForm("Lunes"));
         dias.add(new DiaForm("Martes"));
@@ -48,4 +54,7 @@ public class PlanillaSemanalForm {
 
     public String getIndiceFechaAncla() { return indiceFechaAncla; }
     public void setIndiceFechaAncla(String indiceFechaAncla) { this.indiceFechaAncla = indiceFechaAncla; }
+
+    public String getIdPsEdicion() { return idPsEdicion; }
+    public void setIdPsEdicion(String idPsEdicion) { this.idPsEdicion = idPsEdicion; }
 }

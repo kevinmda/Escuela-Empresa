@@ -34,10 +34,35 @@ public class PlanillaSemanalService {
     @Transactional
     public PlanillaSemanal guardarPlanilla(PlanillaSemanalForm form, Alumno alumno) {
 
-        // Maximo 6 planillas por alumno (una pasantia dura exactamente 6 semanas)
         List<PlanillaSemanal> planillasExistentes = planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
-        if (planillasExistentes.size() >= 6) {
-            throw new ReglaNegocioException("Ya cargaste las 6 semanas de planilla. No se pueden cargar más.");
+
+        // idPsEdicion viene del campo oculto que arma habilitarEdicion() en el
+        // JS: si tiene algo, se está actualizando esa planilla en vez de crear
+        // una nueva. Se saca de planillasExistentes ANTES de las validaciones
+        // de rango/superposición más abajo: si no, una planilla siempre se
+        // superpone consigo misma, y editarla sin cambiar las fechas
+        // rechazaría el guardado.
+        boolean esEdicion = form.getIdPsEdicion() != null && !form.getIdPsEdicion().isBlank();
+        PlanillaSemanal planilla;
+
+        if (esEdicion) {
+            Integer idPsEdicion = Integer.valueOf(form.getIdPsEdicion());
+            planilla = planillasExistentes.stream()
+                    .filter(p -> p.getIdPs().equals(idPsEdicion))
+                    .findFirst()
+                    .orElseThrow(() -> new ReglaNegocioException(
+                            "La planilla que intentás editar ya no existe. Volvé a intentarlo."));
+            planillasExistentes = planillasExistentes.stream()
+                    .filter(p -> !p.getIdPs().equals(idPsEdicion))
+                    .toList();
+        } else {
+            // Maximo 6 planillas por alumno (una pasantia dura exactamente 6 semanas).
+            // No aplica al editar: una edición no agrega una semana nueva.
+            if (planillasExistentes.size() >= 6) {
+                throw new ReglaNegocioException("Ya cargaste las 6 semanas de planilla. No se pueden cargar más.");
+            }
+            planilla = new PlanillaSemanal();
+            planilla.setAlumno(alumno);
         }
 
         // Validar cada día ANTES de filtrar
@@ -117,9 +142,7 @@ public class PlanillaSemanalService {
             throw new ReglaNegocioException("El campo Aprendizaje supera el máximo de 200 caracteres");
         }
 
-        // 3. Armar y guardar la PlanillaSemanal (cabecera)
-        PlanillaSemanal planilla = new PlanillaSemanal();
-        planilla.setAlumno(alumno);
+        // 3. Completar y guardar la PlanillaSemanal (cabecera)
         planilla.setSupervisor(form.getSupervisor());
         planilla.setConocimientos(form.getConocimientos());
         planilla.setExperiencia(form.getExperiencia());
@@ -130,7 +153,13 @@ public class PlanillaSemanalService {
 
         planillaSemanalRepository.save(planilla);
 
-        // 4. Armar y guardar cada detalle (los días efectivamente trabajados)
+        // 4. Armar y guardar cada detalle (los días efectivamente trabajados).
+        // Al editar, se reemplazan enteros: más simple y más confiable que
+        // tratar de encontrar cuál día cambió, cuál se agregó y cuál se sacó.
+        if (esEdicion) {
+            planillaSemanalDetalleRepository.deleteByPlanillaSemanal_IdPs(planilla.getIdPs());
+        }
+
         int contador = 1;
         for (DiaForm dia : diasTrabajados) {
             PlanillaSemanalDetalleId detalleId = new PlanillaSemanalDetalleId(planilla.getIdPs(), contador);
@@ -254,6 +283,7 @@ public class PlanillaSemanalService {
 
     public PlanillaSemanalForm cargarParaEdicion(PlanillaSemanal planilla) {
         PlanillaSemanalForm form = new PlanillaSemanalForm(); // ya viene con Lunes..Sábado precargados
+        form.setIdPsEdicion(String.valueOf(planilla.getIdPs()));
 
         form.setSupervisor(planilla.getSupervisor());
         form.setConocimientos(planilla.getConocimientos());

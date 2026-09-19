@@ -98,6 +98,9 @@ public class PlanillaSemanalController {
         List<PlanillaSemanal> planillas =
             planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         model.addAttribute("planillas", planillas);
+        // findByAlumno_IdAlOrderByFechaDesdeDesc trae la más nueva primero: la
+        // única que se puede borrar (ver eliminarPlanilla más abajo).
+        model.addAttribute("idPsMasReciente", planillas.isEmpty() ? null : planillas.get(0).getIdPs());
         agregarEstadoInforme(model, alumno, planillas);
 
         PlanillaSemanalForm form;
@@ -143,6 +146,7 @@ public class PlanillaSemanalController {
         List<PlanillaSemanal> planillas =
         planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         model.addAttribute("planillas", planillas);
+        model.addAttribute("idPsMasReciente", planillas.isEmpty() ? null : planillas.get(0).getIdPs());
         agregarEstadoInforme(model, alumno, planillas);
 
         return "alumno/planillaSemanal";
@@ -162,6 +166,23 @@ public class PlanillaSemanalController {
         // seguridad: que el alumno no pueda borrar planillas ajenas cambiando el idPs en la URL
         if (!planilla.getAlumno().getIdAl().equals(alumno.getIdAl())) {
             throw new AccessDeniedException("No tenés permiso para eliminar esta planilla");
+        }
+
+        // Solo se puede borrar la planilla más reciente (la de fecha_desde más
+        // alta): borrar una del medio dejaría un hueco en la numeración de
+        // semanas sin mover las que vinieron después, y esas ya podrían tener
+        // el Informe de Pasantía generado sobre ese orden. La misma
+        // restricción ya se refleja del lado del cliente (el botón "Eliminar"
+        // ni siquiera se muestra para las demás), esto es el respaldo del
+        // servidor.
+        List<PlanillaSemanal> planillasDelAlumno =
+                planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
+        boolean esLaMasReciente = !planillasDelAlumno.isEmpty()
+                && planillasDelAlumno.get(0).getIdPs().equals(idPs);
+        if (!esLaMasReciente) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Solo se puede eliminar la planilla más reciente.");
+            return "redirect:/alumno/planilla?idPs=" + idPs;
         }
 
         planillaSemanalService.eliminarPlanilla(planilla);

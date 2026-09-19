@@ -28,6 +28,25 @@ function habilitarFormulario() {
     }
 }
 
+// Habilita la edición de una planilla YA guardada (a diferencia de
+// habilitarFormulario, que es para cargar una semana nueva). A propósito no
+// llama a limpiarFormulario(): los datos que ya están cargados tienen que
+// quedar tal cual, listos para corregir, no borrarse. El campo oculto
+// "idPsEdicion" ya viene con el id correcto desde que se cargó la página
+// (lo pone el servidor en cargarParaEdicion), así que "Cargar la planilla"
+// va a actualizar esta planilla en vez de crear una nueva sin que haga
+// falta tocar nada más acá.
+function habilitarEdicion() {
+    document.getElementById('fieldsetPlanilla').disabled = false;
+
+    const btnEditar = document.getElementById('btnEditar');
+    if (btnEditar) btnEditar.disabled = true;
+
+    // Evita arrancar una semana nueva mientras se está editando esta.
+    const btnNuevo = document.getElementById('btnNuevo');
+    if (btnNuevo) btnNuevo.disabled = true;
+}
+
 // Suma las horas de los seis dias mientras el alumno escribe. Es el numero que
 // despues aparece en el PDF y en el informe, y hasta ahora habia que sacarlo
 // de cabeza sumando los seis campos.
@@ -53,6 +72,20 @@ function limpiarFormulario() {
     document.querySelectorAll('.aviso-limite').forEach(aviso => aviso.style.display = 'none');
     liberarFechas();
     actualizarTotalHoras();
+    ocultarAvisoCambiosSinGuardar();
+}
+
+// Aviso de "tenés cambios sin guardar": aparece con el primer input real
+// dentro del formulario (nuevo o en edición) y se apaga al guardar (la
+// página recarga entera) o al limpiar con "Borrar lo escrito".
+function mostrarAvisoCambiosSinGuardar() {
+    const aviso = document.getElementById('aviso-cambios-sin-guardar');
+    if (aviso) aviso.hidden = false;
+}
+
+function ocultarAvisoCambiosSinGuardar() {
+    const aviso = document.getElementById('aviso-cambios-sin-guardar');
+    if (aviso) aviso.hidden = true;
 }
 
 // Vuelve los seis campos de fecha a su estado inicial: vacios, editables, sin
@@ -163,6 +196,15 @@ document.addEventListener('DOMContentLoaded', () => {
     inicializarFechas();
     inicializarAvisosLimite();
     actualizarTotalHoras();
+
+    // Un solo listener en el fieldset (delegado) alcanza para los seis días y
+    // los cuatro campos del resumen: cualquier "input" real -- nunca se
+    // dispara por los input.value = ... que pone el propio JS, como en el
+    // autocompletado de fechas -- prende el aviso.
+    const fieldset = document.getElementById('fieldsetPlanilla');
+    if (fieldset) {
+        fieldset.addEventListener('input', mostrarAvisoCambiosSinGuardar);
+    }
 
     document.querySelectorAll('.dia-bloque input[type="number"]').forEach(campo => {
         campo.addEventListener('input', actualizarTotalHoras);
