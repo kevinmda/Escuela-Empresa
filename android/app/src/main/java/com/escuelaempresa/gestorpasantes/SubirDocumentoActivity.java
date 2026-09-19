@@ -1,7 +1,14 @@
 package com.escuelaempresa.gestorpasantes;
 
+import android.Manifest;
 import android.content.ContentResolver;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.pdf.PdfDocument;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
@@ -15,6 +22,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.VolleyError;
@@ -27,9 +36,14 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class SubirDocumentoActivity extends AppCompatActivity {
@@ -49,11 +63,27 @@ public class SubirDocumentoActivity extends AppCompatActivity {
     private MaterialButton botonSubir;
     private ProgressBar progreso;
 
+    // Lado ancho máximo de la foto escaneada: una hoja legible no necesita más,
+    // y sin este tope una foto de 4000px+ de una cámara moderna generaría un PDF
+    // de varios MB por una sola página (el servidor limita a 10MB por archivo).
+    private static final int LADO_MAXIMO_ESCANEO_PX = 2000;
+
     private SessionManager sessionManager;
+    // archivoElegido apunta a un PDF en los dos caminos: el que el alumno elige
+    // con "Elegir archivo" (URI del selector del sistema) y el que arma
+    // procesarFotoEscaneada() a partir de la foto (URI de FileProvider sobre un
+    // PDF en cache/). subir() no distingue entre los dos -- para ContentResolver
+    // ambos son URIs legibles igual.
     private Uri archivoElegido;
     private String nombreArchivoElegido;
 
     private ActivityResultLauncher<String[]> lanzadorSelector;
+    private ActivityResultLauncher<Uri> lanzadorCamara;
+    private ActivityResultLauncher<String> lanzadorPermisoCamara;
+    // Dónde la cámara del sistema deja la foto de verdad. No es archivoElegido
+    // (eso queda para el PDF ya armado): esta es la foto cruda, de paso, que se
+    // borra apenas se convierte.
+    private File archivoFotoTemporal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,9 +102,11 @@ public class SubirDocumentoActivity extends AppCompatActivity {
         spinnerTipo = findViewById(R.id.spinnerTipoDocumento);
         textoArchivoElegido = findViewById(R.id.textoArchivoElegido);
         MaterialButton botonElegirArchivo = findViewById(R.id.botonElegirArchivo);
+        MaterialButton botonEscanear = findViewById(R.id.botonEscanear);
         botonSubir = findViewById(R.id.botonSubirDocumento);
         progreso = findViewById(R.id.progresoSubida);
         AnimacionResorte.feedbackToque(botonElegirArchivo);
+        AnimacionResorte.feedbackToque(botonEscanear);
         AnimacionResorte.feedbackToque(botonSubir);
 
         ArrayAdapter<String> adaptador = new ArrayAdapter<>(this,
@@ -89,8 +121,164 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             }
         });
 
+        // El pedido de permiso y la foto en sí son dos pasos separados: hasta
+        // que el usuario no concede CAMERA no tiene sentido intentar abrir la
+        // cámara, así que lanzarCamara() solo se llama después de un permiso ya
+        // concedido (acá o porque ya lo estaba desde antes).
+        lanzadorPermisoCamara = registerForActivityResult(new ActivityResultContracts.RequestPermission(), concedido -> {
+            if (concedido) {
+                lanzarCamara();
+            } else {
+                mostrarError(getString(R.string.permiso_camara_denegado));
+            }
+        });
+
+        lanzadorCamara = registerForActivityResult(new ActivityResultContracts.TakePicture(), exito -> {
+            if (exito) {
+                procesarFotoEscaneada();
+            } else if (archivoFotoTemporal != null) {
+                archivoFotoTemporal.delete();
+            }
+        });
+
         botonElegirArchivo.setOnClickListener(v -> lanzadorSelector.launch(new String[]{"application/pdf"}));
+        botonEscanear.setOnClickListener(v -> alTocarEscanear());
         botonSubir.setOnClickListener(v -> subir());
+    }
+
+    private void alTocarEscanear() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            lanzarCamara();
+        } else {
+            lanzadorPermisoCamara.launch(Manifest.permission.CAMERA);
+        }
+    }
+
+    private void lanzarCamara() {
+        try {
+            File carpeta = new File(getCacheDir(), "documentos");
+            if (!carpeta.exists()) {
+                carpeta.mkdirs();
+            }
+            archivoFotoTemporal = new File(carpeta, "captura_tmp.jpg");
+            Uri destinoFoto = FileProvider.getUriForFile(this,
+                    getPackageName() + ".fileprovider", archivoFotoTemporal);
+            lanzadorCamara.launch(destinoFoto);
+        } catch (Exception e) {
+            // ActivityNotFoundException (sin app de cámara instalada) y
+            // cualquier otro fallo al preparar el archivo caen acá igual: en
+            // los dos casos el alumno no puede escanear ahora mismo.
+            mostrarError(getString(R.string.error_camara_no_disponible));
+        }
+    }
+
+    // La foto que devuelve la cámara puede pesar varios MB y venir con
+    // orientación al revés (el sensor siempre graba "acostado"; el giro real
+    // queda en el EXIF, no en los píxeles) -- de acá sale un PDF de una sola
+    // página, ya liviano y ya derecho, listo para subir() como cualquier otro
+    // archivo elegido.
+    private void procesarFotoEscaneada() {
+        if (archivoFotoTemporal == null || !archivoFotoTemporal.exists()) {
+            mostrarError(getString(R.string.error_procesando_escaneo));
+            return;
+        }
+
+        mostrarCargando(true);
+        Bitmap bitmap = null;
+        try {
+            bitmap = decodificarBitmapEscalado(archivoFotoTemporal, LADO_MAXIMO_ESCANEO_PX);
+            bitmap = corregirRotacion(bitmap, archivoFotoTemporal);
+
+            String nombrePdf = "escaneo_"
+                    + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date())
+                    + ".pdf";
+            File carpeta = archivoFotoTemporal.getParentFile();
+            File archivoPdf = new File(carpeta, nombrePdf);
+            escribirBitmapComoPdf(bitmap, archivoPdf);
+
+            archivoElegido = FileProvider.getUriForFile(this,
+                    getPackageName() + ".fileprovider", archivoPdf);
+            nombreArchivoElegido = nombrePdf;
+            textoArchivoElegido.setText(nombreArchivoElegido);
+        } catch (IOException | OutOfMemoryError e) {
+            mostrarError(getString(R.string.error_procesando_escaneo));
+        } finally {
+            if (bitmap != null) {
+                bitmap.recycle();
+            }
+            archivoFotoTemporal.delete();
+            mostrarCargando(false);
+        }
+    }
+
+    // inSampleSize solo acepta potencias de 2, y BitmapFactory las redondea
+    // para abajo -- se decodifican primero solo las dimensiones (sin cargar los
+    // píxeles) para elegir el tamaño de muestreo antes de decodificar de verdad.
+    private Bitmap decodificarBitmapEscalado(File archivo, int ladoMaximoPx) {
+        BitmapFactory.Options limites = new BitmapFactory.Options();
+        limites.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(archivo.getAbsolutePath(), limites);
+
+        int muestreo = 1;
+        while (limites.outWidth / muestreo > ladoMaximoPx || limites.outHeight / muestreo > ladoMaximoPx) {
+            muestreo *= 2;
+        }
+
+        BitmapFactory.Options opciones = new BitmapFactory.Options();
+        opciones.inSampleSize = muestreo;
+        return BitmapFactory.decodeFile(archivo.getAbsolutePath(), opciones);
+    }
+
+    private Bitmap corregirRotacion(Bitmap bitmap, File archivo) throws IOException {
+        ExifInterface exif = new ExifInterface(archivo.getAbsolutePath());
+        int orientacion = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+        int grados;
+        switch (orientacion) {
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                grados = 90;
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                grados = 180;
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                grados = 270;
+                break;
+            default:
+                grados = 0;
+        }
+        if (grados == 0) {
+            return bitmap;
+        }
+
+        Matrix matriz = new Matrix();
+        matriz.postRotate(grados);
+        Bitmap rotado = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matriz, true);
+        if (rotado != bitmap) {
+            bitmap.recycle();
+        }
+        return rotado;
+    }
+
+    // Una página, del mismo tamaño en píxeles que la foto ya escalada: no hace
+    // falta encajarla en A4 ni nada parecido, con que se vea igual que la foto
+    // alcanza para un comprobante escaneado.
+    private void escribirBitmapComoPdf(Bitmap bitmap, File destino) throws IOException {
+        PdfDocument documento = new PdfDocument();
+        try {
+            PdfDocument.PageInfo info = new PdfDocument.PageInfo
+                    .Builder(bitmap.getWidth(), bitmap.getHeight(), 1)
+                    .create();
+            PdfDocument.Page pagina = documento.startPage(info);
+            pagina.getCanvas().drawBitmap(bitmap, 0, 0, null);
+            documento.finishPage(pagina);
+
+            try (FileOutputStream salida = new FileOutputStream(destino)) {
+                documento.writeTo(salida);
+            }
+        } finally {
+            documento.close();
+        }
     }
 
     private String obtenerNombreArchivo(Uri uri) {

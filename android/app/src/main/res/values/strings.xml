@@ -62,7 +62,11 @@
     <string name="titulo_subir_documento">Subir documento</string>
     <string name="boton_subir">Subir</string>
     <string name="boton_elegir_archivo">Elegir archivo (PDF)</string>
+    <string name="boton_escanear">Escanear con cámara</string>
     <string name="ningun_archivo_elegido">Ningún archivo elegido</string>
+    <string name="permiso_camara_denegado">Sin acceso a la cámara no se puede escanear. Habilitalo en los permisos de la app.</string>
+    <string name="error_camara_no_disponible">No se encontró ninguna app de cámara en el dispositivo.</string>
+    <string name="error_procesando_escaneo">No se pudo generar el PDF a partir de la foto. Probá de nuevo.</string>
     <string name="hint_tipo_documento">Tipo de documento</string>
     <string name="documentos_vacio">Todavía no subiste documentos.</string>
     <string name="boton_cargar_mas">Cargar más</string>

@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Para escanear documentos con la cámara desde Subir documento. No
+         "required": el resto de la app funciona igual en un dispositivo sin
+         cámara, esa pantalla simplemente no ofrece la opción de escanear. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="true"
