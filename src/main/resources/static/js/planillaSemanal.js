@@ -39,15 +39,19 @@ function habilitarFormulario() {
 // (lo pone el servidor en cargarParaEdicion), así que "Cargar la planilla"
 // va a actualizar esta planilla en vez de crear una nueva sin que haga
 // falta tocar nada más acá.
+//
+// A propósito NO se deshabilita btnNuevo acá (a diferencia de
+// habilitarFormulario): su :disabled tiene un estilo especial pensado para
+// decir "esta es la que se está completando" (fondo sólido en vez de
+// punteado), así que deshabilitarlo durante una edición lo pintaba como
+// seleccionado sin que lo estuviera. Si igual se toca "Cargar" a mitad de
+// una edición, habilitarFormulario() ya se encarga de limpiar idPsEdicion y
+// ocultar el panel de esta semana, así que no hace falta bloquearlo acá.
 function habilitarEdicion() {
     document.getElementById('fieldsetPlanilla').disabled = false;
 
     const btnEditar = document.getElementById('btnEditar');
     if (btnEditar) btnEditar.disabled = true;
-
-    // Evita arrancar una semana nueva mientras se está editando esta.
-    const btnNuevo = document.getElementById('btnNuevo');
-    if (btnNuevo) btnNuevo.disabled = true;
 }
 
 // Suma las horas de los seis dias mientras el alumno escribe. Es el numero que
