@@ -4080,15 +4080,22 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 /* ---------- Grilla de fichas ya cargadas ---------- */
 
-/* Tope de 380px y no 1fr: con 1fr, una sola ficha (una empresa recién
-   cargada, por ejemplo) se estiraba para ocupar el ancho entero del panel,
-   una ficha gigante en vez de la misma tarjeta compacta que se ve cuando
-   hay varias. Con el tope, la ficha se queda del mismo tamaño siempre y
-   listo -- el hueco al costado cuando sobra una fila incompleta es el mismo
-   que deja cualquier grilla de tarjetas, no un hueco roto. */
+/* auto-fit + 1fr para la cantidad de columnas: el número de tracks que
+   entran se calcula con el mínimo (260px), no con un máximo fijo, así que
+   aprovecha mejor el ancho del panel (con un tope fijo de 380px, un panel
+   de ~1100px de contenido solo llegaba a 2 columnas y sobraba un bloque
+   entero de hueco a la derecha en vez de repartirlo entre las fichas).
+   auto-fit además colapsa las columnas vacías: sin eso, una sola ficha
+   quedaría apretada en la primera de varias columnas fantasma.
+
+   El máximo real de cada ficha no lo pone la columna, lo pone el propio
+   .ficha con max-width más abajo: así la columna puede estirarse para
+   usar el espacio, pero la ficha adentro no se vuelve gigante con pocos
+   registros -- el hueco que sobra por fila queda repartido como espacio
+   entre fichas, no como un bloque ciego al costado. */
 .fichas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 380px));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 1rem;
 }
 
@@ -4101,6 +4108,8 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    width: 100%;
+    max-width: 380px;
     padding: 1.1rem 1.25rem 1rem;
     background-color: var(--surface);
     border: 1px solid var(--line);

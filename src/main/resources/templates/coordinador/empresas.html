@@ -93,28 +93,37 @@
                  cinco columnas más de tabla. -->
             <section class="fichas-grid" aria-label="Empresas cargadas">
                 <article class="ficha" th:each="emp : ${empresas}">
+                    <!-- title repite el valor: es lo que hace que el navegador muestre el
+                         tooltip nativo con el texto completo al pasar el mouse, para los
+                         valores largos que el campo recorta. Sin JS ni nada que armar:
+                         alcanza con que title diga lo mismo que ya dice value. -->
                     <input type="text" th:form="${'editar-' + emp.idEmp}" name="nombre" th:value="${emp.nombre}"
+                           th:title="${emp.nombre}"
                            class="ficha-campo ficha-campo--nombre" aria-label="Nombre" required>
 
                     <div class="ficha-datos">
                         <div>
                             <span class="ficha-dato-etiqueta">RUC</span>
                             <input type="text" th:form="${'editar-' + emp.idEmp}" name="ruc" th:value="${emp.ruc}"
+                                   th:title="${emp.ruc}"
                                    class="ficha-campo ficha-campo--secundario" aria-label="RUC" required>
                         </div>
                         <div>
                             <span class="ficha-dato-etiqueta">Teléfono</span>
                             <input type="text" th:form="${'editar-' + emp.idEmp}" name="telefono" th:value="${emp.telefono}"
+                                   th:title="${emp.telefono}"
                                    class="ficha-campo ficha-campo--secundario" aria-label="Teléfono" required>
                         </div>
                         <div>
                             <span class="ficha-dato-etiqueta">Email</span>
                             <input type="email" th:form="${'editar-' + emp.idEmp}" name="email" th:value="${emp.email}"
+                                   th:title="${emp.email}"
                                    class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
                         </div>
                         <div>
                             <span class="ficha-dato-etiqueta">Dirección</span>
                             <input type="text" th:form="${'editar-' + emp.idEmp}" name="direccion" th:value="${emp.direccion}"
+                                   th:title="${emp.direccion}"
                                    class="ficha-campo ficha-campo--secundario" aria-label="Dirección" required>
                         </div>
                     </div>

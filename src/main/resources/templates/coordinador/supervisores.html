@@ -77,13 +77,19 @@
                  por persona, y una ficha se lee de un vistazo. -->
             <section class="fichas-grid" aria-label="Supervisores cargados">
                 <article class="ficha" th:each="sup : ${supervisores}">
+                    <!-- title repite el value: es lo que hace que el navegador muestre el
+                         tooltip nativo con el texto completo al pasar el mouse, para los
+                         valores largos que el campo recorta. -->
                     <div class="ficha-titulo">
                         <input type="text" th:form="${'editar-' + sup.idSup}" name="nombres" th:value="${sup.nombres}"
+                               th:title="${sup.nombres}"
                                class="ficha-campo ficha-campo--nombre" aria-label="Nombres" required>
                         <input type="text" th:form="${'editar-' + sup.idSup}" name="apellidos" th:value="${sup.apellidos}"
+                               th:title="${sup.apellidos}"
                                class="ficha-campo ficha-campo--nombre" aria-label="Apellidos" required>
                     </div>
                     <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}"
+                           th:title="${sup.email}"
                            class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
 
                     <div class="ficha-acciones">
