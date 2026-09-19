@@ -240,9 +240,54 @@
     // afuera. querySelectorAll y no querySelector: con dos .cuenta en la misma
     // pagina (cuenta + Documentos), quedarse con "el primero" dejaba al otro sin
     // esta mejora.
+    // El CSS posiciona .cuenta-menu con position:absolute (ver styles.css),
+    // que alcanza siempre que no haya un ancestro con overflow que lo recorte.
+    // En pantallas angostas .barra-riel necesita overflow-x:auto para poder
+    // desplazarse cuando hay muchas secciones -- y por como funciona overflow,
+    // eso recorta también lo que se sale por abajo del riel, así que el menú
+    // del desplegable "Documentos" quedaba invisible ahí. Se recalcula acá con
+    // position:fixed (relativo a la pantalla, no al riel) desde donde está
+    // el botón en ese momento, así escapa del recorte sin importar el ancho.
+    // No se saca el CSS: sigue siendo el respaldo si este script no corre.
+    function posicionarMenuCuenta(cuenta) {
+        const resumen = cuenta.querySelector('summary');
+        const menu = cuenta.querySelector('.cuenta-menu');
+        if (!resumen || !menu) return;
+
+        const rect = resumen.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.top = (rect.bottom + 8) + 'px';
+
+        if (cuenta.closest('.barra-riel')) {
+            // Desplegables del riel (ej. "Documentos"): se abren hacia la
+            // derecha desde el propio botón, como ya definía el CSS con
+            // left:0 -- no es lo último de la barra, así que anclar a la
+            // derecha de la pantalla lo haría abrirse hacia la izquierda.
+            menu.style.left = rect.left + 'px';
+            menu.style.right = 'auto';
+        } else {
+            // El menú de la cuenta: anclado a su borde derecho, como ya
+            // definía el CSS con right:0.
+            menu.style.left = 'auto';
+            menu.style.right = (window.innerWidth - rect.right) + 'px';
+        }
+    }
+
     function prepararMenuCuenta() {
         const cuentas = document.querySelectorAll('.cuenta');
         if (!cuentas.length) return;
+
+        cuentas.forEach(function (cuenta) {
+            cuenta.addEventListener('toggle', function () {
+                if (cuenta.open) posicionarMenuCuenta(cuenta);
+            });
+        });
+
+        window.addEventListener('resize', function () {
+            cuentas.forEach(function (cuenta) {
+                if (cuenta.open) posicionarMenuCuenta(cuenta);
+            });
+        });
 
         document.addEventListener('click', function (evento) {
             cuentas.forEach(function (cuenta) {
