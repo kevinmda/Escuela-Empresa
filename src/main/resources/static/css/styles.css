@@ -4065,9 +4065,14 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 /* ---------- Grilla de fichas ya cargadas ---------- */
 
+/* auto-fit y no auto-fill: con pocas fichas (una empresa recién cargada,
+   por ejemplo) auto-fill reserva igual las columnas vacías del ancho del
+   panel y la única ficha real queda apretada en una esquina con un hueco
+   enorme al lado. auto-fit colapsa esas columnas vacías y deja que la(s)
+   ficha(s) que sí existen ocupen el espacio libre. */
 .fichas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 1rem;
 }
 
