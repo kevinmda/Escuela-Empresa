@@ -211,47 +211,9 @@ function inicializarAvisosLimite() {
     });
 }
 
-// <input type="date"> no tiene forma nativa de restringir a un dia de la
-// semana puntual (min/max solo acotan un rango continuo, no "solo lunes").
-// Por eso esto valida despues de elegida la fecha: si no cae en el dia que
-// le toca a esa fila (indice 0 = Lunes, 1 = Martes... igual que
-// diasEsperados del lado del servidor), se avisa y se vacia el campo en vez
-// de dejarlo pasar. getDay() de JS: Domingo=0, Lunes=1... Sabado=6 -- como
-// esta planilla no tiene fila de Domingo, el dia esperado es siempre
-// indice + 1.
-const NOMBRES_DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-
-function diaDeLaSemanaCoincide(valorFecha, indice) {
-    if (!valorFecha) return true;
-    const fecha = new Date(valorFecha + 'T00:00:00');
-    return fecha.getDay() === indice + 1;
-}
-
-// Un aviso por campo de fecha, en el mismo estilo que los de limite de
-// caracteres, creado una vez y reutilizado en vez de armarlo cada vez que
-// hace falta mostrarlo.
-function inicializarAvisosDia() {
-    const inputsFecha = document.querySelectorAll('.dia-bloque input[type="date"]');
-
-    inputsFecha.forEach((input, indice) => {
-        const aviso = document.createElement('small');
-        aviso.className = 'aviso-limite';
-        aviso.textContent = 'Esa fecha no es un ' + NOMBRES_DIAS[indice] + '.';
-        aviso.style.display = 'none';
-        input.insertAdjacentElement('afterend', aviso);
-    });
-}
-
-function avisoDiaDe(input) {
-    return input.nextElementSibling && input.nextElementSibling.classList.contains('aviso-limite')
-        ? input.nextElementSibling
-        : null;
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     inicializarFechas();
     inicializarAvisosLimite();
-    inicializarAvisosDia();
     actualizarTotalHoras();
 
     // Un solo listener en el fieldset (delegado) alcanza para los seis días y
@@ -271,15 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inputsFecha.forEach((input, indice) => {
         input.addEventListener('input', () => {
-            const aviso = avisoDiaDe(input);
-
-            if (input.value && !diaDeLaSemanaCoincide(input.value, indice)) {
-                if (aviso) aviso.style.display = 'block';
-                input.value = '';
-                return;
-            }
-            if (aviso) aviso.style.display = 'none';
-
             if (indiceAnclaFecha === null) {
                 // Todavia no hay ancla: el primer campo que el alumno complete
                 // pasa a serlo, y el resto se calcula y se bloquea a partir de el.
