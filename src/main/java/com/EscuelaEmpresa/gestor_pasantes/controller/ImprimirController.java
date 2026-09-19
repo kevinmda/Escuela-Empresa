@@ -290,13 +290,19 @@ public class ImprimirController {
         return Map.of("valido", true, "url", "/alumno/imprimir/Autorizacion-lista.pdf");
     }
 
-    // El PDF que generarPdfAutorizacion dejó listo en la sesión, una sola vez:
-    // esta es la navegación GET común y corriente (sin archivos, sin POST) que
-    // el JS abre con window.open() -- el mismo mecanismo que ya usan Contrato
-    // y Ficha Final, así que el navegador la trata igual: la abre en una
-    // pestaña con el nombre correcto. Se borra de la sesión apenas se sirve,
-    // para no dejar PDFs viejos acumulándose ahí ni volver a servir uno stale
-    // si se recarga esta URL sin generar de nuevo.
+    // El PDF que generarPdfAutorizacion dejó listo en la sesión: esta es la
+    // navegación GET común y corriente (sin archivos, sin POST) que el JS abre
+    // con window.open() -- el mismo mecanismo que ya usan Contrato y Ficha
+    // Final, así que el navegador la trata igual: la abre en una pestaña con
+    // el nombre correcto.
+    //
+    // A propósito NO se borra de la sesión después de servirlo: el botón de
+    // "Guardar"/"Descargar" que trae el visor de PDF del navegador no reusa
+    // los bytes que ya mostró, vuelve a pedir esta misma URL para guardarla
+    // -- si el primer pedido ya lo hubiera borrado, esa segunda vez
+    // encontraba la sesión vacía y terminaba mostrando (y guardando) la
+    // página de error genérica en vez del PDF. Se sobreescribe solo la
+    // próxima vez que se genera una Autorización nueva.
     @GetMapping("/alumno/imprimir/Autorizacion-lista.pdf")
     public void descargarAutorizacionLista(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
@@ -308,8 +314,6 @@ public class ImprimirController {
         }
 
         String nombreArchivo = (String) session.getAttribute(SESION_AUTORIZACION_NOMBRE);
-        session.removeAttribute(SESION_AUTORIZACION_PDF);
-        session.removeAttribute(SESION_AUTORIZACION_NOMBRE);
 
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", Descarga.inline(nombreArchivo, "Autorizacion.pdf"));
