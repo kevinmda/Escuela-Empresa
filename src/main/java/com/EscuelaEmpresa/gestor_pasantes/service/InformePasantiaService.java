@@ -79,7 +79,7 @@ public class InformePasantiaService {
         reemplazarParrafoCompleto(documento, "alumno", (esMujer ? "Alumna: " : "Alumno: ") + nombreCompleto);
 
         reemplazarDentroDeParrafo(documento, "curso", "Curso", alumno.getCurso());
-        reemplazarDentroDeParrafo(documento, "turno", "Turno", calcularTurno(alumno.getSeccion()));
+        reemplazarDentroDeParrafo(documento, "turno", "Turno", alumno.getSeccion() != null ? alumno.getSeccion() : "");
         reemplazarDentroDeParrafo(documento, "especialidad", "Especialidad",
                 alumno.getEspecialidad() != null ? alumno.getEspecialidad().getNombre() : "");
         reemplazarDentroDeParrafo(documento, "empresa", "Empresa",
@@ -140,12 +140,6 @@ public class InformePasantiaService {
         }
 
         eliminarSemanasSobrantes(documento, cantidad);
-    }
-
-    private String calcularTurno(String seccion) {
-        if (seccion == null) return "";
-        if (seccion.trim().equalsIgnoreCase("1ra")) return "Mañana";
-        return "Tarde"; // 2da, 3ra
     }
 
     private String formatearPeriodo(LocalDate inicio, LocalDate fin) {
