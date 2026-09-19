@@ -107,6 +107,30 @@ function ocultarAvisoCambiosSinGuardar() {
     if (aviso) aviso.hidden = true;
 }
 
+// true mientras el propio formPlanilla se está enviando (submit del botón
+// "Cargar la planilla"): a esa navegación no hay que avisarle nada, es
+// justamente la forma de guardar. beforeunload no distingue por qué se deja
+// la página -- guardar, cerrar la pestaña, tocar un link -- así que hace
+// falta esta bandera para no avisar en el único caso en que "salir" es lo
+// que el aviso quiere evitar.
+let formularioEnviandose = false;
+
+// El aviso nativo del navegador ("¿Salir de la página?") es lo único que de
+// verdad puede frenar al alumno antes de perder lo que escribió: nuestro
+// propio mensaje de arriba se ve solo si mira la pantalla, pero esto salta
+// aunque intente cerrar la pestaña, recargar o irse a otra URL escrita a
+// mano. El texto que se le pasa a returnValue no lo respeta ningún
+// navegador moderno (por seguridad, para que una página no pueda inventar
+// su propio mensaje enganchoso) -- siempre muestran el suyo genérico, pero
+// igual hace falta asignarlo para que el cuadro aparezca.
+window.addEventListener('beforeunload', (evento) => {
+    const aviso = document.getElementById('aviso-cambios-sin-guardar');
+    if (formularioEnviandose || !aviso || aviso.hidden) return;
+
+    evento.preventDefault();
+    evento.returnValue = '';
+});
+
 // Vuelve los seis campos de fecha a su estado inicial: vacios, editables, sin
 // ancla. Es lo que pasa al arrancar una planilla nueva y lo que pasa cuando el
 // alumno borra la fecha ancla.
@@ -223,6 +247,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const fieldset = document.getElementById('fieldsetPlanilla');
     if (fieldset) {
         fieldset.addEventListener('input', mostrarAvisoCambiosSinGuardar);
+    }
+
+    const formPlanilla = document.getElementById('formPlanilla');
+    if (formPlanilla) {
+        formPlanilla.addEventListener('submit', () => {
+            formularioEnviandose = true;
+        });
     }
 
     document.querySelectorAll('.dia-bloque input[type="number"]').forEach(campo => {
