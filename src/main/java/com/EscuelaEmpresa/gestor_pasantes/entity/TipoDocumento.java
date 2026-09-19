@@ -2,7 +2,7 @@ package com.EscuelaEmpresa.gestor_pasantes.entity;
 
 public enum TipoDocumento {
     CONTRATO("Contrato de Pasantía"),
-    PLANTILLA_SEMANAL("Plantilla Semanal"),
+    PLANTILLA_SEMANAL("Planilla Semanal"),
     AUTORIZACION("Autorización"),
     FICHA_FINAL_ALUMNO("Ficha Final del Alumno"),
     FICHA_FINAL_EVALUATIVA("Ficha Final Evaluativa"),
