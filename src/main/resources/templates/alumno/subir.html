@@ -193,7 +193,10 @@
                                    th:attr="aria-label='Ver ' + ${doc.nombreArchivo}">Ver</a>
 
                                 <form th:action="@{/alumno/subir/{id}/eliminar(id=${doc.idDs})}" method="post"
-                                      onsubmit="return confirm('¿Estás seguro que querés eliminar este documento? Esta acción no se puede deshacer.');">
+                                      data-confirmar
+                                      data-confirmar-titulo="¿Eliminar este documento?"
+                                      th:attr="data-confirmar-mensaje='Archivo: ' + ${doc.nombreArchivo} + '. Esta acción no se puede deshacer.'"
+                                      data-confirmar-texto="Eliminar">
                                     <button type="submit" class="btn btn-danger sb-btn-fila"
                                             th:attr="aria-label='Eliminar ' + ${doc.nombreArchivo}">Eliminar</button>
                                 </form>

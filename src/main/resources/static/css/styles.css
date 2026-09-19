@@ -6662,3 +6662,148 @@ body:not(:has(.credito-disenio))::after {
     color: var(--accent-ink);
     margin: 0.35rem 0 0;
 }
+
+/* ================= Diálogo de confirmación =================
+
+   Reemplaza confirm() nativo (ver data-confirmar / inicializarConfirmaciones
+   en theme.js). Un solo <dialog> global en fragments/chrome, así que esto
+   vale para cerrar sesión y para cada "Eliminar" de la app por igual.
+
+   <dialog> nativo y no un <div> armado a mano: foco atrapado adentro, Esc
+   cierra solo, y el ::backdrop viene gratis -- las mismas razones por las
+   que el resto de la app usa <details> en vez de menús de JS para lo que
+   el navegador ya resuelve solo. */
+.dialogo-confirmacion {
+    width: min(360px, calc(100vw - 2rem));
+    padding: 1.75rem 1.5rem 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background-color: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 20px 50px -12px rgba(var(--shadow-tint), 0.35);
+}
+
+.dialogo-confirmacion::backdrop {
+    background-color: rgba(var(--shadow-tint), 0.45);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+}
+
+/* [open] y no una transición en :not([open]) -> [open]: <dialog> no anima
+   su propio display none->block, así que la entrada es solo sobre lo que sí
+   anima (opacity/transform), disparada por la clase que agrega showModal()
+   indirectamente al quedar [open]. */
+@starting-style {
+    .dialogo-confirmacion[open] {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+
+    .dialogo-confirmacion[open]::backdrop {
+        opacity: 0;
+    }
+}
+
+.dialogo-confirmacion[open] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.18s ease, transform 0.18s ease, overlay 0.18s allow-discrete,
+                display 0.18s allow-discrete;
+}
+
+.dialogo-confirmacion[open]::backdrop {
+    opacity: 1;
+    transition: opacity 0.18s ease, overlay 0.18s allow-discrete, display 0.18s allow-discrete;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dialogo-confirmacion[open],
+    .dialogo-confirmacion[open]::backdrop {
+        transition: opacity 0.12s ease;
+    }
+
+    @starting-style {
+        .dialogo-confirmacion[open] {
+            transform: none;
+        }
+    }
+}
+
+.dialogo-confirmacion-icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin: 0 0 1.1rem;
+    border-radius: 50%;
+}
+
+.dialogo-confirmacion-icono svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+/* peligro (por defecto) = algo se borra; neutral = no se pierde nada
+   (cerrar sesión). El color es la única diferencia entre los dos: mismo
+   layout, mismo tono de voz. */
+.dialogo-confirmacion-icono .dc-icono-neutral {
+    display: none;
+}
+
+.dialogo-confirmacion[data-variante="peligro"] .dialogo-confirmacion-icono {
+    background-color: var(--danger-soft);
+    color: var(--danger);
+}
+
+.dialogo-confirmacion[data-variante="neutral"] .dialogo-confirmacion-icono {
+    background-color: var(--field);
+    color: var(--ink-soft);
+}
+
+.dialogo-confirmacion[data-variante="neutral"] .dc-icono-peligro {
+    display: none;
+}
+
+.dialogo-confirmacion[data-variante="neutral"] .dc-icono-neutral {
+    display: block;
+}
+
+.dialogo-confirmacion-titulo {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.5rem;
+}
+
+.dialogo-confirmacion-mensaje {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0;
+}
+
+.dialogo-confirmacion-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+}
+
+.dialogo-confirmacion-acciones .btn-secondary,
+.dialogo-confirmacion-acciones .btn-primary,
+.dialogo-confirmacion-acciones .btn-danger {
+    padding: 0.55rem 1.1rem;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 420px) {
+    .dialogo-confirmacion-acciones {
+        flex-direction: column-reverse;
+    }
+
+    .dialogo-confirmacion-acciones button {
+        width: 100%;
+    }
+}

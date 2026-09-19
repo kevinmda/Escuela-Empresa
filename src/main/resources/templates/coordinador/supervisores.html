@@ -100,7 +100,10 @@
                             <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
                         </form>
                         <form th:action="@{/admin/supervisores/eliminar}" method="post"
-                              onsubmit="return confirm('¿Eliminar este supervisor? Los alumnos que lo tengan asignado van a quedar sin supervisor.');">
+                              data-confirmar
+                              data-confirmar-titulo="¿Eliminar este supervisor?"
+                              th:attr="data-confirmar-mensaje='Los alumnos que tengan asignado a ' + ${sup.nombres} + ' ' + ${sup.apellidos} + ' van a quedar sin supervisor.'"
+                              data-confirmar-texto="Eliminar">
                             <input type="hidden" name="idSup" th:value="${sup.idSup}">
                             <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
                         </form>

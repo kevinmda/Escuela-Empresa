@@ -190,6 +190,89 @@
         });
     }
 
+    // Reemplaza confirm() nativo del navegador. Cualquier <form> con
+    // data-confirmar dispara el <dialog> de fragments/chrome en vez de
+    // enviarse directo; data-confirmar-titulo/-mensaje/-texto arman el
+    // contenido y data-confirmar-variante ("peligro", por defecto, o
+    // "neutral") elige el color del ícono y del botón. Ej:
+    //   <form data-confirmar data-confirmar-titulo="¿Eliminar?"
+    //         data-confirmar-mensaje="No se puede deshacer."
+    //         data-confirmar-texto="Eliminar">
+    //
+    // El listener va en document y en fase de CAPTURA (el tercer "true") y
+    // no en cada form: tiene que interceptar el submit antes de que
+    // prepararValidacion -más abajo en este archivo- llegue a correr y deje
+    // el botón real en "Enviando...", porque en ese momento el envío
+    // todavía no pasó por el diálogo.
+    function inicializarConfirmaciones() {
+        const dialogo = document.getElementById('dialogo-confirmacion');
+        if (!dialogo || typeof dialogo.showModal !== 'function') return;
+
+        const titulo = document.getElementById('dialogo-confirmacion-titulo');
+        const mensaje = document.getElementById('dialogo-confirmacion-mensaje');
+        const botonCancelar = document.getElementById('dialogo-confirmacion-cancelar');
+        const botonConfirmar = document.getElementById('dialogo-confirmacion-confirmar');
+
+        let formPendiente = null;
+        // Guarda el form que se acaba de confirmar para distinguir, en el
+        // próximo submit que llegue (el que dispara requestSubmit más
+        // abajo), "esto ya pasó por el diálogo" de "esto es un pedido nuevo".
+        let formConfirmado = null;
+
+        document.addEventListener('submit', function (evento) {
+            const form = evento.target;
+            if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-confirmar')) return;
+
+            if (formConfirmado === form) {
+                formConfirmado = null;
+                return; // ya se confirmó: lo deja seguir de verdad
+            }
+
+            evento.preventDefault();
+            evento.stopPropagation();
+
+            formPendiente = form;
+            titulo.textContent = form.dataset.confirmarTitulo || '¿Confirmás esta acción?';
+            mensaje.textContent = form.dataset.confirmarMensaje || '';
+            const esNeutral = form.dataset.confirmarVariante === 'neutral';
+            dialogo.dataset.variante = esNeutral ? 'neutral' : 'peligro';
+            botonConfirmar.textContent = form.dataset.confirmarTexto || 'Confirmar';
+            botonConfirmar.className = esNeutral ? 'btn-primary' : 'btn-danger';
+
+            dialogo.showModal();
+        }, true);
+
+        botonConfirmar.addEventListener('click', function () {
+            if (!formPendiente) return;
+            formConfirmado = formPendiente;
+            const form = formPendiente;
+            formPendiente = null;
+            dialogo.close();
+            form.requestSubmit();
+        });
+
+        botonCancelar.addEventListener('click', function () {
+            formPendiente = null;
+            dialogo.close();
+        });
+
+        // Clic afuera de la tarjeta cae sobre el propio <dialog> (el
+        // ::backdrop no es un elemento aparte), así que ahí adentro se
+        // distingue del clic en el contenido.
+        dialogo.addEventListener('click', function (evento) {
+            if (evento.target === dialogo) {
+                formPendiente = null;
+                dialogo.close();
+            }
+        });
+
+        // Esc dispara 'cancel' y cierra el <dialog> solo; acá solo hace
+        // falta soltar el form pendiente para que no quede colgado.
+        dialogo.addEventListener('cancel', function () {
+            formPendiente = null;
+        });
+    }
+
     // Botón de ojo (mostrar/ocultar) para campos de contraseña. Se activa con
     // data-target apuntando al id del <input>, ej:
     // <div class="campo-password">
@@ -372,6 +455,7 @@
         document.querySelectorAll('form').forEach(prepararValidacion);
         inicializarTogglesPassword();
         inicializarRielDesbordado();
+        inicializarConfirmaciones();
         prepararMenuCuenta();
         prepararGiroMarca();
         vigilarCreditoDisenio();

@@ -136,7 +136,10 @@
                             <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
                         </form>
                         <form th:action="@{/admin/empresas/eliminar}" method="post"
-                              onsubmit="return confirm('¿Eliminar esta empresa? Los alumnos que la tengan asignada van a quedar sin empresa.');">
+                              data-confirmar
+                              data-confirmar-titulo="¿Eliminar esta empresa?"
+                              th:attr="data-confirmar-mensaje='Los alumnos que tengan asignada la empresa ' + ${emp.nombre} + ' van a quedar sin empresa.'"
+                              data-confirmar-texto="Eliminar">
                             <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
                             <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
                         </form>

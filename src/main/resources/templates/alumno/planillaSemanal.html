@@ -126,7 +126,10 @@
                 <form id="formEliminar" th:if="${idPsSeleccionado == idPsMasReciente}"
                       th:action="@{/alumno/planilla/{id}/eliminar(id=${idPsSeleccionado})}"
                       method="post"
-                      onsubmit="return confirm('¿Estás seguro que querés eliminar esta planilla? Esta acción no se puede deshacer.');">
+                      data-confirmar
+                      data-confirmar-titulo="¿Eliminar esta planilla?"
+                      data-confirmar-mensaje="Esta acción no se puede deshacer."
+                      data-confirmar-texto="Eliminar">
                     <button type="submit" class="btn btn-danger">Eliminar</button>
                 </form>
             </div>
