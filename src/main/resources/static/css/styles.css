@@ -4049,6 +4049,21 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     align-items: end;
 }
 
+/* Mismo desborde que .ficha-datos y la misma solución: el <div> de
+   etiqueta+campo es el hijo directo de la grilla, pero el <input> de adentro
+   no se estira solo (no es un hijo directo de un flex/grid) y por defecto
+   se queda con su ancho de navegador, más ancho que la columna angosta que
+   le toca cuando hay varios campos por fila. */
+.ficha-alta-campos > div {
+    min-width: 0;
+}
+
+.ficha-alta-campos input,
+.ficha-alta-campos select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 /* Envoltorio del <form> cuando trae más de un grupo (el caso de empresa):
    apila título+campos, título+campos en vez de que floten pegados. Clase
    propia y no .ficha-alta-campos en el <form>: esa ya vale display:grid
@@ -4065,14 +4080,15 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 /* ---------- Grilla de fichas ya cargadas ---------- */
 
-/* auto-fit y no auto-fill: con pocas fichas (una empresa recién cargada,
-   por ejemplo) auto-fill reserva igual las columnas vacías del ancho del
-   panel y la única ficha real queda apretada en una esquina con un hueco
-   enorme al lado. auto-fit colapsa esas columnas vacías y deja que la(s)
-   ficha(s) que sí existen ocupen el espacio libre. */
+/* Tope de 380px y no 1fr: con 1fr, una sola ficha (una empresa recién
+   cargada, por ejemplo) se estiraba para ocupar el ancho entero del panel,
+   una ficha gigante en vez de la misma tarjeta compacta que se ve cuando
+   hay varias. Con el tope, la ficha se queda del mismo tamaño siempre y
+   listo -- el hueco al costado cuando sobra una fila incompleta es el mismo
+   que deja cualquier grilla de tarjetas, no un hueco roto. */
 .fichas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 380px));
     gap: 1rem;
 }
 
@@ -4102,8 +4118,18 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 /* Los campos se ven como texto y no como un formulario hasta que se los toca:
    la ficha se lee de un vistazo, y recién al pasar el mouse o enfocar un
-   campo aparece el borde que dice "esto se puede editar". */
+   campo aparece el borde que dice "esto se puede editar".
+
+   width: 100% es a propósito y no algo que sobra: en .ficha (flex columna)
+   un <input> hijo directo se estira solo porque align-items:stretch alcanza
+   a los hijos del flex/grid, pero en .ficha-datos el hijo directo de la
+   grilla es el <div> de etiqueta+campo, no el <input> -- ese <div> se
+   estira, pero el input de adentro es inline-block y sin este width se
+   queda con el ancho por defecto del navegador (~170px) y se sale de la
+   columna angosta que le toca con tres o más fichas por fila. */
 .ficha-campo {
+    width: 100%;
+    box-sizing: border-box;
     min-width: 0;
     flex: 1 1 auto;
     border: 1px solid transparent;
@@ -4142,6 +4168,15 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.6rem 0.85rem;
+}
+
+/* min-width: 0 en el hijo directo de la grilla (el <div> de etiqueta+campo):
+   sin esto, aunque la columna sea minmax(0, 1fr), el tamaño mínimo automático
+   de ese <div> sigue el ancho intrínseco del <input> de adentro y no lo deja
+   angostarse -- el mismo desborde que resuelve width:100% en .ficha-campo,
+   pero visto desde el contenedor en vez de desde el campo. */
+.ficha-datos > div {
+    min-width: 0;
 }
 
 .ficha-dato-etiqueta {
