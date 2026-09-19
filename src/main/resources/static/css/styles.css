@@ -1934,12 +1934,6 @@ form[action*="eliminar"] button:hover {
     border-color: var(--danger);
 }
 
-.btn-generar-pdf.deshabilitado {
-    opacity: 0.5;
-    pointer-events: none;
-    cursor: not-allowed;
-}
-
 /* ---------------- Tablas ---------------- */
 
 table {

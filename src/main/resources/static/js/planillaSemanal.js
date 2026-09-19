@@ -14,26 +14,20 @@ function habilitarFormulario() {
     document.getElementById('fieldsetPlanilla').disabled = false;
     document.getElementById('btnNuevo').disabled = true;
 
-    const btnPdf = document.getElementById('btnGenerarPdf');
-    if (btnPdf.tagName === 'A') {
-        btnPdf.removeAttribute('href');
-        btnPdf.classList.add('deshabilitado');
-    } else {
-        btnPdf.disabled = true;
-    }
-
     // "Semana N (Cargar)" no navega -- a diferencia de un link a una semana ya
     // cargada, es un botón, así que la página nunca se recarga con datos
-    // limpios. Sin esto, Editar/Generar PDF/Eliminar seguían mostrando la
-    // semana que se estaba mirando antes de tocar "Cargar" acá.
-    const btnEditar = document.getElementById('btnEditar');
-    if (btnEditar) {
-        btnEditar.disabled = true;
+    // limpios. Sin esto, el panel de Generar PDF/Editar/Eliminar y el
+    // resaltado de "activa" seguían mostrando la semana que se estaba mirando
+    // antes de tocar "Cargar" acá -- las dos cosas a la vez, la vieja resaltada
+    // y la nueva completándose, como si fueran la misma.
+    const acciones = document.querySelector('.pl-semana-acciones');
+    if (acciones) {
+        acciones.style.display = 'none';
     }
 
-    const formEliminar = document.getElementById('formEliminar');
-    if (formEliminar) {
-        formEliminar.style.display = 'none';
+    const activa = document.querySelector('.pl-semana-caja--activa');
+    if (activa) {
+        activa.classList.remove('pl-semana-caja--activa');
     }
 }
 
