@@ -555,6 +555,13 @@ img {
     color: var(--success);
 }
 
+/* Apagado: ya se marcó como leído. No se saca de la fila (sigue mostrando
+   que ese aviso existió y fue leído), pero deja de poder tocarse. */
+.aviso-item-marcar:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
 /* En las pantallas de acceso no hay header donde alojar el toggle, así que flota
    sobre la ilustración. Siguiendo el uso de materiales de Apple, no es una ficha
    opaca sino una capa translúcida: deja ver el color que tiene detrás, con blur

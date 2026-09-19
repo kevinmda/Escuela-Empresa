@@ -95,7 +95,7 @@
                  los entrega del más reciente al más viejo. -->
             <details th:if="${chrome != null and !chrome.avisos().isEmpty()}" class="cuenta">
                 <summary class="nav-links cuenta-boton aviso-caja"
-                         th:classappend="${chrome.avisosOrdenados().get(0).tipo() == 'listo'} ? ' aviso-caja--listo' : ' aviso-caja--pendiente'"
+                         th:classappend="${chrome.colorCampana() != 'gris'} ? ('aviso-caja--' + ${chrome.colorCampana()}) : ''"
                          aria-label="Avisos">
                     <svg class="aviso-caja-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -121,8 +121,12 @@
                              th:classappend="${aviso.tipo() == 'listo'} ? ' aviso-item--listo' : ' aviso-item--pendiente'">
                             <a th:href="@{${aviso.destino()}}" class="aviso-item-link"
                                th:text="${aviso.texto()}">Aviso</a>
-                            <button th:unless="${aviso.leido()}" type="button" class="aviso-item-marcar"
-                                    th:attr="data-tipo=${aviso.tipo()},data-clave=${aviso.clave()}"
+                            <!-- No desaparece al leerlo: queda deshabilitado y apagado (mismo
+                                 tilde, sin poder tocarlo de nuevo), así se ve que esa fila ya se
+                                 leyó sin que la fila entera pierda su botón. -->
+                            <button type="button" class="aviso-item-marcar"
+                                    th:attr="data-codigo=${aviso.codigo()},data-clave=${aviso.clave()}"
+                                    th:disabled="${aviso.leido()}"
                                     aria-label="Marcar como leído" onclick="marcarAvisoLeido(this)">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

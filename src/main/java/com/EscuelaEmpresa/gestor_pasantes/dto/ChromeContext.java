@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Datos de identidad que necesita el cromo compartido de las pantallas autenticadas.
@@ -27,30 +28,35 @@ public record ChromeContext(
     /**
      * Un aviso del header (la caja a la derecha del toggle de tema).
      *
-     * "clave" identifica la ocurrencia puntual de ese "tipo" (para la planilla
-     * pendiente, la fecha del sábado que la activó; para los documentos
-     * habilitados, la fecha de la sexta planilla) -- es lo que se guarda en
-     * aviso_leido al marcar como leído, y lo que permite saber si ESTA
-     * ocurrencia puntual ya se leyó o si es una nueva (con otra clave) que
-     * todavía no.
+     * "codigo" identifica DE QUÉ es el aviso ("documentos_finales",
+     * "documentos_adjuntos"...) y es la mitad de la clave primaria de
+     * aviso_leido. Es un campo aparte de "tipo" (el color) porque, a
+     * diferencia de antes, ahora puede haber más de un aviso "listo" (verde)
+     * a la vez por motivos distintos -- si se usara el color como identidad,
+     * los dos pisarían la misma fila de aviso_leido.
+     *
+     * "clave" identifica la ocurrencia puntual de ese código (para
+     * documentos_finales, la fecha de la sexta planilla; para
+     * documentos_adjuntos, el id del documento que completó los 10) -- es lo
+     * que se guarda en aviso_leido al marcar como leído, y lo que permite
+     * saber si ESTA ocurrencia puntual ya se leyó o si es una nueva (con otra
+     * clave) que todavía no.
      *
      * "momento" es la referencia por la que se ordenan y agrupan cuando hay
      * más de uno -- no cuándo se generó este objeto (eso sería "ahora"
      * siempre, y no distinguiría nada), sino el día que hace que ESE aviso en
-     * particular sea relevante. Ninguna de las dos reglas de negocio de las
-     * que sale esto tiene una hora real guardada en la base (son fechas, no
-     * eventos con marca de tiempo), así que "momento" usa la medianoche del
-     * día que corresponde -- es una convención, no un dato real, pero es
-     * estable (no cambia según cuándo se mire) y es coherente con agrupar por
-     * "el día que llegó".
+     * particular sea relevante. Para documentos_adjuntos es un dato real (la
+     * fecha de subida del documento que completó los 10); para
+     * documentos_finales no hay una hora real guardada en la base (es una
+     * fecha, no un evento con marca de tiempo), así que ahí "momento" usa la
+     * medianoche del día que corresponde -- una convención, no un dato real,
+     * pero estable.
      *
-     * "tipo" define el color en chrome.html ("pendiente": dorado, "listo":
-     * verde, mismo par que ya usa el resto de la app) y es también la mitad
-     * de la clave primaria de aviso_leido -- alcanza porque hoy cada tipo de
-     * aviso tiene un solo color/motivo posible, no hace falta un identificador
-     * separado para las dos cosas.
+     * "tipo" define el color en chrome.html: "pendiente" (dorado) o "listo"
+     * (verde), mismo par que ya usa el resto de la app.
      */
-    public record Aviso(String texto, String destino, String tipo, String clave, LocalDateTime momento, boolean leido) {
+    public record Aviso(String texto, String destino, String tipo, String codigo, String clave,
+                         LocalDateTime momento, boolean leido) {
 
         public String hora() {
             return momento.format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -83,6 +89,18 @@ public record ChromeContext(
     /** La campana solo lleva el punto de color si queda algo sin leer. */
     public boolean hayAvisosSinLeer() {
         return avisos.stream().anyMatch(a -> !a.leido());
+    }
+
+    /**
+     * El color de la campana en sí (no del punto): gris cuando no queda nada
+     * sin leer -- aunque siga habiendo avisos ya leídos en la lista -- y
+     * vuelve a su color apenas llega uno nuevo sin leer. Con "pendiente"
+     * (dorado) hoy sin uso real (el único aviso de ese tipo se sacó), pero la
+     * lógica queda general por si algún día vuelve a hacer falta.
+     */
+    public String colorCampana() {
+        Optional<Aviso> primeroSinLeer = avisosOrdenados().stream().filter(a -> !a.leido()).findFirst();
+        return primeroSinLeer.map(Aviso::tipo).orElse("gris");
     }
 
     /**

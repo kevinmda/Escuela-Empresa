@@ -7,9 +7,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 // Qué aviso del header (ver ChromeContext.Aviso) marcó como leído cada
-// alumno, por tipo -- una fila por (alumno, tipo). "clave" es la ocurrencia
-// puntual que se leyó (ver el comentario en la migración V3): si la clave
-// actual de ese tipo no coincide con esta, vuelve a contar como no leído.
+// alumno, por código -- una fila por (alumno, código). "clave" es la
+// ocurrencia puntual que se leyó (ver el comentario en la migración V3): si
+// la clave actual de ese código no coincide con esta, vuelve a contar como
+// no leído.
 @Entity
 @Table(name = "aviso_leido")
 @IdClass(AvisoLeidoId.class)
@@ -20,10 +21,10 @@ public class AvisoLeido {
     private Integer idAl;
 
     @Id
-    @Column(length = 20)
-    private String tipo;
+    @Column(length = 30)
+    private String codigo;
 
-    @Column(length = 20)
+    @Column(length = 30)
     private String clave;
 
     public AvisoLeido() {}
@@ -31,8 +32,8 @@ public class AvisoLeido {
     public Integer getIdAl() { return idAl; }
     public void setIdAl(Integer idAl) { this.idAl = idAl; }
 
-    public String getTipo() { return tipo; }
-    public void setTipo(String tipo) { this.tipo = tipo; }
+    public String getCodigo() { return codigo; }
+    public void setCodigo(String codigo) { this.codigo = codigo; }
 
     public String getClave() { return clave; }
     public void setClave(String clave) { this.clave = clave; }

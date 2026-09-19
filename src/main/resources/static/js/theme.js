@@ -372,22 +372,29 @@
     // reintentar; no hay nada que deshacer del lado del cliente porque no se
     // tocó nada todavía.
     window.marcarAvisoLeido = function (boton) {
-        const tipo = boton.dataset.tipo;
+        const codigo = boton.dataset.codigo;
         const clave = boton.dataset.clave;
 
-        fetch('/alumno/avisos/marcar-leido?tipo=' + encodeURIComponent(tipo) + '&clave=' + encodeURIComponent(clave),
+        fetch('/alumno/avisos/marcar-leido?codigo=' + encodeURIComponent(codigo) + '&clave=' + encodeURIComponent(clave),
             { credentials: 'same-origin' })
             .then(function (respuesta) {
                 if (!respuesta.ok) return;
 
-                boton.remove();
+                // No desaparece: queda deshabilitado y apagado (ver
+                // .aviso-item-marcar:disabled en el CSS), para que la fila siga
+                // mostrando que ese aviso existió y ya se leyó.
+                boton.disabled = true;
 
-                // Si no queda ningún otro botón de "marcar como leído" visible en
-                // ningún desplegable de avisos, ya no hay nada sin leer: se apaga
-                // el punto de la campana.
-                if (!document.querySelector('.aviso-item-marcar')) {
+                // Si no queda ningún otro botón habilitado (sin leer) en ningún
+                // desplegable de avisos, se apaga el punto de la campana y su
+                // color vuelve al gris de reposo -- vuelve a tomar color solo
+                // cuando llegue un aviso nuevo sin leer (otra carga de página).
+                if (!document.querySelector('.aviso-item-marcar:not(:disabled)')) {
                     const punto = document.querySelector('.aviso-caja-punto');
                     if (punto) punto.remove();
+
+                    const campana = document.querySelector('.aviso-caja');
+                    if (campana) campana.classList.remove('aviso-caja--listo', 'aviso-caja--pendiente');
                 }
             });
     };

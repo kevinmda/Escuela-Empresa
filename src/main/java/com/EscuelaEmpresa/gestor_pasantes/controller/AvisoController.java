@@ -27,7 +27,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 @Controller
 public class AvisoController {
 
-    private static final List<String> TIPOS_VALIDOS = List.of("pendiente", "listo");
+    private static final List<String> CODIGOS_VALIDOS = List.of("documentos_finales", "documentos_adjuntos");
 
     private final UsuarioRepository usuarioRepository;
     private final AlumnoRepository alumnoRepository;
@@ -42,10 +42,10 @@ public class AvisoController {
 
     @GetMapping("/alumno/avisos/marcar-leido")
     @ResponseBody
-    public Map<String, Object> marcarLeido(@RequestParam String tipo, @RequestParam String clave,
+    public Map<String, Object> marcarLeido(@RequestParam String codigo, @RequestParam String clave,
                                             Authentication authentication) {
-        if (!TIPOS_VALIDOS.contains(tipo)) {
-            throw new ReglaNegocioException("Tipo de aviso inválido");
+        if (!CODIGOS_VALIDOS.contains(codigo)) {
+            throw new ReglaNegocioException("Código de aviso inválido");
         }
 
         Usuario usuario = usuarioRepository.findByEmail(authentication.getName())
@@ -53,13 +53,13 @@ public class AvisoController {
         Alumno alumno = alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
                 .orElseThrow(() -> new RecursoNoEncontradoException("El usuario no es un alumno"));
 
-        // Una fila por (alumno, tipo): si ya había una de un aviso anterior de
-        // este mismo tipo, se pisa con la clave nueva en vez de acumular
+        // Una fila por (alumno, código): si ya había una de un aviso anterior de
+        // este mismo código, se pisa con la clave nueva en vez de acumular
         // historial que nadie necesita leer.
-        AvisoLeido avisoLeido = avisoLeidoRepository.findByIdAlAndTipo(alumno.getIdAl(), tipo)
+        AvisoLeido avisoLeido = avisoLeidoRepository.findByIdAlAndCodigo(alumno.getIdAl(), codigo)
                 .orElseGet(AvisoLeido::new);
         avisoLeido.setIdAl(alumno.getIdAl());
-        avisoLeido.setTipo(tipo);
+        avisoLeido.setCodigo(codigo);
         avisoLeido.setClave(clave);
         avisoLeidoRepository.save(avisoLeido);
 
