@@ -11,7 +11,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
 
 // El orden de encuadernado es lo único propio de ExpedientePdfService (el resto
-// es PDFMergerUtility, ya probado por PDFBox): autorización, contrato, las
+// es PDFMergerUtility, ya probado por PDFBox): contrato, autorización, las
 // planillas semanales en el orden en que se subieron, ficha final y ficha
 // final evaluativa. Esta prueba no toca el repositorio ni el filesystem.
 class ExpedientePdfServiceTest {
@@ -28,8 +28,8 @@ class ExpedientePdfServiceTest {
         DocumentoSubido fichaEval = documento(TipoDocumento.FICHA_FINAL_EVALUATIVA, 50);
         DocumentoSubido fichaFinal = documento(TipoDocumento.FICHA_FINAL_ALUMNO, 40);
         DocumentoSubido plantilla = documento(TipoDocumento.PLANTILLA_SEMANAL, 20);
-        DocumentoSubido contrato = documento(TipoDocumento.CONTRATO, 10);
-        DocumentoSubido autorizacion = documento(TipoDocumento.AUTORIZACION, 0);
+        DocumentoSubido autorizacion = documento(TipoDocumento.AUTORIZACION, 10);
+        DocumentoSubido contrato = documento(TipoDocumento.CONTRATO, 0);
 
         // A proposito en un orden que no coincide ni con el de entrega ni con el
         // de encuadernado, como llegaria de findByAlumno_IdAlOrderByFechaSubidaDesc.
@@ -38,7 +38,7 @@ class ExpedientePdfServiceTest {
 
         List<DocumentoSubido> resultado = ExpedientePdfService.ordenarParaExpediente(desordenados);
 
-        assertEquals(List.of(autorizacion, contrato, plantilla, fichaFinal, fichaEval), resultado);
+        assertEquals(List.of(contrato, autorizacion, plantilla, fichaFinal, fichaEval), resultado);
     }
 
     @Test

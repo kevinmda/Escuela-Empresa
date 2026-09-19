@@ -24,12 +24,12 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 @Service
 public class ExpedientePdfService {
 
-    // Autorizacion y contrato se firman antes de empezar; las planillas se
+    // Contrato y autorizacion se firman antes de empezar; las planillas se
     // entregan semana a semana durante la pasantia; las dos fichas se
     // completan al terminar. Ese es el orden en el que van encuadernadas.
     private static final List<TipoDocumento> ORDEN_EXPEDIENTE = List.of(
-            TipoDocumento.AUTORIZACION,
             TipoDocumento.CONTRATO,
+            TipoDocumento.AUTORIZACION,
             TipoDocumento.PLANTILLA_SEMANAL,
             TipoDocumento.FICHA_FINAL_ALUMNO,
             TipoDocumento.FICHA_FINAL_EVALUATIVA

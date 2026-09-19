@@ -154,10 +154,11 @@
              grilla de arriba, y por eso se habilita recién cuando esos diez ya
              están completos: subirlo antes no tendría nada que combinar.
 
-             No es un <fieldset> como el de arriba: ahí adentro había una
-             decisión real que tomar (qué tipo estás subiendo, entre cinco).
-             Acá no hay nada que elegir, así que es un encabezado normal más
-             una tarjeta que solo informa un estado. -->
+             Acá no hay ningún tipo que elegir -- a diferencia de la grilla de
+             arriba, donde sí hay una decisión real entre cinco -- así que no
+             lleva ninguna tarjeta de tipo: el formulario ya manda
+             tipoDocumento=DOCUMENTOS_ADJUNTOS en un campo oculto, y directo
+             debajo está la única zona de arrastre de este apartado. -->
         <section class="panel sb-form" aria-labelledby="sb-adjuntos-titulo">
             <h3 class="sb-subidos-titulo" id="sb-adjuntos-titulo">Documentos adjuntos</h3>
             <p class="sb-adjuntos-nota">
@@ -165,19 +166,6 @@
                 <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a>, ya firmado y escaneado. Se
                 admite un solo archivo.
             </p>
-
-            <div class="sb-tipos-grilla sb-tipos-grilla--unico">
-                <!-- sb-tipo--estatico: se ve como las tarjetas de arriba, pero no
-                     hay radio adentro ni nada que elegir, así que no debe
-                     comportarse como si lo hubiera (ni cursor de mano, ni el
-                     salto al pasar el mouse). -->
-                <div class="sb-tipo sb-tipo--estatico"
-                     th:classappend="${documentoAdjuntos != null} ? ' sb-tipo--completo'">
-                    <span class="sb-tipo-nombre">Documentos Adjuntos</span>
-                    <span class="sb-tipo-cuenta"
-                          th:text="${(documentoAdjuntos != null ? 1 : 0)} + ' de 1'">0 de 1</span>
-                </div>
-            </div>
 
             <form th:if="${puedeSubirAdjuntos}" th:action="@{/alumno/subir}" method="post"
                   enctype="multipart/form-data" class="sb-form-adjuntos-cuerpo">

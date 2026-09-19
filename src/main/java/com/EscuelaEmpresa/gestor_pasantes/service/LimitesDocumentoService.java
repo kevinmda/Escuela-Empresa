@@ -23,8 +23,8 @@ public class LimitesDocumentoService {
     // cinco ya están completos, así que no cuenta para el total ni para
     // "expedienteCompleto".
     private static final List<TipoDocumento> TIPOS_EXPEDIENTE = List.of(
-            TipoDocumento.AUTORIZACION,
             TipoDocumento.CONTRATO,
+            TipoDocumento.AUTORIZACION,
             TipoDocumento.PLANTILLA_SEMANAL,
             TipoDocumento.FICHA_FINAL_ALUMNO,
             TipoDocumento.FICHA_FINAL_EVALUATIVA
