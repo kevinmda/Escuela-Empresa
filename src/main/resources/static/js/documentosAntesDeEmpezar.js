@@ -119,58 +119,24 @@
     // esa combinación es la que algunos navegadores reportan como "problema
     // de red" al abrir la pestaña nueva (el resto de los documentos son GET
     // simples, sin archivos, y no tienen este problema). En vez de dejar que
-    // el <form> se someta nativamente, se arma con FormData (que junta solo,
-    // sin recorrerlo a mano, todos los campos Y los archivos elegidos) y se
-    // manda por fetch; el PDF que devuelve se descarga con el nombre correcto.
-    //
-    // Nota: esto descarga el archivo directo en vez de abrirlo primero en una
-    // pestaña como el resto de los documentos. window.open(url) con una URL de
-    // blob no respeta el nombre del archivo -- el navegador termina mostrando
-    // el identificador interno del blob (algo como
-    // "a0e4b4ed-755a-4588-a44d-17e15940d67f") en vez de
-    // "Autorizacion_...". El truco de <a download="..."> sí funciona en todos
-    // los navegadores para el nombre, pero fuerza la descarga en vez de abrir
-    // un visor.
+    // el <form> se someta nativamente, se arma con FormData y se manda por
+    // fetch: el servidor genera el PDF, lo deja guardado del lado de la
+    // sesión, y devuelve solo un link corto. Ese link se abre con
+    // window.open() como una navegación GET normal -- igual que el resto de
+    // los documentos -- así que el navegador lo trata igual: pestaña nueva,
+    // nombre correcto, sin ningún truco de blob de por medio (una URL de
+    // blob abierta con window.open() no respeta el nombre del archivo).
     function enviarFormularioPorFetch(form, boton) {
         const datos = new FormData(form);
 
         fetch(form.action, { method: 'POST', body: datos, credentials: 'same-origin' })
-            .then(function (respuesta) {
-                const tipo = respuesta.headers.get('content-type') || '';
-                if (!respuesta.ok || tipo.indexOf('application/pdf') === -1) {
-                    throw new Error('respuesta-no-pdf');
-                }
-
-                // El nombre con el que se guarda sale de Content-Disposition, el
-                // mismo que ya manda el servidor. Con nombres que llevan tildes
-                // (casi todos) Spring lo manda codificado como
-                // filename*=UTF-8''...: hay que preferir ese y decodificarlo:
-                // si solo se mirara filename="...", con un nombre así ni
-                // siquiera matchea (el "*" antes del "=" lo saca de la pinta
-                // que espera esa expresión regular).
-                const disposicion = respuesta.headers.get('content-disposition') || '';
-                let nombreArchivo = 'Autorizacion.pdf';
-                const conTilde = disposicion.match(/filename\*=UTF-8''([^;]+)/i);
-                if (conTilde) {
-                    nombreArchivo = decodeURIComponent(conTilde[1]);
-                } else {
-                    const simple = disposicion.match(/filename="?([^";]+)"?/i);
-                    if (simple) nombreArchivo = simple[1];
-                }
-
-                return respuesta.blob().then(function (blob) {
-                    return { blob: blob, nombreArchivo: nombreArchivo };
-                });
-            })
+            .then(function (respuesta) { return respuesta.json(); })
             .then(function (resultado) {
-                const url = URL.createObjectURL(resultado.blob);
-                const enlace = document.createElement('a');
-                enlace.href = url;
-                enlace.download = resultado.nombreArchivo;
-                document.body.appendChild(enlace);
-                enlace.click();
-                document.body.removeChild(enlace);
-                setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+                if (resultado.valido) {
+                    window.open(resultado.url, '_blank');
+                } else {
+                    mostrarError(resultado.error || 'No se pudo generar el PDF.');
+                }
                 if (boton) boton.disabled = false;
             })
             .catch(function () {

@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
+import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PadreTutor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
@@ -40,10 +41,18 @@ import com.EscuelaEmpresa.gestor_pasantes.service.PlantillaService;
 import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService;
 import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class ImprimirController {
+
+    // Claves de sesión donde generarPdfAutorizacion deja el PDF listo para que
+    // descargarAutorizacionLista lo sirva una sola vez (ver esos dos métodos).
+    private static final String SESION_AUTORIZACION_PDF = "autorizacionPdfBytes";
+    private static final String SESION_AUTORIZACION_NOMBRE = "autorizacionPdfNombre";
+
     private final UsuarioRepository usuarioRepository;
     private final AlumnoRepository alumnoRepository;
     private final PlanillaSemanalRepository planillaSemanalRepository;
@@ -219,27 +228,39 @@ public class ImprimirController {
     // nuevas al final del PDF. Un archivo implica multipart/form-data, que un
     // <form method="get"> no puede mandar (el navegador solo manda el nombre
     // del archivo, no su contenido), así que pasa a POST.
+    // Igual que verificar-padre: se llama por fetch, así que responde JSON en
+    // vez de escribir el PDF directo o redirigir. La razón de fondo es la
+    // misma por la que este formulario pasó a POST: el archivo. Pero un POST
+    // con archivos, abierto en una pestaña nueva (target="_blank"), es
+    // exactamente la combinación que algunos navegadores reportan como
+    // "problema de red" -- y una vez resuelto eso con fetch, un blob abierto
+    // con window.open() no respeta el nombre del archivo (el navegador
+    // termina mostrando el identificador interno del blob). Por eso esto NO
+    // devuelve el PDF: lo genera, lo deja guardado en la sesión, y devuelve
+    // nada más que la URL de descargarAutorizacionLista de abajo -- esa sí es
+    // una navegación GET normal y corriente, igual que la de cualquier otro
+    // documento de esta página, así que el navegador la abre en una pestaña
+    // con el nombre correcto sin ningún truco de por medio.
     @PostMapping("/alumno/imprimir/Autorizacion.pdf")
-    public String generarPdfAutorizacion(@RequestParam String padreNombre,
-                                          @RequestParam String padreCi,
-                                          @RequestParam(required = false) MultipartFile cedulaAlumno,
-                                          @RequestParam(required = false) MultipartFile cedulaPadre,
-                                          Authentication authentication, HttpServletResponse response,
-                                          RedirectAttributes redirectAttributes) throws IOException {
+    @ResponseBody
+    public Map<String, Object> generarPdfAutorizacion(@RequestParam String padreNombre,
+                                                        @RequestParam String padreCi,
+                                                        @RequestParam(required = false) MultipartFile cedulaAlumno,
+                                                        @RequestParam(required = false) MultipartFile cedulaPadre,
+                                                        Authentication authentication,
+                                                        HttpServletRequest request) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
         PadreTutor padreTutor = alumno.getPadreTutor();
 
         if (padreTutor == null) {
-            redirectAttributes.addFlashAttribute("error",
+            return Map.of("valido", false, "error",
                     "Todavía no hay un padre, madre o tutor registrado para vos. Consultá con la coordinación.");
-            return "redirect:/alumno/documentos/antes-de-empezar";
         }
 
         if (!nombreCoincide(padreNombre, padreTutor) || !ciCoincide(padreCi, padreTutor)) {
-            redirectAttributes.addFlashAttribute("error",
+            return Map.of("valido", false, "error",
                     "El nombre y apellido o la cédula del padre, madre o tutor no coinciden con lo que "
                             + "tenemos registrado. Revisalos e intentá de nuevo.");
-            return "redirect:/alumno/documentos/antes-de-empezar";
         }
 
         List<MultipartFile> adjuntos = new ArrayList<>();
@@ -248,14 +269,12 @@ public class ImprimirController {
                 continue;
             }
             if (adjunto.getSize() > tamanioMaximo.toBytes()) {
-                redirectAttributes.addFlashAttribute("error",
+                return Map.of("valido", false, "error",
                         "Una de las cédulas adjuntas supera el tamaño máximo permitido ("
                                 + tamanioMaximo.toMegabytes() + " MB).");
-                return "redirect:/alumno/documentos/antes-de-empezar";
             }
             if (!validacionDocumentoService.validarPdfIntegridad(adjunto)) {
-                redirectAttributes.addFlashAttribute("error", "Una de las cédulas adjuntas no es un PDF válido.");
-                return "redirect:/alumno/documentos/antes-de-empezar";
+                return Map.of("valido", false, "error", "Una de las cédulas adjuntas no es un PDF válido.");
             }
             adjuntos.add(adjunto);
         }
@@ -263,12 +282,38 @@ public class ImprimirController {
         byte[] pdf = formularioPdfService.generarAutorizacion(alumno);
         pdf = agregarPaginasAdjuntas(pdf, adjuntos);
 
+        HttpSession session = request.getSession();
+        session.setAttribute(SESION_AUTORIZACION_PDF, pdf);
+        session.setAttribute(SESION_AUTORIZACION_NOMBRE,
+                Descarga.nombreDocumento("Autorizacion", alumno.getNombres(), alumno.getApellidos(), "pdf"));
+
+        return Map.of("valido", true, "url", "/alumno/imprimir/Autorizacion-lista.pdf");
+    }
+
+    // El PDF que generarPdfAutorizacion dejó listo en la sesión, una sola vez:
+    // esta es la navegación GET común y corriente (sin archivos, sin POST) que
+    // el JS abre con window.open() -- el mismo mecanismo que ya usan Contrato
+    // y Ficha Final, así que el navegador la trata igual: la abre en una
+    // pestaña con el nombre correcto. Se borra de la sesión apenas se sirve,
+    // para no dejar PDFs viejos acumulándose ahí ni volver a servir uno stale
+    // si se recarga esta URL sin generar de nuevo.
+    @GetMapping("/alumno/imprimir/Autorizacion-lista.pdf")
+    public void descargarAutorizacionLista(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession(false);
+        byte[] pdf = session != null ? (byte[]) session.getAttribute(SESION_AUTORIZACION_PDF) : null;
+
+        if (pdf == null) {
+            throw new ReglaNegocioException("No hay ningún documento de Autorización listo para descargar. "
+                    + "Volvé a completar el formulario y generalo de nuevo.");
+        }
+
+        String nombreArchivo = (String) session.getAttribute(SESION_AUTORIZACION_NOMBRE);
+        session.removeAttribute(SESION_AUTORIZACION_PDF);
+        session.removeAttribute(SESION_AUTORIZACION_NOMBRE);
+
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition",
-                Descarga.inline(Descarga.nombreDocumento("Autorizacion", alumno.getNombres(), alumno.getApellidos(), "pdf"),
-                        "Autorizacion.pdf"));
+        response.setHeader("Content-Disposition", Descarga.inline(nombreArchivo, "Autorizacion.pdf"));
         response.getOutputStream().write(pdf);
-        return null;
     }
 
     // area es obligatorio en el formulario (ver documentos-al-terminar.html),
