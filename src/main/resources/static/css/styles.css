@@ -6134,6 +6134,18 @@ input:read-only {
     color: var(--ink-soft);
 }
 
+/* Cuando el vacío lleva una segunda línea (p.ej. "Para reemplazarlo..."), sin
+   esto el margen por defecto del <p> se suma al padding de la caja y separa
+   de más. Los .sb-vacio de una sola línea (un <p> directo, sin hijos) no
+   entran acá. */
+.sb-vacio p {
+    margin: 0;
+}
+
+.sb-vacio p + p {
+    margin-top: 0.5rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .sb-tipo {
         transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;

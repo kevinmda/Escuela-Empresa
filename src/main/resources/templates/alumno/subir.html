@@ -110,9 +110,10 @@
              que se pueda tocar. Mismo tratamiento que el vacío de "Lo que ya
              subiste" y el de Documentos adjuntos: dice qué pasó, no una caja
              muerta. -->
-        <p th:if="${expedienteCompleto}" class="sb-vacio">
-            Ya subiste los <span th:text="${totalLimite}">10</span> comprobantes del expediente.
-        </p>
+        <div th:if="${expedienteCompleto}" class="sb-vacio">
+            <p>Ya subiste los <span th:text="${totalLimite}">10</span> comprobantes del expediente.</p>
+            <p>Para reemplazar alguno, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
+        </div>
 
         <section class="sb-subidos" aria-labelledby="sb-subidos-titulo">
             <h3 class="sb-subidos-titulo" id="sb-subidos-titulo">Lo que ya subiste</h3>
@@ -201,9 +202,10 @@
                 (llevás <span th:text="${totalSubidos}">0</span>).
             </p>
 
-            <p th:if="${expedienteCompleto and documentoAdjuntos != null}" class="sb-adjuntos-nota">
-                Ya lo subiste. Para reemplazarlo, eliminalo en la tabla de arriba y subí el nuevo acá.
-            </p>
+            <div th:if="${expedienteCompleto and documentoAdjuntos != null}" class="sb-vacio">
+                <p>Ya lo subiste.</p>
+                <p>Para reemplazarlo, eliminalo en la tabla de arriba y subí el nuevo acá.</p>
+            </div>
         </section>
     </main>
 
