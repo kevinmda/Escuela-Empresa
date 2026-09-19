@@ -1,20 +1,25 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.EscuelaEmpresa.gestor_pasantes.dto.ChromeContext;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
+import com.EscuelaEmpresa.gestor_pasantes.entity.AvisoLeido;
+import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Especialidad;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
+import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.AvisoLeidoRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -35,15 +40,24 @@ public class ChromeModelAdvice {
     private final AlumnoRepository alumnoRepository;
     private final AdministradorRepository administradorRepository;
     private final PlanillaSemanalRepository planillaSemanalRepository;
+    private final DocumentoSubidoRepository documentoSubidoRepository;
+    private final LimitesDocumentoService limitesDocumentoService;
+    private final AvisoLeidoRepository avisoLeidoRepository;
 
     public ChromeModelAdvice(UsuarioRepository usuarioRepository,
                              AlumnoRepository alumnoRepository,
                              AdministradorRepository administradorRepository,
-                             PlanillaSemanalRepository planillaSemanalRepository) {
+                             PlanillaSemanalRepository planillaSemanalRepository,
+                             DocumentoSubidoRepository documentoSubidoRepository,
+                             LimitesDocumentoService limitesDocumentoService,
+                             AvisoLeidoRepository avisoLeidoRepository) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.administradorRepository = administradorRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
+        this.documentoSubidoRepository = documentoSubidoRepository;
+        this.limitesDocumentoService = limitesDocumentoService;
+        this.avisoLeidoRepository = avisoLeidoRepository;
     }
 
     @ModelAttribute("chrome")
@@ -86,54 +100,83 @@ public class ChromeModelAdvice {
                     usuario.getEmail(),
                     especialidad != null ? especialidad.getIdEsp() : null,
                     especialidad != null ? especialidad.getNombre() : null,
-                    avisosDelAlumno(planillas));
+                    avisosDelAlumno(alumno, planillas));
         }
 
         return new ChromeContext("cuenta", usuario.getEmail(), usuario.getEmail(), null, null);
     }
 
-    // Los dos avisos posibles hoy son mutuamente excluyentes (uno pide menos de
-    // 6 planillas, el otro 6 o más), así que nunca hay dos a la vez -- pero se
-    // arma como lista igual, no como par de booleanos, para no tener que
-    // rehacer esto si mañana se agrega un tercer aviso que sí pueda convivir
-    // con otro.
-    private List<ChromeContext.Aviso> avisosDelAlumno(List<PlanillaSemanal> planillas) {
-        if (planillas.isEmpty()) {
-            return List.of(); // todavía no arrancó, nada que avisarle todavía
-        }
+    // Los dos avisos posibles hoy pueden convivir (a diferencia de antes: uno
+    // dependía de las planillas cargadas en el sistema, el otro de los
+    // documentos subidos como PDF, son cosas independientes), por eso es una
+    // lista real y no un par de casos sueltos. Las dos condiciones se vuelven
+    // a evaluar en cada carga de página desde el estado actual (cuántas
+    // planillas/documentos hay ahora mismo) -- si se borra una planilla o un
+    // documento y la condición deja de cumplirse, el aviso correspondiente
+    // deja de aparecer solo, sin que haga falta borrar nada de aviso_leido.
+    private List<ChromeContext.Aviso> avisosDelAlumno(Alumno alumno, List<PlanillaSemanal> planillas) {
+        List<ChromeContext.Aviso> avisos = new ArrayList<>();
 
         if (planillas.size() >= 6) {
             // findByAlumno_IdAlOrderByFechaDesdeDesc: la más nueva (la sexta) va
-            // primera. Su fecha_hasta es la referencia de "cuándo pasó esto".
+            // primera. Su fecha_hasta es la referencia de "cuándo pasó esto" y
+            // también la clave de esta ocurrencia (ver AvisoLeido).
             LocalDate fechaSextaPlanilla = planillas.get(0).getFechaHasta();
-            return List.of(new ChromeContext.Aviso(
+            String clave = fechaSextaPlanilla.toString();
+            avisos.add(new ChromeContext.Aviso(
                     "Ya se habilitaron tus documentos finales",
                     "/alumno/documentos/al-terminar",
                     "listo",
-                    fechaSextaPlanilla.atStartOfDay()));
+                    "documentos_finales",
+                    clave,
+                    fechaSextaPlanilla.atStartOfDay(),
+                    yaLeido(alumno, "documentos_finales", clave)));
         }
 
-        // findByAlumno_IdAlOrderByFechaDesdeDesc: la más nueva va primera.
-        LocalDate finUltimaSemana = planillas.get(0).getFechaHasta();
+        // Documentos Adjuntos (el expediente combinado, en /alumno/documentos/adjuntos)
+        // y su caja de subida en Subir se habilitan con los 10 comprobantes ya
+        // subidos como PDF -- algo aparte e independiente de las planillas
+        // cargadas en el sistema arriba. Una vez que el propio combinado ya se
+        // subió de vuelta, el aviso deja de tener sentido (puedeSubirAdjuntos en
+        // SubirController usa exactamente esta misma condición para ocultar esa
+        // caja), así que tampoco se muestra en ese caso.
+        List<DocumentoSubido> documentos =
+                documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(alumno.getIdAl());
+        boolean yaSubioAdjuntos = documentos.stream()
+                .anyMatch(d -> d.getTipoDocumento() == TipoDocumento.DOCUMENTOS_ADJUNTOS);
+        long totalSubidos = limitesDocumentoService.contarTotalSubidos(alumno.getIdAl());
+        int totalLimite = limitesDocumentoService.obtenerLimiteTotal();
 
-        // El sábado de la semana de fecha_hasta (puede ser la propia fecha_hasta,
-        // si ya era sábado, o el sábado que le sigue si la semana terminó antes,
-        // p.ej. un viernes) más una semana: el sábado de la semana SIGUIENTE a
-        // la que ya cargó. Así el aviso llega el mismo día sin importar si esa
-        // semana particular se trabajó hasta el viernes o hasta el sábado.
-        LocalDate sabadoProximaSemana = finUltimaSemana
-                .with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY))
-                .plusWeeks(1);
-
-        if (LocalDate.now().isBefore(sabadoProximaSemana)) {
-            return List.of(); // todavía no llegó el sábado que lo activa
+        if (totalSubidos >= totalLimite && !yaSubioAdjuntos) {
+            // El más reciente de los diez (documentos ya vienen ordenados desc por
+            // fecha de subida) es, por construcción, el que completó el umbral: no
+            // se puede pasar de 10 subiendo de más, cada tipo tiene su propio
+            // límite. Su fecha de subida SÍ es un dato real (a diferencia de la
+            // fecha_hasta de una planilla), así que acá "momento" no es una
+            // medianoche de convención sino la hora real de esa subida.
+            documentos.stream()
+                    .filter(d -> d.getTipoDocumento() != TipoDocumento.DOCUMENTOS_ADJUNTOS)
+                    .findFirst()
+                    .ifPresent(masReciente -> {
+                        String clave = String.valueOf(masReciente.getIdDs());
+                        avisos.add(new ChromeContext.Aviso(
+                                "Ya se habilitó el expediente combinado en Documentos adjuntos y su caja de subida en Subir",
+                                "/alumno/documentos/adjuntos",
+                                "listo",
+                                "documentos_adjuntos",
+                                clave,
+                                masReciente.getFechaSubida(),
+                                yaLeido(alumno, "documentos_adjuntos", clave)));
+                    });
         }
 
-        return List.of(new ChromeContext.Aviso(
-                "Falta cargar la planilla",
-                "/alumno/planilla",
-                "pendiente",
-                sabadoProximaSemana.atStartOfDay()));
+        return avisos;
+    }
+
+    private boolean yaLeido(Alumno alumno, String codigo, String clave) {
+        return avisoLeidoRepository.findByIdAlAndCodigo(alumno.getIdAl(), codigo)
+                .map(leido -> clave.equals(leido.getClave()))
+                .orElse(false);
     }
 
     // usado por fragments/auth.html para armar og:image con URL absoluta: las

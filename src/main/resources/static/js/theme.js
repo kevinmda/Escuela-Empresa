@@ -362,6 +362,43 @@
     // afuera. querySelectorAll y no querySelector: con dos .cuenta en la misma
     // pagina (cuenta + Documentos), quedarse con "el primero" dejaba al otro sin
     // esta mejora.
+    // Expuesta en window (igual que window.confirmarAccion más abajo): el
+    // botón vive en un onclick="" inline en chrome.html, así que necesita
+    // colgar de window para que ese atributo la encuentre -- las funciones
+    // declaradas acá adentro son privadas de este cierre.
+    //
+    // GET simple (ver AvisoController), no hace falta manejar CSRF. Si falla
+    // (sin conexión, sesión vencida) el botón se queda como estaba y se puede
+    // reintentar; no hay nada que deshacer del lado del cliente porque no se
+    // tocó nada todavía.
+    window.marcarAvisoLeido = function (boton) {
+        const codigo = boton.dataset.codigo;
+        const clave = boton.dataset.clave;
+
+        fetch('/alumno/avisos/marcar-leido?codigo=' + encodeURIComponent(codigo) + '&clave=' + encodeURIComponent(clave),
+            { credentials: 'same-origin' })
+            .then(function (respuesta) {
+                if (!respuesta.ok) return;
+
+                // No desaparece: queda deshabilitado y apagado (ver
+                // .aviso-item-marcar:disabled en el CSS), para que la fila siga
+                // mostrando que ese aviso existió y ya se leyó.
+                boton.disabled = true;
+
+                // Si no queda ningún otro botón habilitado (sin leer) en ningún
+                // desplegable de avisos, se apaga el punto de la campana y su
+                // color vuelve al gris de reposo -- vuelve a tomar color solo
+                // cuando llegue un aviso nuevo sin leer (otra carga de página).
+                if (!document.querySelector('.aviso-item-marcar:not(:disabled)')) {
+                    const punto = document.querySelector('.aviso-caja-punto');
+                    if (punto) punto.remove();
+
+                    const campana = document.querySelector('.aviso-caja');
+                    if (campana) campana.classList.remove('aviso-caja--listo', 'aviso-caja--pendiente');
+                }
+            });
+    };
+
     // El CSS posiciona .cuenta-menu con position:absolute (ver styles.css),
     // que alcanza siempre que no haya un ancestro con overflow que lo recorte.
     // En pantallas angostas .barra-riel necesita overflow-x:auto para poder
