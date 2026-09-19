@@ -66,15 +66,13 @@ public class ChromeModelAdvice {
                     : "administrador";
             // Administración y coordinación trabajan sobre conjuntos de especialidades;
             // el cromo queda deliberadamente neutro en vez de fingir una sola identidad.
-            // Los dos avisos son solo del alumno: false para cualquier otro rol.
+            // Sin avisos: son solo del alumno (constructor de 5 args, sin lista).
             return new ChromeContext(
                     rol,
                     nombreCompleto(administrador.getNombres(), administrador.getApellidos(), usuario.getEmail()),
                     usuario.getEmail(),
                     null,
-                    null,
-                    false,
-                    false);
+                    null);
         }
 
         Alumno alumno = alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr()).orElse(null);
@@ -88,18 +86,31 @@ public class ChromeModelAdvice {
                     usuario.getEmail(),
                     especialidad != null ? especialidad.getIdEsp() : null,
                     especialidad != null ? especialidad.getNombre() : null,
-                    avisoPlanillaPendiente(planillas),
-                    planillas.size() >= 6);
+                    avisosDelAlumno(planillas));
         }
 
-        return new ChromeContext("cuenta", usuario.getEmail(), usuario.getEmail(), null, null, false, false);
+        return new ChromeContext("cuenta", usuario.getEmail(), usuario.getEmail(), null, null);
     }
 
-    // Menos de 6: sin ninguna todavía no arrancó (nada que recordarle). Con 6
-    // o más ya terminó, no hay "semana siguiente" que reclamar.
-    private boolean avisoPlanillaPendiente(List<PlanillaSemanal> planillas) {
-        if (planillas.isEmpty() || planillas.size() >= 6) {
-            return false;
+    // Los dos avisos posibles hoy son mutuamente excluyentes (uno pide menos de
+    // 6 planillas, el otro 6 o más), así que nunca hay dos a la vez -- pero se
+    // arma como lista igual, no como par de booleanos, para no tener que
+    // rehacer esto si mañana se agrega un tercer aviso que sí pueda convivir
+    // con otro.
+    private List<ChromeContext.Aviso> avisosDelAlumno(List<PlanillaSemanal> planillas) {
+        if (planillas.isEmpty()) {
+            return List.of(); // todavía no arrancó, nada que avisarle todavía
+        }
+
+        if (planillas.size() >= 6) {
+            // findByAlumno_IdAlOrderByFechaDesdeDesc: la más nueva (la sexta) va
+            // primera. Su fecha_hasta es la referencia de "cuándo pasó esto".
+            LocalDate fechaSextaPlanilla = planillas.get(0).getFechaHasta();
+            return List.of(new ChromeContext.Aviso(
+                    "Ya se habilitaron tus documentos finales",
+                    "/alumno/documentos/al-terminar",
+                    "listo",
+                    fechaSextaPlanilla));
         }
 
         // findByAlumno_IdAlOrderByFechaDesdeDesc: la más nueva va primera.
@@ -114,7 +125,15 @@ public class ChromeModelAdvice {
                 .with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY))
                 .plusWeeks(1);
 
-        return !LocalDate.now().isBefore(sabadoProximaSemana);
+        if (LocalDate.now().isBefore(sabadoProximaSemana)) {
+            return List.of(); // todavía no llegó el sábado que lo activa
+        }
+
+        return List.of(new ChromeContext.Aviso(
+                "Falta cargar la planilla",
+                "/alumno/planilla",
+                "pendiente",
+                sabadoProximaSemana));
     }
 
     // usado por fragments/auth.html para armar og:image con URL absoluta: las
