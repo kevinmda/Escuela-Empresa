@@ -423,6 +423,105 @@ img {
     border-color: var(--accent);
 }
 
+/* La caja de avisos del alumno (a la derecha del toggle de tema): mismo
+   <details class="cuenta"> que ya usa "Documentos" en el riel, pero acá el
+   summary es un ícono en vez de texto -- no hay nada que elegir, solo abrir
+   para ver la lista. Mismo par dorado que ya significa "pendiente" en toda
+   la app (badge-pendiente de Reportes, la ficha de atención del hub del
+   administrativo) para el aviso de la planilla, y el verde de
+   .mensaje-exito para el que confirma que algo se habilitó -- ninguno de
+   los dos colores es nuevo, son los que ya tienen ese significado acá. */
+.barra-cuenta .aviso-caja {
+    position: relative;
+    padding: 0.5rem;
+}
+
+.aviso-caja-icono {
+    width: 1.2rem;
+    height: 1.2rem;
+    color: var(--ink-soft);
+}
+
+.aviso-caja--pendiente .aviso-caja-icono {
+    color: var(--accent-ink);
+}
+
+.aviso-caja--listo .aviso-caja-icono {
+    color: var(--success);
+}
+
+/* El punto que dice "hay algo" con la caja todavía cerrada: sin él, saber
+   que hay un aviso exigiría abrir la caja para descubrirlo, que es
+   exactamente el clic de más que una caja colapsada evita. */
+.aviso-caja-punto {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--surface);
+}
+
+.aviso-caja--pendiente .aviso-caja-punto {
+    background-color: var(--accent-ink);
+}
+
+.aviso-caja--listo .aviso-caja-punto {
+    background-color: var(--success);
+}
+
+/* Las filas del desplegable: mismo .cuenta-item que ya usa el menú de la
+   cuenta, con un filo de color a la izquierda para no depender solo del
+   texto para distinguir un aviso pendiente de uno de "ya está listo". */
+.aviso-item {
+    border-left: 3px solid transparent;
+    padding-left: calc(0.7rem - 3px);
+}
+
+.aviso-item--pendiente {
+    border-left-color: var(--accent-ink);
+}
+
+.aviso-item--listo {
+    border-left-color: var(--success);
+}
+
+/* Encabezado de grupo ("Hoy", "Ayer", "Hace 3 días"...): mismo tratamiento que
+   un <legend> chico, no es un aviso en sí, así que no lleva el fondo ni el
+   hover de .cuenta-item. */
+.aviso-grupo-titulo {
+    margin: 0.5rem 0.6rem 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+}
+
+.aviso-grupo-titulo:first-child {
+    margin-top: 0.2rem;
+}
+
+/* Texto a la izquierda, hora a la derecha: .cuenta-item de por sí es
+   display:block (una sola línea de texto), así que hace falta el flex acá
+   para las dos columnas. .aviso-item.cuenta-item (dos clases) le gana a
+   .cuenta-item (una clase) sin depender de en qué orden quedaron en el
+   archivo. */
+.aviso-item.cuenta-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.aviso-item-hora {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+}
+
 /* En las pantallas de acceso no hay header donde alojar el toggle, así que flota
    sobre la ilustración. Siguiendo el uso de materiales de Apple, no es una ficha
    opaca sino una capa translúcida: deja ver el color que tiene detrás, con blur

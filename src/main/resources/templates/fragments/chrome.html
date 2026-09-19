@@ -86,6 +86,43 @@
                 </svg>
             </button>
 
+            <!-- Misma caja que "Documentos" en el riel (mismo <details class="cuenta">),
+                 pero acá el contenido es la lista de avisos en vez de un menú de
+                 navegación. Directo al lado del toggle de tema porque, a diferencia de
+                 cerrar sesión o cambiar la contraseña, esto conviene verlo de entrada:
+                 aunque esté colapsada, la caja ya muestra si hay algo con el punto de
+                 color. Si mañana hay más de un aviso a la vez, avisosOrdenados() ya
+                 los entrega del más reciente al más viejo. -->
+            <details th:if="${chrome != null and !chrome.avisos().isEmpty()}" class="cuenta">
+                <summary class="nav-links cuenta-boton aviso-caja"
+                         th:classappend="${chrome.avisosOrdenados().get(0).tipo() == 'listo'} ? ' aviso-caja--listo' : ' aviso-caja--pendiente'"
+                         aria-label="Avisos">
+                    <svg class="aviso-caja-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M6 8a6 6 0 0 1 12 0c0 4.5 1.5 6.5 2.3 7.6.3.4 0 1-.5 1H4.2c-.5 0-.8-.6-.5-1C4.5 14.5 6 12.5 6 8z"/>
+                        <path d="M10.2 21a1.94 1.94 0 0 0 3.6 0"/>
+                    </svg>
+                    <span class="aviso-caja-punto" aria-hidden="true"></span>
+                </summary>
+                <div class="cuenta-menu aviso-menu">
+                    <th:block th:each="aviso, iterAviso : ${chrome.avisosOrdenados()}">
+                        <!-- Encabezado de grupo: solo antes del primer aviso de cada día
+                             distinto. Como avisosOrdenados() ya viene del más reciente al más
+                             viejo, alcanza con comparar contra el anterior de la misma lista
+                             (o no comparar nada si es el primero de todos). -->
+                        <p class="aviso-grupo-titulo"
+                           th:if="${iterAviso.index == 0 or aviso.etiquetaDia() != chrome.avisosOrdenados().get(iterAviso.index - 1).etiquetaDia()}"
+                           th:text="${aviso.etiquetaDia()}">Hoy</p>
+                        <a th:href="@{${aviso.destino()}}"
+                           class="cuenta-item aviso-item"
+                           th:classappend="${aviso.tipo() == 'listo'} ? ' aviso-item--listo' : ' aviso-item--pendiente'">
+                            <span class="aviso-item-texto" th:text="${aviso.texto()}">Aviso</span>
+                            <span class="aviso-item-hora" th:text="${aviso.hora()}">00:00</span>
+                        </a>
+                    </th:block>
+                </div>
+            </details>
+
             <!-- <details> y no un menú de JavaScript: cerrar sesión y cambiar la
                  contraseña tienen que seguir estando al alcance con el JS caído,
                  igual que el resto de la aplicación. El cierre con Escape o

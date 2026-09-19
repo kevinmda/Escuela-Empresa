@@ -1,5 +1,10 @@
 package com.EscuelaEmpresa.gestor_pasantes.dto;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -12,7 +17,61 @@ public record ChromeContext(
         String nombre,
         String email,
         Integer especialidadId,
-        String especialidadNombre) {
+        String especialidadNombre,
+        List<Aviso> avisos) {
+
+    public ChromeContext(String rol, String nombre, String email, Integer especialidadId, String especialidadNombre) {
+        this(rol, nombre, email, especialidadId, especialidadNombre, List.of());
+    }
+
+    /**
+     * Un aviso del header (la caja a la derecha del toggle de tema). "momento"
+     * es la referencia por la que se ordenan y agrupan cuando hay más de uno --
+     * no cuándo se generó este objeto (eso sería "ahora" siempre, y no
+     * distinguiría nada), sino el día que hace que ESE aviso en particular sea
+     * relevante (para la planilla pendiente, el sábado desde el que empieza a
+     * reclamarse; para los documentos habilitados, la fecha de la sexta
+     * planilla).
+     *
+     * Ninguna de las dos reglas de negocio de las que sale esto tiene una hora
+     * real guardada en la base (son fechas, no eventos con marca de tiempo), así
+     * que "momento" usa la medianoche del día que corresponde -- es una
+     * convención, no un dato real, pero es estable (no cambia según cuándo se
+     * mire, a diferencia de usar "ahora") y es coherente con agrupar por "el día
+     * que llegó".
+     *
+     * "tipo" define el color en chrome.html: "pendiente" (dorado) o "listo"
+     * (verde), mismo par que ya usa el resto de la app.
+     */
+    public record Aviso(String texto, String destino, String tipo, LocalDateTime momento) {
+
+        public String hora() {
+            return momento.format(DateTimeFormatter.ofPattern("HH:mm"));
+        }
+
+        /** "Hoy", "Ayer", "Hace 3 días", "Hace 1 semana", "Hace 2 semanas"... */
+        public String etiquetaDia() {
+            long dias = ChronoUnit.DAYS.between(momento.toLocalDate(), LocalDate.now());
+            if (dias <= 0) {
+                return "Hoy";
+            }
+            if (dias == 1) {
+                return "Ayer";
+            }
+            if (dias < 7) {
+                return "Hace " + dias + " días";
+            }
+            long semanas = dias / 7;
+            return semanas == 1 ? "Hace 1 semana" : "Hace " + semanas + " semanas";
+        }
+    }
+
+    /** Los avisos ordenados del más reciente al más viejo, para el desplegable. */
+    public List<Aviso> avisosOrdenados() {
+        return avisos.stream()
+                .sorted(Comparator.comparing(Aviso::momento).reversed())
+                .toList();
+    }
 
     /**
      * Un destino del riel de secciones. La clave es la que compara paginaActual.
