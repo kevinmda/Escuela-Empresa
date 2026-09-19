@@ -66,6 +66,17 @@
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Aplica los .sql de src/main/resources/db/migration al arrancar, antes de
+		     que Hibernate valide el esquema. Reemplaza el proceso manual de correr
+		     los archivos de db/migraciones/ a mano contra el servidor. -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-mysql</artifactId>
+		</dependency>
 		<!-- Solo para los tests: una base en memoria que se arma sola desde las
 		     entidades. Sin esto, contextLoads() necesitaba un MySQL levantado y
 		     "mvnw test" fallaba en cualquier maquina que no fuera la de desarrollo. -->
