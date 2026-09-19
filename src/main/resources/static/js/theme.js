@@ -362,6 +362,36 @@
     // afuera. querySelectorAll y no querySelector: con dos .cuenta en la misma
     // pagina (cuenta + Documentos), quedarse con "el primero" dejaba al otro sin
     // esta mejora.
+    // Expuesta en window (igual que window.confirmarAccion más abajo): el
+    // botón vive en un onclick="" inline en chrome.html, así que necesita
+    // colgar de window para que ese atributo la encuentre -- las funciones
+    // declaradas acá adentro son privadas de este cierre.
+    //
+    // GET simple (ver AvisoController), no hace falta manejar CSRF. Si falla
+    // (sin conexión, sesión vencida) el botón se queda como estaba y se puede
+    // reintentar; no hay nada que deshacer del lado del cliente porque no se
+    // tocó nada todavía.
+    window.marcarAvisoLeido = function (boton) {
+        const tipo = boton.dataset.tipo;
+        const clave = boton.dataset.clave;
+
+        fetch('/alumno/avisos/marcar-leido?tipo=' + encodeURIComponent(tipo) + '&clave=' + encodeURIComponent(clave),
+            { credentials: 'same-origin' })
+            .then(function (respuesta) {
+                if (!respuesta.ok) return;
+
+                boton.remove();
+
+                // Si no queda ningún otro botón de "marcar como leído" visible en
+                // ningún desplegable de avisos, ya no hay nada sin leer: se apaga
+                // el punto de la campana.
+                if (!document.querySelector('.aviso-item-marcar')) {
+                    const punto = document.querySelector('.aviso-caja-punto');
+                    if (punto) punto.remove();
+                }
+            });
+    };
+
     // El CSS posiciona .cuenta-menu con position:absolute (ver styles.css),
     // que alcanza siempre que no haya un ancestro con overflow que lo recorte.
     // En pantallas angostas .barra-riel necesita overflow-x:auto para poder

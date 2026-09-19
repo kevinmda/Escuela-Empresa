@@ -8,11 +8,13 @@ import java.util.List;
 import com.EscuelaEmpresa.gestor_pasantes.dto.ChromeContext;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
+import com.EscuelaEmpresa.gestor_pasantes.entity.AvisoLeido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Especialidad;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.AvisoLeidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,15 +37,18 @@ public class ChromeModelAdvice {
     private final AlumnoRepository alumnoRepository;
     private final AdministradorRepository administradorRepository;
     private final PlanillaSemanalRepository planillaSemanalRepository;
+    private final AvisoLeidoRepository avisoLeidoRepository;
 
     public ChromeModelAdvice(UsuarioRepository usuarioRepository,
                              AlumnoRepository alumnoRepository,
                              AdministradorRepository administradorRepository,
-                             PlanillaSemanalRepository planillaSemanalRepository) {
+                             PlanillaSemanalRepository planillaSemanalRepository,
+                             AvisoLeidoRepository avisoLeidoRepository) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.administradorRepository = administradorRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
+        this.avisoLeidoRepository = avisoLeidoRepository;
     }
 
     @ModelAttribute("chrome")
@@ -86,7 +91,7 @@ public class ChromeModelAdvice {
                     usuario.getEmail(),
                     especialidad != null ? especialidad.getIdEsp() : null,
                     especialidad != null ? especialidad.getNombre() : null,
-                    avisosDelAlumno(planillas));
+                    avisosDelAlumno(alumno, planillas));
         }
 
         return new ChromeContext("cuenta", usuario.getEmail(), usuario.getEmail(), null, null);
@@ -97,20 +102,27 @@ public class ChromeModelAdvice {
     // arma como lista igual, no como par de booleanos, para no tener que
     // rehacer esto si mañana se agrega un tercer aviso que sí pueda convivir
     // con otro.
-    private List<ChromeContext.Aviso> avisosDelAlumno(List<PlanillaSemanal> planillas) {
+    private List<ChromeContext.Aviso> avisosDelAlumno(Alumno alumno, List<PlanillaSemanal> planillas) {
         if (planillas.isEmpty()) {
             return List.of(); // todavía no arrancó, nada que avisarle todavía
         }
 
         if (planillas.size() >= 6) {
             // findByAlumno_IdAlOrderByFechaDesdeDesc: la más nueva (la sexta) va
-            // primera. Su fecha_hasta es la referencia de "cuándo pasó esto".
+            // primera. Su fecha_hasta es la referencia de "cuándo pasó esto" y
+            // también la clave de esta ocurrencia (ver AvisoLeido): una vez que
+            // el alumno tiene sus 6 planillas esta fecha ya no cambia, así que
+            // "leído" queda para siempre a menos que borre y vuelva a cargar
+            // planillas -- que no es un caso que este aviso necesite cubrir.
             LocalDate fechaSextaPlanilla = planillas.get(0).getFechaHasta();
+            String clave = fechaSextaPlanilla.toString();
             return List.of(new ChromeContext.Aviso(
                     "Ya se habilitaron tus documentos finales",
                     "/alumno/documentos/al-terminar",
                     "listo",
-                    fechaSextaPlanilla.atStartOfDay()));
+                    clave,
+                    fechaSextaPlanilla.atStartOfDay(),
+                    yaLeido(alumno, "listo", clave)));
         }
 
         // findByAlumno_IdAlOrderByFechaDesdeDesc: la más nueva va primera.
@@ -129,11 +141,24 @@ public class ChromeModelAdvice {
             return List.of(); // todavía no llegó el sábado que lo activa
         }
 
+        // La clave es esa misma fecha: si la semana que viene sigue sin cargar
+        // la planilla, sabadoProximaSemana avanza siete días y ya no coincide
+        // con lo que se guardó como leído -- vuelve a contar como sin leer solo,
+        // sin que haga falta borrar ni tocar la fila vieja.
+        String clave = sabadoProximaSemana.toString();
         return List.of(new ChromeContext.Aviso(
                 "Falta cargar la planilla",
                 "/alumno/planilla",
                 "pendiente",
-                sabadoProximaSemana.atStartOfDay()));
+                clave,
+                sabadoProximaSemana.atStartOfDay(),
+                yaLeido(alumno, "pendiente", clave)));
+    }
+
+    private boolean yaLeido(Alumno alumno, String tipo, String clave) {
+        return avisoLeidoRepository.findByIdAlAndTipo(alumno.getIdAl(), tipo)
+                .map(leido -> clave.equals(leido.getClave()))
+                .orElse(false);
     }
 
     // usado por fragments/auth.html para armar og:image con URL absoluta: las

@@ -25,25 +25,32 @@ public record ChromeContext(
     }
 
     /**
-     * Un aviso del header (la caja a la derecha del toggle de tema). "momento"
-     * es la referencia por la que se ordenan y agrupan cuando hay más de uno --
-     * no cuándo se generó este objeto (eso sería "ahora" siempre, y no
-     * distinguiría nada), sino el día que hace que ESE aviso en particular sea
-     * relevante (para la planilla pendiente, el sábado desde el que empieza a
-     * reclamarse; para los documentos habilitados, la fecha de la sexta
-     * planilla).
+     * Un aviso del header (la caja a la derecha del toggle de tema).
      *
-     * Ninguna de las dos reglas de negocio de las que sale esto tiene una hora
-     * real guardada en la base (son fechas, no eventos con marca de tiempo), así
-     * que "momento" usa la medianoche del día que corresponde -- es una
-     * convención, no un dato real, pero es estable (no cambia según cuándo se
-     * mire, a diferencia de usar "ahora") y es coherente con agrupar por "el día
-     * que llegó".
+     * "clave" identifica la ocurrencia puntual de ese "tipo" (para la planilla
+     * pendiente, la fecha del sábado que la activó; para los documentos
+     * habilitados, la fecha de la sexta planilla) -- es lo que se guarda en
+     * aviso_leido al marcar como leído, y lo que permite saber si ESTA
+     * ocurrencia puntual ya se leyó o si es una nueva (con otra clave) que
+     * todavía no.
      *
-     * "tipo" define el color en chrome.html: "pendiente" (dorado) o "listo"
-     * (verde), mismo par que ya usa el resto de la app.
+     * "momento" es la referencia por la que se ordenan y agrupan cuando hay
+     * más de uno -- no cuándo se generó este objeto (eso sería "ahora"
+     * siempre, y no distinguiría nada), sino el día que hace que ESE aviso en
+     * particular sea relevante. Ninguna de las dos reglas de negocio de las
+     * que sale esto tiene una hora real guardada en la base (son fechas, no
+     * eventos con marca de tiempo), así que "momento" usa la medianoche del
+     * día que corresponde -- es una convención, no un dato real, pero es
+     * estable (no cambia según cuándo se mire) y es coherente con agrupar por
+     * "el día que llegó".
+     *
+     * "tipo" define el color en chrome.html ("pendiente": dorado, "listo":
+     * verde, mismo par que ya usa el resto de la app) y es también la mitad
+     * de la clave primaria de aviso_leido -- alcanza porque hoy cada tipo de
+     * aviso tiene un solo color/motivo posible, no hace falta un identificador
+     * separado para las dos cosas.
      */
-    public record Aviso(String texto, String destino, String tipo, LocalDateTime momento) {
+    public record Aviso(String texto, String destino, String tipo, String clave, LocalDateTime momento, boolean leido) {
 
         public String hora() {
             return momento.format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -71,6 +78,11 @@ public record ChromeContext(
         return avisos.stream()
                 .sorted(Comparator.comparing(Aviso::momento).reversed())
                 .toList();
+    }
+
+    /** La campana solo lleva el punto de color si queda algo sin leer. */
+    public boolean hayAvisosSinLeer() {
+        return avisos.stream().anyMatch(a -> !a.leido());
     }
 
     /**

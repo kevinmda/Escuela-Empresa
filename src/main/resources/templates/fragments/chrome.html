@@ -102,7 +102,7 @@
                         <path d="M6 8a6 6 0 0 1 12 0c0 4.5 1.5 6.5 2.3 7.6.3.4 0 1-.5 1H4.2c-.5 0-.8-.6-.5-1C4.5 14.5 6 12.5 6 8z"/>
                         <path d="M10.2 21a1.94 1.94 0 0 0 3.6 0"/>
                     </svg>
-                    <span class="aviso-caja-punto" aria-hidden="true"></span>
+                    <span th:if="${chrome.hayAvisosSinLeer()}" class="aviso-caja-punto" aria-hidden="true"></span>
                 </summary>
                 <div class="cuenta-menu aviso-menu">
                     <th:block th:each="aviso, iterAviso : ${chrome.avisosOrdenados()}">
@@ -113,12 +113,23 @@
                         <p class="aviso-grupo-titulo"
                            th:if="${iterAviso.index == 0 or aviso.etiquetaDia() != chrome.avisosOrdenados().get(iterAviso.index - 1).etiquetaDia()}"
                            th:text="${aviso.etiquetaDia()}">Hoy</p>
-                        <a th:href="@{${aviso.destino()}}"
-                           class="cuenta-item aviso-item"
-                           th:classappend="${aviso.tipo() == 'listo'} ? ' aviso-item--listo' : ' aviso-item--pendiente'">
-                            <span class="aviso-item-texto" th:text="${aviso.texto()}">Aviso</span>
-                            <span class="aviso-item-hora" th:text="${aviso.hora()}">00:00</span>
-                        </a>
+                        <!-- div y no <a> alrededor de todo: un <button> no puede ir anidado
+                             dentro de un <a> (contenido interactivo dentro de contenido
+                             interactivo, invalido en HTML), así que el link y el botón de
+                             marcar como leído van como hermanos, no uno adentro del otro. -->
+                        <div class="cuenta-item aviso-item"
+                             th:classappend="${aviso.tipo() == 'listo'} ? ' aviso-item--listo' : ' aviso-item--pendiente'">
+                            <a th:href="@{${aviso.destino()}}" class="aviso-item-link"
+                               th:text="${aviso.texto()}">Aviso</a>
+                            <button th:unless="${aviso.leido()}" type="button" class="aviso-item-marcar"
+                                    th:attr="data-tipo=${aviso.tipo()},data-clave=${aviso.clave()}"
+                                    aria-label="Marcar como leído" onclick="marcarAvisoLeido(this)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M20 6 9 17l-5-5"/>
+                                </svg>
+                            </button>
+                        </div>
                     </th:block>
                 </div>
             </details>
