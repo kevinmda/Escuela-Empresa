@@ -53,6 +53,9 @@
         <div th:if="${exito}" class="mensaje-exito">
             <p th:text="${exito}"></p>
         </div>
+        <p id="aviso-cambios-sin-guardar" class="mensaje-error" hidden>
+            Tenés cambios sin guardar en esta planilla.
+        </p>
 
         <!-- ================= Las seis semanas =================
 
@@ -216,10 +219,6 @@
                         </label>
                     </div>
                 </section>
-
-                <p id="aviso-cambios-sin-guardar" class="mensaje-error" hidden>
-                    Tenés cambios sin guardar en esta planilla.
-                </p>
 
                 <div class="acciones-planilla">
                     <button type="submit" class="btn btn-primary">Cargar la planilla</button>
