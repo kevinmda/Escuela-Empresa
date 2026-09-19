@@ -218,6 +218,29 @@
         // próximo submit que llegue (el que dispara requestSubmit más
         // abajo), "esto ya pasó por el diálogo" de "esto es un pedido nuevo".
         let formConfirmado = null;
+        // Para confirmaciones que no son un <form> (por ahora, "salir sin
+        // guardar" al navegar con cambios pendientes en planillaSemanal.js):
+        // una función a ejecutar si se confirma, en vez de un form a reenviar.
+        let accionPendiente = null;
+
+        // Única puerta de entrada al diálogo para quien no tiene un <form>
+        // que mandar (ver window.confirmarAccion más abajo). opciones:
+        // {titulo, mensaje, texto, variante, alConfirmar}. alConfirmar corre
+        // solo si se toca el botón de confirmar, nunca si se cancela.
+        window.confirmarAccion = function (opciones) {
+            opciones = opciones || {};
+            formPendiente = null;
+            accionPendiente = typeof opciones.alConfirmar === 'function' ? opciones.alConfirmar : null;
+
+            titulo.textContent = opciones.titulo || '¿Confirmás esta acción?';
+            mensaje.textContent = opciones.mensaje || '';
+            const esNeutral = opciones.variante === 'neutral';
+            dialogo.dataset.variante = esNeutral ? 'neutral' : 'peligro';
+            botonConfirmar.textContent = opciones.texto || 'Confirmar';
+            botonConfirmar.className = esNeutral ? 'btn-primary' : 'btn-danger';
+
+            dialogo.showModal();
+        };
 
         document.addEventListener('submit', function (evento) {
             const form = evento.target;
@@ -243,16 +266,29 @@
         }, true);
 
         botonConfirmar.addEventListener('click', function () {
-            if (!formPendiente) return;
-            formConfirmado = formPendiente;
-            const form = formPendiente;
-            formPendiente = null;
-            dialogo.close();
-            form.requestSubmit();
+            if (formPendiente) {
+                formConfirmado = formPendiente;
+                const form = formPendiente;
+                formPendiente = null;
+                dialogo.close();
+                form.requestSubmit();
+                return;
+            }
+            if (accionPendiente) {
+                const accion = accionPendiente;
+                accionPendiente = null;
+                dialogo.close();
+                accion();
+            }
         });
 
-        botonCancelar.addEventListener('click', function () {
+        function cancelar() {
             formPendiente = null;
+            accionPendiente = null;
+        }
+
+        botonCancelar.addEventListener('click', function () {
+            cancelar();
             dialogo.close();
         });
 
@@ -261,16 +297,14 @@
         // distingue del clic en el contenido.
         dialogo.addEventListener('click', function (evento) {
             if (evento.target === dialogo) {
-                formPendiente = null;
+                cancelar();
                 dialogo.close();
             }
         });
 
         // Esc dispara 'cancel' y cierra el <dialog> solo; acá solo hace
-        // falta soltar el form pendiente para que no quede colgado.
-        dialogo.addEventListener('cancel', function () {
-            formPendiente = null;
-        });
+        // falta soltar lo pendiente para que no quede colgado.
+        dialogo.addEventListener('cancel', cancelar);
     }
 
     // Botón de ojo (mostrar/ocultar) para campos de contraseña. Se activa con

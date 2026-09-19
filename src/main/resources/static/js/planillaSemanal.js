@@ -138,6 +138,33 @@ window.addEventListener('beforeunload', (evento) => {
     evento.returnValue = '';
 });
 
+// Para navegar DENTRO del sitio (Inicio, Documentos, Subir, el logo, el menú
+// de cuenta) sí se puede avisar con el diálogo propio en vez del feo nativo
+// de arriba: acá no se está cerrando la pestaña ni escribiendo una URL a
+// mano, es un link que esta misma página puede interceptar antes de que el
+// navegador llegue a navegar. confirmarAccion es de theme.js -- fragments/
+// chrome.html (que trae el <dialog>) está en todas las páginas autenticadas,
+// así que ya está cargado acá.
+document.querySelectorAll('.barra a[href]').forEach((enlace) => {
+    enlace.addEventListener('click', (evento) => {
+        const aviso = document.getElementById('aviso-cambios-sin-guardar');
+        if (!aviso || aviso.hidden || typeof window.confirmarAccion !== 'function') return;
+
+        evento.preventDefault();
+        const destino = enlace.href;
+
+        window.confirmarAccion({
+            titulo: '¿Salir sin guardar?',
+            mensaje: 'Los datos que cargaste en esta semana se van a perder.',
+            texto: 'Salir sin guardar',
+            alConfirmar: () => {
+                formularioEnviandose = true; // no avisar de nuevo con el nativo
+                window.location.href = destino;
+            },
+        });
+    });
+});
+
 // Vuelve los seis campos de fecha a su estado inicial: vacios, editables, sin
 // ancla. Es lo que pasa al arrancar una planilla nueva y lo que pasa cuando el
 // alumno borra la fecha ancla.
