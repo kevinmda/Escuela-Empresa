@@ -86,6 +86,24 @@
                 </svg>
             </button>
 
+            <!-- Mutuamente excluyentes (uno pide menos de 6 planillas, el otro
+                 6 o más), así que nunca se muestran los dos a la vez. Van acá y
+                 no en el menú de la cuenta porque, a diferencia de cerrar
+                 sesión o cambiar la contraseña, esto es algo que conviene ver
+                 de entrada, no un clic más adentro. -->
+            <a th:if="${chrome != null and chrome.avisoPlanillaPendiente()}" class="aviso-chrome aviso-chrome--pendiente"
+               th:href="@{/alumno/planilla}" aria-label="Falta cargar la planilla de esta semana">
+                <span class="aviso-chrome-punto" aria-hidden="true"></span>
+                <span class="aviso-chrome-texto" aria-hidden="true">Falta cargar la planilla</span>
+            </a>
+
+            <a th:if="${chrome != null and chrome.avisoDocumentosHabilitados()}" class="aviso-chrome aviso-chrome--listo"
+               th:href="@{/alumno/documentos/al-terminar}"
+               aria-label="Ya se habilitaron tus documentos finales, con las 6 planillas completas">
+                <span class="aviso-chrome-punto" aria-hidden="true"></span>
+                <span class="aviso-chrome-texto" aria-hidden="true">Ya se habilitaron tus documentos finales</span>
+            </a>
+
             <!-- <details> y no un menú de JavaScript: cerrar sesión y cambiar la
                  contraseña tienen que seguir estando al alcance con el JS caído,
                  igual que el resto de la aplicación. El cierre con Escape o

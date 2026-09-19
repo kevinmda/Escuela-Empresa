@@ -423,6 +423,69 @@ img {
     border-color: var(--accent);
 }
 
+/* Los dos avisos del alumno en el header (a la derecha del toggle de tema):
+   mismo par dorado que ya significa "pendiente" en toda la app
+   (badge-pendiente de Reportes, la ficha de atención del hub del
+   administrativo) para el que falta cargar algo, y el verde de
+   .mensaje-exito para el que confirma que algo se habilitó -- ninguno de
+   los dos colores es nuevo, son los que ya tienen ese significado acá. */
+.aviso-chrome {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: filter 0.18s ease;
+}
+
+.aviso-chrome:hover {
+    filter: brightness(0.95);
+}
+
+.aviso-chrome-punto {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.aviso-chrome--pendiente {
+    background-color: var(--accent-soft);
+    color: var(--accent-ink);
+}
+
+.aviso-chrome--pendiente .aviso-chrome-punto {
+    background-color: var(--accent-ink);
+}
+
+.aviso-chrome--listo {
+    background-color: var(--success-soft);
+    color: var(--success);
+}
+
+.aviso-chrome--listo .aviso-chrome-punto {
+    background-color: var(--success);
+}
+
+/* En pantallas angostas se achica a solo el punto de color: el texto entero
+   ("Ya se habilitaron tus documentos finales") no entra junto al riel, el
+   toggle de tema y la cuenta sin romper el header. El mensaje sigue
+   disponible para lectores de pantalla vía aria-label en el <a>. */
+@media (max-width: 720px) {
+    .aviso-chrome {
+        padding: 0.4rem;
+    }
+
+    .aviso-chrome-texto {
+        display: none;
+    }
+}
+
 /* En las pantallas de acceso no hay header donde alojar el toggle, así que flota
    sobre la ilustración. Siguiendo el uso de materiales de Apple, no es una ficha
    opaca sino una capa translúcida: deja ver el color que tiene detrás, con blur

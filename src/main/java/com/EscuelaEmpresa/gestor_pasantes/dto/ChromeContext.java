@@ -12,7 +12,9 @@ public record ChromeContext(
         String nombre,
         String email,
         Integer especialidadId,
-        String especialidadNombre) {
+        String especialidadNombre,
+        boolean avisoPlanillaPendiente,
+        boolean avisoDocumentosHabilitados) {
 
     /**
      * Un destino del riel de secciones. La clave es la que compara paginaActual.
