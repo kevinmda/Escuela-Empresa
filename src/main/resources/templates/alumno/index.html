@@ -147,18 +147,25 @@
             <a class="ahub-destino ahub-destino--principal" th:href="@{/alumno/planilla}">
                 <span class="ahub-destino-titulo">Planilla Semanal</span>
                 <span class="ahub-destino-desc">Cargá tus actividades día por día y descargá el informe final de la pasantía.</span>
+                <span class="ahub-destino-dato">
+                    <span th:text="${cantidadPlanillas} + ' de 6 semanas cargadas'">0 de 6 semanas cargadas</span>
+                    <span aria-hidden="true"> · </span>
+                    <span th:text="${totalHorasPasantia} + ' horas registradas'">0 horas registradas</span>
+                </span>
                 <span class="ahub-destino-flecha" aria-hidden="true">&rarr;</span>
             </a>
 
             <a class="ahub-destino" th:href="@{/alumno/subir}">
                 <span class="ahub-destino-titulo">Subir</span>
                 <span class="ahub-destino-desc">Subí en PDF la planilla que llenaste a mano.</span>
+                <span class="ahub-destino-dato"
+                      th:text="${totalSubidosDocumentos} + ' de ' + ${totalLimiteDocumentos} + ' comprobantes subidos'">0 de 10 comprobantes subidos</span>
                 <span class="ahub-destino-flecha" aria-hidden="true">&rarr;</span>
             </a>
 
             <a class="ahub-destino" th:href="@{/alumno/documentos/antes-de-empezar}">
                 <span class="ahub-destino-titulo">Documentos</span>
-                <span class="ahub-destino-desc">Generá el contrato, la autorización y la ficha final con tus datos ya cargados.</span>
+                <span class="ahub-destino-desc">Contrato, autorización, fichas finales, el informe de pasantía y el expediente completo, todo con tus datos ya cargados.</span>
                 <span class="ahub-destino-flecha" aria-hidden="true">&rarr;</span>
             </a>
         </section>

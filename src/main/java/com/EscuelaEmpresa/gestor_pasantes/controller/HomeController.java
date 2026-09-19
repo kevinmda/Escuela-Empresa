@@ -1,10 +1,12 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Optional;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -15,11 +17,13 @@ import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException
 import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Administrador;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
+import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
 
 @Controller
 public class HomeController {
@@ -28,13 +32,16 @@ public class HomeController {
     private final AdministradorRepository administradorRepository;
     private final AlumnoRepository alumnoRepository;
     private final PlanillaSemanalRepository planillaSemanalRepository;
+    private final LimitesDocumentoService limitesDocumentoService;
 
     public HomeController(UsuarioRepository usuarioRepository, AdministradorRepository administradorRepository,
-            AlumnoRepository alumnoRepository, PlanillaSemanalRepository planillaSemanalRepository) {
+            AlumnoRepository alumnoRepository, PlanillaSemanalRepository planillaSemanalRepository,
+            LimitesDocumentoService limitesDocumentoService) {
         this.usuarioRepository = usuarioRepository;
         this.administradorRepository = administradorRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
+        this.limitesDocumentoService = limitesDocumentoService;
     }
 
     // la raiz del sitio no tenia handler, asi que entrar a http://localhost:8080/
@@ -76,6 +83,28 @@ public class HomeController {
             Alumno alumno = alumnoOpt.get();
             model.addAttribute("alumno", alumno);
             model.addAttribute("avisoCambiarContrasena", Boolean.TRUE.equals(usuario.getContrasenaPorDefecto()));
+
+            // Datos en vivo para las tarjetas de "Tus pantallas": antes eran
+            // solo un link con una descripción fija, y la de Planilla Semanal
+            // sobre todo se presta a decir dónde está parado el alumno sin
+            // que tenga que entrar a mirar.
+            List<PlanillaSemanal> planillas =
+                    planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
+            model.addAttribute("cantidadPlanillas", planillas.size());
+
+            BigDecimal totalHorasPasantia = planillas.stream()
+                    .map(PlanillaSemanal::getTotalHoras)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            // stripTrailingZeros + toPlainString: "48.00" queda "48", "48.50"
+            // queda "48.5" -- mismo criterio que ya usa el total en vivo de
+            // planillaSemanal.js, para no mostrar decimales de sobra cuando
+            // el total da redondo (toPlainString y no toString: evita que un
+            // valor como "100" salga en notación científica).
+            model.addAttribute("totalHorasPasantia", totalHorasPasantia.stripTrailingZeros().toPlainString());
+
+            model.addAttribute("totalLimiteDocumentos", limitesDocumentoService.obtenerLimiteTotal());
+            model.addAttribute("totalSubidosDocumentos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
 
             return "alumno/index";
         }

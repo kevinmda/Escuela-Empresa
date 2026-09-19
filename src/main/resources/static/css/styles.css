@@ -3758,6 +3758,22 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     max-width: 34ch;
 }
 
+/* El dato en vivo (semanas cargadas, horas, comprobantes subidos): mismo
+   recurso que .ahub-dato-cifra en la credencial de arriba (fuente
+   monoespaciada para lo que es una cifra real, no prosa), pero en el color
+   de la especialidad -- es lo único de la tarjeta que cambia solo, así que
+   conviene que se note un poco más que la descripción fija. */
+.ahub-destino-dato {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--esp-edge);
+}
+
+.ahub-destino--principal .ahub-destino-dato {
+    font-size: 0.82rem;
+}
+
 .ahub-destino-flecha {
     margin-top: auto;
     align-self: flex-end;
