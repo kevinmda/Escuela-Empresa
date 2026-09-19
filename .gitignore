@@ -42,6 +42,7 @@ build/
 # sola credencial y si tiene que viajar en el repositorio.
 /src/main/resources/application.properties
 application-local.properties
+.env
 
 ### Documentos subidos por los alumnos (datos personales, viven solo en el servidor) ###
 uploads/

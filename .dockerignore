@@ -1,0 +1,7 @@
+target/
+uploads/
+android/
+.git/
+.idea/
+.vscode/
+*.log
