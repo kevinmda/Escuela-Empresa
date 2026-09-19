@@ -60,7 +60,7 @@
         </p>
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
 
-        <form th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data"
+        <form th:unless="${expedienteCompleto}" th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data"
               class="panel sb-form">
 
             <!-- ================= Los cinco tipos =================
@@ -103,6 +103,16 @@
                 <button type="submit" class="btn btn-primary" id="btn-subir">Subir documento</button>
             </div>
         </form>
+
+        <!-- Con los diez comprobantes ya subidos no queda ningún tipo por
+             elegir (los cinco radios estarían deshabilitados de todos modos),
+             así que la caja entera desaparece en vez de quedar ahí sin nada
+             que se pueda tocar. Mismo tratamiento que el vacío de "Lo que ya
+             subiste" y el de Documentos adjuntos: dice qué pasó, no una caja
+             muerta. -->
+        <p th:if="${expedienteCompleto}" class="sb-vacio">
+            Ya subiste los <span th:text="${totalLimite}">10</span> comprobantes del expediente.
+        </p>
 
         <section class="sb-subidos" aria-labelledby="sb-subidos-titulo">
             <h3 class="sb-subidos-titulo" id="sb-subidos-titulo">Lo que ya subiste</h3>
