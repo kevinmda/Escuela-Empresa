@@ -493,9 +493,9 @@
         footer.setAttribute('aria-label', 'Créditos de diseño y desarrollo');
         footer.innerHTML =
             '<span>Desarrollado por:</span> ' +
-            '<a href="#" target="_blank" rel="noopener noreferrer">Facundo Vera</a> ' +
+            '<span>Facundo Vera</span> ' +
             '<span>y por:</span> ' +
-            '<a href="#" target="_blank" rel="noopener noreferrer">Kevin Duré</a>';
+            '<span>Kevin Duré</span>';
         return footer;
     }
 
