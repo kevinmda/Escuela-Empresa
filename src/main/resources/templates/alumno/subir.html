@@ -172,21 +172,26 @@
         <section class="sb-subidos" aria-labelledby="sb-subidos-titulo">
             <h3 class="sb-subidos-titulo" id="sb-subidos-titulo">Lo que ya subiste</h3>
 
-            <table th:if="${not #lists.isEmpty(documentos)}" class="sb-tabla">
-                <thead>
-                    <tr>
-                        <th>Tipo</th>
-                        <th>Archivo</th>
-                        <th>Subido</th>
-                        <th><span class="sb-columna-acciones">Acciones</span></th>
+            <!-- role="table"/"row"/"cell": al pasar a display:block en movil (ver
+                 @media más abajo) el navegador tira los roles implícitos de tabla,
+                 así que se reponen a mano -- mismo criterio que .tabla-alumnos y
+                 .tabla-asignacion. -->
+            <table th:if="${not #lists.isEmpty(documentos)}" class="sb-tabla" role="table">
+                <thead role="rowgroup">
+                    <tr role="row">
+                        <th role="columnheader" scope="col">Tipo</th>
+                        <th role="columnheader" scope="col">Archivo</th>
+                        <th role="columnheader" scope="col">Subido</th>
+                        <th role="columnheader" scope="col"><span class="sb-columna-acciones">Acciones</span></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr th:each="doc : ${documentos}">
-                        <td th:text="${doc.tipoDocumento != null ? doc.tipoDocumento.descripcion : 'Sin especificar'}"></td>
-                        <td class="sb-celda-archivo" th:text="${doc.nombreArchivo}"></td>
-                        <td th:text="${#temporals.format(doc.fechaSubida, 'dd/MM/yyyy HH:mm')}"></td>
-                        <td>
+                <tbody role="rowgroup">
+                    <tr role="row" th:each="doc : ${documentos}">
+                        <td role="cell" data-label="Tipo"
+                            th:text="${doc.tipoDocumento != null ? doc.tipoDocumento.descripcion : 'Sin especificar'}"></td>
+                        <td role="cell" data-label="Archivo" class="sb-celda-archivo" th:text="${doc.nombreArchivo}"></td>
+                        <td role="cell" data-label="Subido" th:text="${#temporals.format(doc.fechaSubida, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td role="cell" data-label="Acciones" class="sb-celda-acciones">
                             <div class="sb-acciones">
                                 <a class="btn btn-secondary sb-btn-fila"
                                    th:href="@{/alumno/subir/{id}/ver(id=${doc.idDs})}"
