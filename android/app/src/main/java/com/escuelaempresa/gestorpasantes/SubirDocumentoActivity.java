@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.pdf.PdfDocument;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
@@ -24,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.exifinterface.media.ExifInterface;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.VolleyError;
@@ -187,6 +187,16 @@ public class SubirDocumentoActivity extends AppCompatActivity {
         Bitmap bitmap = null;
         try {
             bitmap = decodificarBitmapEscalado(archivoFotoTemporal, LADO_MAXIMO_ESCANEO_PX);
+            if (bitmap == null) {
+                // BitmapFactory.decodeFile puede devolver null en vez de tirar
+                // una excepción (archivo a medio escribir, formato que no
+                // reconoce, etc.) -- sin este chequeo, el resto del método
+                // seguía con un bitmap nulo y terminaba en
+                // NullPointerException sin capturar (la app se colgaba en vez
+                // de mostrar el mensaje de error).
+                mostrarError(getString(R.string.error_procesando_escaneo));
+                return;
+            }
             bitmap = corregirRotacion(bitmap, archivoFotoTemporal);
 
             String nombrePdf = "escaneo_"
