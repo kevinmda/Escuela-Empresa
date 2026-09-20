@@ -102,6 +102,14 @@ function limpiarFormulario() {
 // del fieldset es el mismo para las seis fechas y los cuatro campos del
 // resumen), y sin este chequeo la página saltaría con cada letra.
 function mostrarAvisoCambiosSinGuardar() {
+    // idPsEdicion solo tiene valor cuando se está EDITANDO una planilla ya
+    // guardada (lo pone el servidor en cargarParaEdicion). Cargando una
+    // semana nueva no hay "cambios" que se puedan perder en ese sentido --
+    // no se está corrigiendo nada existente, es la primera vez que se
+    // escribe -- así que ese caso no muestra este aviso.
+    const idPsEdicion = document.getElementById('id-ps-edicion');
+    if (!idPsEdicion || !idPsEdicion.value) return;
+
     const aviso = document.getElementById('aviso-cambios-sin-guardar');
     if (!aviso || !aviso.hidden) return;
 
