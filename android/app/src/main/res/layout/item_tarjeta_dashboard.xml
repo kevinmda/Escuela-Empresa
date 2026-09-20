@@ -20,7 +20,7 @@
             android:background="@drawable/bg_icono_circular"
             android:padding="8dp"
             android:contentDescription="@null"
-            tools:src="@drawable/ic_planilla"
+            tools:src="@drawable/ic_calendario"
             tools:backgroundTint="@color/primario_contenedor"
             tools:tint="@color/on_primario_contenedor" />
 

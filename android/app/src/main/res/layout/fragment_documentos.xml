@@ -59,19 +59,11 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
 
-                            <ImageView
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:contentDescription="@null"
-                                app:tint="@color/on_secundario_contenedor"
-                                app:srcCompat="@drawable/ic_escudo" />
-
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_weight="1"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/espacio_sm"
-                                android:text="@string/dashboard_estado_dossier"
+                                android:text="@string/dashboard_progreso_documental"
                                 android:textAppearance="?attr/textAppearanceTitleSmall"
                                 android:textColor="@color/texto_principal" />
 
@@ -84,19 +76,11 @@
                                 tools:text="66%" />
                         </LinearLayout>
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/espacio_sm"
-                            android:text="@string/dashboard_progreso_documental"
-                            android:textAppearance="?attr/textAppearanceLabelSmall"
-                            android:textColor="@color/texto_secundario" />
-
                         <com.google.android.material.progressindicator.LinearProgressIndicator
                             android:id="@+id/progresoDocumentos"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
+                            android:layout_marginTop="@dimen/espacio_sm"
                             app:trackCornerRadius="4dp"
                             app:trackThickness="6dp"
                             app:indicatorColor="@color/exito"
@@ -109,7 +93,7 @@
                             android:layout_marginTop="2dp"
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="@color/texto_secundario"
-                            tools:text="4 de 6 documentos validados" />
+                            tools:text="8 de 10 documentos subidos" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>

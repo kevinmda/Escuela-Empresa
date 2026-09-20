@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 // JsonObjectRequest que agrega el header Authorization con el JWT en cada pedido
-// (GET perfil/documentos/planillas, POST login/crear planilla).
+// (GET perfil/documentos/planillas, POST login).
 public class ApiJsonRequest extends JsonObjectRequest {
 
     private final String token;

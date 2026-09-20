@@ -93,19 +93,6 @@ public class DocumentoAdapter extends RecyclerView.Adapter<DocumentoAdapter.Docu
         return documentos.size();
     }
 
-    // Usado por la tarjeta "Estado del dossier" para mostrar cuantos de los
-    // documentos ya cargados en pantalla estan validados. Se recalcula despues
-    // de cada reemplazarTodo()/agregarPagina(), no es un valor que se guarde.
-    public int contarValidados() {
-        int contador = 0;
-        for (Documento documento : documentos) {
-            if (documento.validado) {
-                contador++;
-            }
-        }
-        return contador;
-    }
-
     static class DocumentoViewHolder extends RecyclerView.ViewHolder {
         final TextView tipo;
         final TextView nombreArchivo;

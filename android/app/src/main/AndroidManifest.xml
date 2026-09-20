@@ -38,19 +38,9 @@
             android:label="@string/titulo_subir_documento" />
 
         <activity
-            android:name=".PlanillaDetalleActivity"
-            android:exported="false"
-            android:label="@string/titulo_planilla" />
-
-        <activity
             android:name=".CambiarContrasenaActivity"
             android:exported="false"
             android:label="@string/titulo_cambiar_contrasena" />
-
-        <activity
-            android:name=".FormulariosActivity"
-            android:exported="false"
-            android:label="@string/titulo_formularios" />
 
         <activity
             android:name=".RecuperarContrasenaActivity"

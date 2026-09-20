@@ -12,8 +12,7 @@ import java.io.IOException;
 
 // Guarda un archivo descargado en cache/ y lo abre con la app del sistema que
 // corresponda (visor de PDF, Word, etc.), via FileProvider. Antes esta logica
-// vivia duplicada en DocumentosFragment; ahora la reusan tambien la planilla en
-// PDF y los formularios oficiales.
+// vivia duplicada en DocumentosFragment.
 public final class VisorArchivos {
 
     private VisorArchivos() {

@@ -31,9 +31,6 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.nav_documentos) {
                 mostrarFragmento(new DocumentosFragment());
                 return true;
-            } else if (id == R.id.nav_planilla) {
-                mostrarFragmento(new PlanillaFragment());
-                return true;
             }
             return false;
         });

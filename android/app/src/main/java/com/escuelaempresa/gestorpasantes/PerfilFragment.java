@@ -74,10 +74,6 @@ public class PerfilFragment extends Fragment {
         botonCambiarContrasena.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), CambiarContrasenaActivity.class)));
 
-        MaterialButton botonFormularios = view.findViewById(R.id.botonFormularios);
-        botonFormularios.setOnClickListener(v ->
-                startActivity(new Intent(requireContext(), FormulariosActivity.class)));
-
         refrescar.setOnRefreshListener(this::cargarPerfil);
         cargarPerfil();
     }

@@ -158,22 +158,26 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
         }
     }
 
-    // Se calcula sobre lo que ya está cargado en el adapter, no sobre el total
-    // del servidor: con el límite real de documentos por alumno (10 como
-    // mucho) la primera página siempre trae todo, así que el número no miente.
+    // El total ya no sale de lo cargado en el adapter (eso es cuánto subiste
+    // hasta ahora, no cuánto hace falta) sino del límite fijo del expediente:
+    // Contrato(1) + Autorización(1) + Plantilla Semanal(6) + Ficha Final(1) +
+    // Ficha Final Evaluativa(1) = 10, mismo número que ya usa
+    // LimitesDocumentoService.obtenerLimiteTotal() del lado del servidor.
+    private static final int TOTAL_DOCUMENTOS_REQUERIDOS = 10;
+
     private void actualizarResumenDossier() {
-        int total = adapter.getItemCount();
-        if (total == 0) {
+        int subidos = adapter.getItemCount();
+        if (subidos == 0) {
             tarjetaEstadoDossier.setVisibility(View.GONE);
             return;
         }
-        int validados = adapter.contarValidados();
-        int porcentaje = Math.round((validados * 100f) / total);
+        int porcentaje = Math.round((subidos * 100f) / TOTAL_DOCUMENTOS_REQUERIDOS);
 
         tarjetaEstadoDossier.setVisibility(View.VISIBLE);
         textoPorcentajeValidado.setText(porcentaje + "%");
         progresoDocumentos.setProgress(porcentaje);
-        textoResumenDocumentos.setText(getString(R.string.dashboard_documentos_validados, validados, total));
+        textoResumenDocumentos.setText(
+                getString(R.string.dashboard_documentos_subidos, subidos, TOTAL_DOCUMENTOS_REQUERIDOS));
     }
 
     private void onError(int pagina, VolleyError error) {

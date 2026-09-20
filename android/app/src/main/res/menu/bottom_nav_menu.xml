@@ -12,8 +12,4 @@
         android:id="@+id/nav_documentos"
         android:icon="@drawable/ic_documentos"
         android:title="@string/tab_documentos" />
-    <item
-        android:id="@+id/nav_planilla"
-        android:icon="@drawable/ic_planilla"
-        android:title="@string/tab_planilla" />
 </menu>
