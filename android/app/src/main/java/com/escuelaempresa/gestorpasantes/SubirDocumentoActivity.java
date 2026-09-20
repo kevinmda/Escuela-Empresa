@@ -254,6 +254,13 @@ public class SubirDocumentoActivity extends AppCompatActivity {
     // distinguir una firma original de una fotocopia.
     private static final int UMBRAL_AZUL = 20;
 
+    // Curva de brillo aplicada DESPUÉS del estiramiento, solo al papel/texto
+    // (no a la tinta azul, para no lavarle el color): 255 * (valor/255)^GAMMA,
+    // con GAMMA < 1 empuja los grises claros hacia blanco sin tocar apenas el
+    // negro del texto. Se precalcula una tabla de 256 valores en vez de
+    // levantar Math.pow() por cada píxel.
+    private static final double GAMMA_BRILLO = 0.72;
+
     private Bitmap ajustarComoEscaneo(Bitmap original) {
         int ancho = original.getWidth();
         int alto = original.getHeight();
@@ -275,16 +282,28 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             }
         }
 
-        // 2. Percentiles 1 y 99 en vez de min/max crudo: un puñado de píxeles
-        // sueltos (una sombra en una esquina, un reflejo de luz) no debería
-        // definir todo el rango de contraste.
-        int minLuma = percentilDeHistograma(histograma, totalNoAzul, true);
-        int maxLuma = percentilDeHistograma(histograma, totalNoAzul, false);
+        // 2. Percentiles en vez de min/max crudo: un puñado de píxeles sueltos
+        // (una sombra en una esquina, un reflejo de luz) no debería definir
+        // todo el rango de contraste. Asimétrico a propósito: del lado oscuro
+        // se recorta poco (1%) para no perder trazos finos del texto, pero del
+        // lado claro se recorta bastante más (15%) -- el papel ocupa la
+        // mayoría de la foto, así que el percentil 85 para arriba es
+        // prácticamente todo papel, y conviene llevarlo a blanco de una sin
+        // que una luz un poco pareja se quede corta.
+        int minLuma = percentilDeHistograma(histograma, totalNoAzul, true, 1);
+        int maxLuma = percentilDeHistograma(histograma, totalNoAzul, false, 15);
         int rango = Math.max(maxLuma - minLuma, 10);
 
-        // 3. Estirar ese rango a blanco y negro, salvo la tinta azul, que se
-        // mantiene en color (con el mismo estiramiento en sus tres canales,
-        // para que también se vea más nítida).
+        // 3. Tabla de brillo: se arma una sola vez acá (no en cada píxel).
+        int[] curvaBrillo = new int[256];
+        for (int i = 0; i < 256; i++) {
+            curvaBrillo[i] = recortarA0y255((int) Math.round(255 * Math.pow(i / 255.0, GAMMA_BRILLO)));
+        }
+
+        // 4. Estirar ese rango a blanco y negro (más la curva de brillo del
+        // paso anterior), salvo la tinta azul, que se mantiene en color (con
+        // el mismo estiramiento en sus tres canales, sin la curva de brillo,
+        // para no lavarle el color a la firma o el sello).
         for (int i = 0; i < pixeles.length; i++) {
             int pixel = pixeles[i];
             int r = (pixel >> 16) & 0xFF;
@@ -297,7 +316,8 @@ public class SubirDocumentoActivity extends AppCompatActivity {
                 b = recortarA0y255((b - minLuma) * 255 / rango);
                 pixeles[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
             } else {
-                int gris = recortarA0y255((calcularLuma(r, g, b) - minLuma) * 255 / rango);
+                int estirado = recortarA0y255((calcularLuma(r, g, b) - minLuma) * 255 / rango);
+                int gris = curvaBrillo[estirado];
                 pixeles[i] = (0xFF << 24) | (gris << 16) | (gris << 8) | gris;
             }
         }
@@ -319,12 +339,13 @@ public class SubirDocumentoActivity extends AppCompatActivity {
         return (int) (0.299 * r + 0.587 * g + 0.114 * b);
     }
 
-    // desdeElInicio=true busca el percentil 1 (recorriendo el histograma de
-    // 0 a 255); false busca el percentil 99 (recorriendo al revés, de 255 a 0).
-    private int percentilDeHistograma(int[] histograma, long total, boolean desdeElInicio) {
+    // desdeElInicio=true busca el percentil "porcentaje" recorriendo el
+    // histograma de 0 a 255; false lo busca recorriendo al revés, de 255 a 0
+    // (o sea, el percentil "100 - porcentaje").
+    private int percentilDeHistograma(int[] histograma, long total, boolean desdeElInicio, int porcentaje) {
         if (total == 0) return desdeElInicio ? 0 : 255;
 
-        long corte = Math.max(1, total / 100);
+        long corte = Math.max(1, total * porcentaje / 100);
         long acumulado = 0;
         if (desdeElInicio) {
             for (int i = 0; i < 256; i++) {
