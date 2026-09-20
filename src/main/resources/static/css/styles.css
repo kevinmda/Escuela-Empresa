@@ -6541,9 +6541,18 @@ main > .sb-vacio {
        para el costado. Mismo arreglo que .tabla-alumnos y .tabla-asignacion:
        cada documento pasa a ser una tarjeta con sus campos etiquetados, nada
        que desplazar. */
+    /* El borde y la sombra de la tabla base (ver "table" mas arriba en este
+       archivo) quedan pensados para una sola caja; acá cada fila ya lleva el
+       suyo propio (ver .sb-tabla tr), así que se apagan para no dibujar un
+       borde adentro de otro borde. */
     .sb-tabla {
         display: block;
         white-space: normal;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        background-color: transparent;
+        overflow: visible;
     }
 
     .sb-tabla thead {
@@ -6560,9 +6569,19 @@ main > .sb-vacio {
         display: block;
     }
 
+    /* Antes solo un hairline arriba de cada fila -- casi invisible entre
+       tarjetas que ya no comparten una caja común. Un borde propio en cada
+       una, con su esquina redondeada y separación, hace que cada documento
+       se lea como su propia tarjeta de un vistazo. */
     .sb-tabla tr {
         padding: 0.9rem 1.1rem;
-        border-top: 1px solid var(--line);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-panel);
+        background-color: var(--surface);
+    }
+
+    .sb-tabla tr + tr {
+        margin-top: 0.75rem;
     }
 
     /* El rayado cebra ordena filas de una tabla; entre tarjetas separadas por
