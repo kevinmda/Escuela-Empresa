@@ -254,21 +254,42 @@ img {
     min-height: var(--barra-alto);
     padding: 0 1.25rem;
     border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
-    background-color: color-mix(in srgb, var(--surface) 72%, transparent);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    backdrop-filter: blur(20px) saturate(180%);
     position: sticky;
     top: 0;
     z-index: 20;
 }
 
+/* El fondo esmerilado va en un ::before y no directo en .barra: backdrop-filter
+   en un ancestro crea un containing block nuevo para sus descendientes
+   position:fixed (misma regla que transform/filter/will-change), y .cuenta-menu
+   pasa a position:fixed por JS (ver posicionarMenuCuenta en theme.js) para
+   escapar del overflow-x:auto de .barra-riel en movil. Con el blur puesto acá,
+   ese "fixed" terminaba ANCLADO a .barra en vez de a la pantalla -- y como
+   .barra-riel queda entre .barra y .cuenta-menu, su propio recorte (el mismo
+   overflow-x:auto) lo volvia a tapar: el desplegable "Documentos" abria (el
+   <details> quedaba abierto, la flecha giraba) pero el menu no se veia ni se
+   podia tocar. Un ::before no es ancestro de nada: lleva el mismo blur sin
+   crear ese containing block. */
+.barra::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: color-mix(in srgb, var(--surface) 72%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+}
+
 /* Sin translucidez: la barra vuelve a ser solida, mismo alto y misma posicion. */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
     .barra {
+        border-bottom-color: var(--line);
+    }
+
+    .barra::before {
         background-color: var(--surface);
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
-        border-bottom-color: var(--line);
     }
 }
 
