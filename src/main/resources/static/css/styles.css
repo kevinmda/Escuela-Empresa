@@ -5664,9 +5664,16 @@ button:disabled,
     }
 
     /* Cada dia se apila solo, asi que las etiquetas vuelven a verse todas: acá
-       ya no hay columnas que puedan hacer de encabezado. */
+       ya no hay columnas que puedan hacer de encabezado.
+
+       minmax(0, 1fr) y no 1fr a secas: un <input type="date"> nativo (sobre
+       todo en iOS) tiene un ancho minimo propio que puede superar el espacio
+       que le tocaria en esta columna, y una pista 1fr sin el minmax(0, ...)
+       crece para darle ese minimo en vez de achicar el input -- empuja a
+       Horas y las dos columnas terminan superpuestas. Mismo arreglo que
+       .ficha-datos > div, mas abajo en este archivo. */
     .pl-dia {
-        grid-template-columns: 1fr 6.5rem;
+        grid-template-columns: minmax(0, 1fr) 6.5rem;
         margin-inline: -0.75rem;
         padding: 0.75rem;
         align-items: start;
