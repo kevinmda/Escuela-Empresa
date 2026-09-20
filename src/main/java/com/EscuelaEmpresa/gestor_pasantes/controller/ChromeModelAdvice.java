@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.EscuelaEmpresa.gestor_pasantes.dto.ChromeContext;
@@ -161,15 +162,18 @@ public class ChromeModelAdvice {
         int totalLimite = limitesDocumentoService.obtenerLimiteTotal();
 
         if (totalSubidos >= totalLimite && !yaSubioAdjuntos) {
-            // El más reciente de los diez (documentos ya vienen ordenados desc por
-            // fecha de subida) es, por construcción, el que completó el umbral: no
-            // se puede pasar de 10 subiendo de más, cada tipo tiene su propio
-            // límite. Su fecha de subida SÍ es un dato real (a diferencia de la
-            // fecha_hasta de una planilla), así que acá "momento" no es una
-            // medianoche de convención sino la hora real de esa subida.
+            // El de mayor id (no el de fecha_subida más reciente) es, por
+            // construcción, el que completó el umbral: fecha_subida es un
+            // DATETIME sin fracción de segundo en la base, así que dos
+            // documentos subidos dentro del mismo segundo (por ejemplo,
+            // eliminar uno y subir el reemplazo enseguida, como al probar)
+            // pueden guardar la MISMA fecha exacta -- "el más reciente por
+            // fecha" queda ambiguo justo en ese caso. El id, en cambio, es
+            // autoincremental y siempre estrictamente creciente, así que no
+            // tiene ese problema.
             documentos.stream()
                     .filter(d -> d.getTipoDocumento() != TipoDocumento.DOCUMENTOS_ADJUNTOS)
-                    .findFirst()
+                    .max(Comparator.comparing(DocumentoSubido::getIdDs))
                     .ifPresent(masReciente -> {
                         String clave = String.valueOf(masReciente.getIdDs());
                         avisos.add(new ChromeContext.Aviso(
