@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/espacio_xs"
+    app:cardBackgroundColor="@color/superficie"
+    app:cardCornerRadius="@dimen/radio_tarjeta"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/contorno"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="@dimen/espacio_md">
+
+        <View
+            android:layout_width="@dimen/tamano_icono_fila"
+            android:layout_height="@dimen/tamano_icono_fila"
+            android:background="@drawable/bg_icono_circular"
+            android:backgroundTint="@color/superficie_variante" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/espacio_md"
+            android:orientation="vertical">
+
+            <View
+                android:layout_width="140dp"
+                android:layout_height="14dp"
+                android:background="@drawable/bg_shimmer_bloque" />
+
+            <View
+                android:layout_width="90dp"
+                android:layout_height="12dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_shimmer_bloque" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

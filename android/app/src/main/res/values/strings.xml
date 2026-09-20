@@ -24,9 +24,21 @@
     <string name="aviso_codigo_enviado">Revisá tu email: si la cuenta existe, te llegó un código.</string>
 
     <!-- Navegacion inferior -->
+    <string name="tab_inicio">Inicio</string>
     <string name="tab_perfil">Perfil</string>
     <string name="tab_documentos">Documentos</string>
     <string name="tab_planilla">Planilla</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_saludo">Hola, %1$s</string>
+    <string name="dashboard_subtitulo">Así va tu pasantía</string>
+    <string name="dashboard_semanas">Semanas cargadas</string>
+    <string name="dashboard_semanas_valor">%1$d de 6</string>
+    <string name="dashboard_horas">Horas totales</string>
+    <string name="dashboard_horas_valor">%1$s hs</string>
+    <string name="dashboard_documentos">Documentos subidos</string>
+    <string name="dashboard_empresa">Empresa asignada</string>
+    <string name="dashboard_valor_error">–</string>
 
     <!-- Perfil -->
     <string name="etiqueta_curso">Curso</string>
@@ -98,4 +110,6 @@
     <!-- Generico -->
     <string name="error_red">No se pudo conectar con el servidor. Revisá tu conexión.</string>
     <string name="cargando">Cargando…</string>
+    <string name="error_no_se_pudo_cargar">No se pudo cargar la información.</string>
+    <string name="boton_reintentar">Reintentar</string>
 </resources>

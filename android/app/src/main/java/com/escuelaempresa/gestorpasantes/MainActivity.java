@@ -17,12 +17,15 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navegacion = findViewById(R.id.navegacionInferior);
 
         if (savedInstanceState == null) {
-            mostrarFragmento(new PerfilFragment());
+            mostrarFragmento(new DashboardFragment());
         }
 
         navegacion.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_perfil) {
+            if (id == R.id.nav_inicio) {
+                mostrarFragmento(new DashboardFragment());
+                return true;
+            } else if (id == R.id.nav_perfil) {
                 mostrarFragmento(new PerfilFragment());
                 return true;
             } else if (id == R.id.nav_documentos) {

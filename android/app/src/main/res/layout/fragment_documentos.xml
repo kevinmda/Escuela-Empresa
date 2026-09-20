@@ -14,6 +14,22 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <include
+                android:id="@+id/shimmerDocumentos"
+                layout="@layout/layout_shimmer_lista"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="gone" />
+
+            <include
+                android:id="@+id/estadoErrorDocumentos"
+                layout="@layout/layout_estado_error"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/textoDocumentosVacio"
                 android:layout_width="match_parent"

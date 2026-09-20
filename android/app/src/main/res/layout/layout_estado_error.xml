@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="@dimen/espacio_lg">
+
+    <ImageView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:alpha="0.6"
+        android:contentDescription="@null"
+        app:tint="@color/error"
+        app:srcCompat="@drawable/ic_alerta" />
+
+    <TextView
+        android:id="@+id/textoErrorMensaje"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/espacio_sm"
+        android:gravity="center"
+        android:textColor="@color/texto_secundario"
+        android:text="@string/error_no_se_pudo_cargar" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/botonReintentar"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/espacio_md"
+        app:icon="@drawable/ic_reintentar"
+        android:text="@string/boton_reintentar" />
+
+</LinearLayout>

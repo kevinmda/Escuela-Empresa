@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/refrescarDashboard"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Estado de error: solo si falla el primer intento de cargar el perfil -->
+            <include
+                android:id="@+id/estadoErrorDashboard"
+                layout="@layout/layout_estado_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/contenidoDashboard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/espacio_md">
+
+                <TextView
+                    android:id="@+id/textoSaludo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textColor="@color/texto_principal"
+                    tools:text="Hola, Belén" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="@dimen/espacio_md"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="@color/texto_secundario"
+                    android:text="@string/dashboard_subtitulo" />
+
+                <!-- Skeleton de carga: 4 bloques imitando la grilla de tarjetas de abajo -->
+                <com.facebook.shimmer.ShimmerFrameLayout
+                    android:id="@+id/shimmerDashboard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="110dp"
+                                android:layout_weight="1"
+                                android:layout_margin="@dimen/espacio_xs"
+                                android:background="@drawable/bg_shimmer_bloque" />
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="110dp"
+                                android:layout_weight="1"
+                                android:layout_margin="@dimen/espacio_xs"
+                                android:background="@drawable/bg_shimmer_bloque" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="110dp"
+                                android:layout_weight="1"
+                                android:layout_margin="@dimen/espacio_xs"
+                                android:background="@drawable/bg_shimmer_bloque" />
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="110dp"
+                                android:layout_weight="1"
+                                android:layout_margin="@dimen/espacio_xs"
+                                android:background="@drawable/bg_shimmer_bloque" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.facebook.shimmer.ShimmerFrameLayout>
+
+                <!-- Grilla real de tarjetas, oculta hasta que llegan los 3 pedidos -->
+                <LinearLayout
+                    android:id="@+id/grillaDashboard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <include
+                            android:id="@+id/tarjetaSemanas"
+                            layout="@layout/item_tarjeta_dashboard"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_margin="@dimen/espacio_xs" />
+
+                        <include
+                            android:id="@+id/tarjetaHoras"
+                            layout="@layout/item_tarjeta_dashboard"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_margin="@dimen/espacio_xs" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <include
+                            android:id="@+id/tarjetaDocumentos"
+                            layout="@layout/item_tarjeta_dashboard"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_margin="@dimen/espacio_xs" />
+
+                        <include
+                            android:id="@+id/tarjetaEmpresa"
+                            layout="@layout/item_tarjeta_dashboard"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_margin="@dimen/espacio_xs" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

@@ -26,6 +26,7 @@ import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
 import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 import com.escuelaempresa.gestorpasantes.util.VisorArchivos;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -44,11 +45,17 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
     private MaterialButton botonCargarMas;
     private MaterialButton botonDescargarInforme;
     private View textoVacio;
+    private ShimmerFrameLayout shimmer;
+    private View estadoError;
 
     private PlanillaAdapter adapter;
     private SessionManager sessionManager;
 
     private int paginaActual = 0;
+    // Distingue el primer intento de carga (donde un fallo bloquea la pantalla
+    // entera con un estado de error) de recargas posteriores (donde un fallo
+    // solo avisa con un Snackbar y deja ver lo que ya estaba cargado).
+    private boolean cargaInicialHecha = false;
 
     private ActivityResultLauncher<Intent> lanzadorDetalle;
 
@@ -71,6 +78,9 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
         botonCargarMas = view.findViewById(R.id.botonCargarMasPlanillas);
         botonDescargarInforme = view.findViewById(R.id.botonDescargarInforme);
         textoVacio = view.findViewById(R.id.textoPlanillasVacio);
+        shimmer = view.findViewById(R.id.shimmerPlanillas);
+        estadoError = view.findViewById(R.id.estadoErrorPlanillas);
+        estadoError.<MaterialButton>findViewById(R.id.botonReintentar).setOnClickListener(v -> cargarPagina(0));
 
         listaPlanillas.setLayoutManager(new LinearLayoutManager(requireContext()));
         listaPlanillas.setAdapter(adapter);
@@ -94,20 +104,32 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
     }
 
     private void cargarPagina(int pagina) {
-        refrescar.setRefreshing(true);
+        boolean primeraCargaVisible = pagina == 0 && !cargaInicialHecha;
+        if (primeraCargaVisible) {
+            estadoError.setVisibility(View.GONE);
+            textoVacio.setVisibility(View.GONE);
+            shimmer.setVisibility(View.VISIBLE);
+            shimmer.startShimmer();
+        } else {
+            refrescar.setRefreshing(true);
+        }
+
         String token = sessionManager.obtenerToken();
         String url = ApiConfig.BASE_URL + "/planillas?page=" + pagina + "&size=" + TAMANIO_PAGINA;
 
         ApiJsonRequest pedido = new ApiJsonRequest(
                 Request.Method.GET, url, null, token,
                 json -> onPaginaCargada(pagina, json),
-                this::onError);
+                error -> onError(pagina, error));
 
         VolleySingleton.getInstancia(requireContext()).getRequestQueue().add(pedido);
     }
 
     private void onPaginaCargada(int pagina, JSONObject json) {
         refrescar.setRefreshing(false);
+        ocultarShimmer();
+        cargaInicialHecha = true;
+        estadoError.setVisibility(View.GONE);
         try {
             JSONArray contenido = json.getJSONArray("content");
             List<PlanillaResumen> planillas = new ArrayList<>();
@@ -129,9 +151,20 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
         }
     }
 
-    private void onError(VolleyError error) {
+    private void onError(int pagina, VolleyError error) {
         refrescar.setRefreshing(false);
-        mostrarError(getString(R.string.error_red));
+        ocultarShimmer();
+        if (pagina == 0 && !cargaInicialHecha) {
+            textoVacio.setVisibility(View.GONE);
+            estadoError.setVisibility(View.VISIBLE);
+        } else {
+            mostrarError(getString(R.string.error_red));
+        }
+    }
+
+    private void ocultarShimmer() {
+        shimmer.stopShimmer();
+        shimmer.setVisibility(View.GONE);
     }
 
     private void descargarInforme() {

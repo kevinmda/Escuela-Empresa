@@ -28,6 +28,7 @@ import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
 import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 import com.escuelaempresa.gestorpasantes.util.VisorArchivos;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -43,12 +44,15 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
     private RecyclerView listaDocumentos;
     private MaterialButton botonCargarMas;
     private View textoVacio;
+    private ShimmerFrameLayout shimmer;
+    private View estadoError;
 
     private DocumentoAdapter adapter;
     private SessionManager sessionManager;
 
     private int paginaActual = 0;
     private boolean quedanMasPaginas = false;
+    private boolean cargaInicialHecha = false;
 
     private ActivityResultLauncher<Intent> lanzadorSubida;
 
@@ -70,6 +74,9 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
         listaDocumentos = view.findViewById(R.id.listaDocumentos);
         botonCargarMas = view.findViewById(R.id.botonCargarMasDocumentos);
         textoVacio = view.findViewById(R.id.textoDocumentosVacio);
+        shimmer = view.findViewById(R.id.shimmerDocumentos);
+        estadoError = view.findViewById(R.id.estadoErrorDocumentos);
+        estadoError.<MaterialButton>findViewById(R.id.botonReintentar).setOnClickListener(v -> cargarPagina(0));
 
         int columnas = getResources().getInteger(R.integer.columnas_documentos);
         listaDocumentos.setLayoutManager(new GridLayoutManager(requireContext(), columnas));
@@ -92,20 +99,32 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
     }
 
     private void cargarPagina(int pagina) {
-        refrescar.setRefreshing(true);
+        boolean primeraCargaVisible = pagina == 0 && !cargaInicialHecha;
+        if (primeraCargaVisible) {
+            estadoError.setVisibility(View.GONE);
+            textoVacio.setVisibility(View.GONE);
+            shimmer.setVisibility(View.VISIBLE);
+            shimmer.startShimmer();
+        } else {
+            refrescar.setRefreshing(true);
+        }
+
         String token = sessionManager.obtenerToken();
         String url = ApiConfig.BASE_URL + "/documentos?page=" + pagina + "&size=" + TAMANIO_PAGINA;
 
         ApiJsonRequest pedido = new ApiJsonRequest(
                 Request.Method.GET, url, null, token,
                 json -> onPaginaCargada(pagina, json),
-                this::onError);
+                error -> onError(pagina, error));
 
         VolleySingleton.getInstancia(requireContext()).getRequestQueue().add(pedido);
     }
 
     private void onPaginaCargada(int pagina, JSONObject json) {
         refrescar.setRefreshing(false);
+        ocultarShimmer();
+        cargaInicialHecha = true;
+        estadoError.setVisibility(View.GONE);
         try {
             JSONArray contenido = json.getJSONArray("content");
             java.util.List<Documento> documentos = new java.util.ArrayList<>();
@@ -127,9 +146,20 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
         }
     }
 
-    private void onError(VolleyError error) {
+    private void onError(int pagina, VolleyError error) {
         refrescar.setRefreshing(false);
-        mostrarError(getString(R.string.error_red));
+        ocultarShimmer();
+        if (pagina == 0 && !cargaInicialHecha) {
+            textoVacio.setVisibility(View.GONE);
+            estadoError.setVisibility(View.VISIBLE);
+        } else {
+            mostrarError(getString(R.string.error_red));
+        }
+    }
+
+    private void ocultarShimmer() {
+        shimmer.stopShimmer();
+        shimmer.setVisibility(View.GONE);
     }
 
     @Override
