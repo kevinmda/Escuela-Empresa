@@ -2,6 +2,7 @@ package com.EscuelaEmpresa.gestor_pasantes.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
@@ -64,7 +65,14 @@ public record ChromeContext(
 
         /** "Hoy", "Ayer", "Hace 3 días", "Hace 1 semana", "Hace 2 semanas"... */
         public String etiquetaDia() {
-            long dias = ChronoUnit.DAYS.between(momento.toLocalDate(), LocalDate.now());
+            // Zona horaria explícita y no LocalDate.now() a secas: eso usa la zona
+            // del propio servidor, que puede no estar configurada como Paraguay.
+            // Si el VPS anda, por ejemplo, en UTC, "hoy" ahí puede seguir siendo
+            // el día de ayer en Paraguay durante varias horas después de la
+            // medianoche local -- exactamente el síntoma de un aviso que ya
+            // debería decir "Ayer" y sigue diciendo "Hoy".
+            LocalDate hoyEnParaguay = LocalDate.now(ZoneId.of("America/Asuncion"));
+            long dias = ChronoUnit.DAYS.between(momento.toLocalDate(), hoyEnParaguay);
             if (dias <= 0) {
                 return "Hoy";
             }
