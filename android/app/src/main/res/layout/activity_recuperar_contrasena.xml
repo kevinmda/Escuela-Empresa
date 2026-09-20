@@ -34,7 +34,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoEmail"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                style="@style/Widget.GestorPasantes.TextInputLayout"
+                app:boxBackgroundColor="@color/login_campo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/hint_email">

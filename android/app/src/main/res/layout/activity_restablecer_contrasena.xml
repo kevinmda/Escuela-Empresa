@@ -34,7 +34,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoCodigo"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                style="@style/Widget.GestorPasantes.TextInputLayout"
+                app:boxBackgroundColor="@color/login_campo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/hint_codigo">
@@ -49,12 +50,15 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoNueva"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                style="@style/Widget.GestorPasantes.TextInputLayout"
+                app:boxBackgroundColor="@color/login_campo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_sm"
                 app:passwordToggleEnabled="true"
                 app:passwordToggleTint="@color/login_texto_secundario"
+                app:helperTextEnabled="true"
+                app:helperText="@string/ayuda_contrasena_nueva"
                 android:hint="@string/hint_contrasena_nueva">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -66,7 +70,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoConfirmar"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                style="@style/Widget.GestorPasantes.TextInputLayout"
+                app:boxBackgroundColor="@color/login_campo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_sm"

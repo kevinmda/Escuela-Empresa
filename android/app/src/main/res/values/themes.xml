@@ -30,6 +30,23 @@
 
         <item name="materialButtonStyle">@style/Widget.GestorPasantes.Button</item>
         <item name="toolbarStyle">@style/Widget.GestorPasantes.Toolbar</item>
+        <item name="textInputStyle">@style/Widget.GestorPasantes.TextInputLayout</item>
+    </style>
+
+    <!-- —radius-field de la web son 12px en las CUATRO esquinas — el FilledBox
+         de Material redondea solo las de arriba por default (imita el guión
+         inferior clásico de M2). Con esquinas parejas queda igual que el campo
+         hundido de la web. -->
+    <style name="ShapeAppearanceOverlay.GestorPasantes.Campo" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="Widget.GestorPasantes.TextInputLayout" parent="Widget.Material3.TextInputLayout.FilledBox">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.GestorPasantes.Campo</item>
+        <item name="boxBackgroundColor">@color/campo</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
     </style>
 
     <style name="ShapeAppearance.GestorPasantes.Small" parent="ShapeAppearance.Material3.Corner.Small">

@@ -39,6 +39,11 @@
     <!-- —ink-soft exacto de la web (antes difería en el último dígito). -->
     <color name="texto_secundario">#55637A</color>
     <color name="blanco">#FFFFFF</color>
+    <!-- —field de la web: color-mix(in srgb, var(—bg) 55%, var(—surface)),
+         con los valores claros de arriba (fondo/superficie). Los inputs de la
+         web van con este fondo hundido, no en blanco liso — un campo blanco
+         dentro de una superficie ya blanca no se lee como campo. -->
+    <color name="campo">#F9F8F5</color>
 
     <!-- Login: la web fuerza modo oscuro en estas pantallas sin importar el
          tema guardado del usuario (auth-split—login en styles.css, no tienen

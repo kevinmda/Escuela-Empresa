@@ -7,7 +7,6 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -55,10 +54,6 @@ public class LoginActivity extends AppCompatActivity {
         inputPassword = findViewById(R.id.inputPassword);
         botonIngresar = findViewById(R.id.botonIngresar);
         progresoLogin = findViewById(R.id.progresoLogin);
-
-        TextView chipPortal = findViewById(R.id.chipPortal);
-        int anioActual = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
-        chipPortal.setText(getString(R.string.chip_portal, anioActual));
 
         AnimacionResorte.feedbackToque(botonIngresar);
         botonIngresar.setOnClickListener(v -> intentarLogin());

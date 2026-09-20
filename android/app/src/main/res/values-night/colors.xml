@@ -31,4 +31,8 @@
     <color name="texto_principal">#E7EAEE</color>
     <color name="texto_secundario">#AEB6C2</color>
     <color name="blanco">#FFFFFF</color>
+    <!-- Mismo —field de la web, con los valores oscuros de esta paleta
+         (fondo/superficie). Coincide con login_campo de colors.xml porque acá
+         y el login parten del mismo fondo/superficie oscuro. -->
+    <color name="campo">#181C22</color>
 </resources>
