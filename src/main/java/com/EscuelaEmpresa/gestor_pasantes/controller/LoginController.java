@@ -8,8 +8,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.EscuelaEmpresa.gestor_pasantes.service.LimitadorPeticionesPorIpService;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 @Controller //le dice a Spring que esta clase maneja peticiones HTTP y devuelve vistas (HTML) para renderizar
 public class LoginController {
+
+    // Este paso no toca la base de datos (por eso mismo es imposible que filtre
+    // si una cuenta existe: siempre hace el mismo trabajo, sin importar el
+    // email). El limite de aca no es para tapar una fuga, es para que barrer
+    // miles de emails por minuto contra este endpoint tenga un costo.
+    private static final String CLAVE_LIMITADOR = "login-check";
+
+    private final LimitadorPeticionesPorIpService limitadorPeticiones;
+
+    public LoginController(LimitadorPeticionesPorIpService limitadorPeticiones) {
+        this.limitadorPeticiones = limitadorPeticiones;
+    }
 
     // "email" es opcional: sin el, mostramos el primer paso (pedir el email).
     // con el (viene de un redirect de LoginFailureHandler, por ejemplo tras un error),
@@ -47,7 +63,13 @@ public class LoginController {
 
     // segundo paso: segun el email que puso, decide que pantalla de login mostrar
     @PostMapping("/login-check")
-    public String verificarEmail(@RequestParam String email, Model model) {
+    public String verificarEmail(@RequestParam String email, Model model, HttpServletRequest request) {
+        if (!limitadorPeticiones.permitir(CLAVE_LIMITADOR + ":" + request.getRemoteAddr())) {
+            model.addAttribute("email", email);
+            model.addAttribute("error", "Demasiados intentos. Esperá un momento y volvé a intentar.");
+            return "login-email";
+        }
+
         return resolverVistaLogin(email, model);
     }
 
