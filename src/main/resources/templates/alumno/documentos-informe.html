@@ -38,36 +38,48 @@
             <p th:text="${error}"></p>
         </div>
 
-        <section class="pl-descargas" aria-labelledby="pl-descargas-titulo">
-            <h3 class="pl-descargas-titulo oculto-visual" id="pl-descargas-titulo">Informe de Pasantía</h3>
-
-            <div class="pl-descarga">
-                <div class="pl-descarga-texto">
-                    <h4 class="pl-descarga-nombre">Informe de Pasantía</h4>
-                    <p class="pl-descarga-desc">El informe final en Word, armado con todo lo que
-                        cargaste en las seis semanas.</p>
-
-                    <ul class="pl-requisitos">
-                        <li class="pl-requisito" th:classappend="${tieneEmpresa} ? ' pl-requisito--listo'">
-                            <span th:if="${tieneEmpresa}">Empresa: <strong th:text="${nombreEmpresa}"></strong></span>
-                            <span th:unless="${tieneEmpresa}">Una empresa asignada</span>
-                        </li>
-                        <li class="pl-requisito" th:classappend="${tieneSupervisor} ? ' pl-requisito--listo'">
-                            <span th:if="${tieneSupervisor}">Supervisor: <strong th:text="${nombreSupervisor}"></strong></span>
-                            <span th:unless="${tieneSupervisor}">Un supervisor o docente asignado</span>
-                        </li>
-                        <li class="pl-requisito" th:classappend="${tieneSeisPlanillas} ? ' pl-requisito--listo'">
-                            <span>Semanas cargadas: <strong th:text="${cantidadPlanillas} + ' de 6'"></strong></span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="pl-descarga-accion">
-                    <a th:if="${informeHabilitado}" th:href="@{/alumno/planilla/Informe_Pasantia.docx}"
-                       class="btn btn-primary">Descargar Word</a>
-                    <button th:unless="${informeHabilitado}" type="button" class="btn btn-primary" disabled>Descargar Word</button>
-                </div>
+        <section class="panel impr-pliego" aria-labelledby="impr-informe">
+            <div class="impr-momento">
+                <h3 class="impr-momento-titulo" id="impr-informe">Informe de Pasantía</h3>
             </div>
+
+            <ul class="impr-lista">
+                <li class="impr-doc">
+                    <div class="impr-doc-hoja">
+                        <span class="impr-hoja impr-hoja--pila" aria-hidden="true">
+                            <span class="impr-hoja-cara">
+                                <span class="impr-hoja-banda"></span>
+                                <span class="impr-hoja-renglones"></span>
+                            </span>
+                        </span>
+                        <span class="impr-hoja-cuenta">Word</span>
+                    </div>
+                    <div class="impr-doc-texto">
+                        <h4 class="impr-doc-titulo">Informe de Pasantía</h4>
+                        <p class="impr-doc-desc">El informe final en Word, armado con todo lo que
+                            cargaste en las seis semanas.</p>
+
+                        <ul class="pl-requisitos">
+                            <li class="pl-requisito" th:classappend="${tieneEmpresa} ? ' pl-requisito--listo'">
+                                <span th:if="${tieneEmpresa}">Empresa: <strong th:text="${nombreEmpresa}"></strong></span>
+                                <span th:unless="${tieneEmpresa}">Una empresa asignada</span>
+                            </li>
+                            <li class="pl-requisito" th:classappend="${tieneSupervisor} ? ' pl-requisito--listo'">
+                                <span th:if="${tieneSupervisor}">Supervisor: <strong th:text="${nombreSupervisor}"></strong></span>
+                                <span th:unless="${tieneSupervisor}">Un supervisor o docente asignado</span>
+                            </li>
+                            <li class="pl-requisito" th:classappend="${tieneSeisPlanillas} ? ' pl-requisito--listo'">
+                                <span>Semanas cargadas: <strong th:text="${cantidadPlanillas} + ' de 6'"></strong></span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="impr-doc-acciones">
+                        <a th:if="${informeHabilitado}" th:href="@{/alumno/planilla/Informe_Pasantia.docx}"
+                           class="btn btn-primary">Descargar Word</a>
+                        <button th:unless="${informeHabilitado}" type="button" class="btn btn-primary" disabled>Descargar Word</button>
+                    </div>
+                </li>
+            </ul>
         </section>
     </main>
 </body>
