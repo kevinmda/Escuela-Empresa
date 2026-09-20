@@ -56,12 +56,16 @@ import java.util.Map;
 public class SubirDocumentoActivity extends AppCompatActivity {
 
     // Mismos codigos que el enum TipoDocumento del backend -- se muestra la
-    // descripcion, se manda el codigo.
+    // descripcion, se manda el codigo. El codigo sigue diciendo
+    // "PLANTILLA_SEMANAL" (con "t") porque asi esta el nombre de la constante
+    // en el enum del backend y tiene que coincidir exacto -- pero lo que ve
+    // el alumno en la descripcion de abajo dice "Planilla" (sin "t"), que es
+    // como se llama en realidad.
     private static final String[] CODIGOS_TIPO = {
             "CONTRATO", "PLANTILLA_SEMANAL", "AUTORIZACION", "FICHA_FINAL_ALUMNO", "FICHA_FINAL_EVALUATIVA"
     };
     private static final String[] DESCRIPCIONES_TIPO = {
-            "Contrato de Pasantía", "Plantilla Semanal", "Autorización",
+            "Contrato de Pasantía", "Planilla Semanal", "Autorización",
             "Ficha Final del Alumno", "Ficha Final Evaluativa"
     };
 
@@ -581,7 +585,7 @@ public class SubirDocumentoActivity extends AppCompatActivity {
 
     // Una página, del mismo tamaño en píxeles que la foto ya escalada: no hace
     // falta encajarla en A4 ni nada parecido, con que se vea igual que la foto
-    // alcanza para un comprobante escaneado.
+    // alcanza para un documento escaneado.
     private void escribirBitmapComoPdf(Bitmap bitmap, File destino) throws IOException {
         PdfDocument documento = new PdfDocument();
         try {

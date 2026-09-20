@@ -160,7 +160,7 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
 
     // El total ya no sale de lo cargado en el adapter (eso es cuánto subiste
     // hasta ahora, no cuánto hace falta) sino del límite fijo del expediente:
-    // Contrato(1) + Autorización(1) + Plantilla Semanal(6) + Ficha Final(1) +
+    // Contrato(1) + Autorización(1) + Planilla Semanal(6) + Ficha Final(1) +
     // Ficha Final Evaluativa(1) = 10, mismo número que ya usa
     // LimitesDocumentoService.obtenerLimiteTotal() del lado del servidor.
     private static final int TOTAL_DOCUMENTOS_REQUERIDOS = 10;

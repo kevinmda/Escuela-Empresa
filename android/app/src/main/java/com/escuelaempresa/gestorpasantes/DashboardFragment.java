@@ -194,8 +194,7 @@ public class DashboardFragment extends Fragment {
             }
             int semanas = json.optInt("totalElements", contenido.length());
             valorTarjeta(tarjetaSemanas, getString(R.string.dashboard_semanas_valor, semanas));
-            valorTarjeta(tarjetaHoras,
-                    getString(R.string.dashboard_horas_valor, String.format(Locale.getDefault(), "%.2f", totalHoras)));
+            valorTarjeta(tarjetaHoras, getString(R.string.dashboard_horas_valor, formatearHoras(totalHoras)));
 
             LinearProgressIndicator progresoSemanas = tarjetaSemanas.findViewById(R.id.progresoTarjeta);
             progresoSemanas.setProgress(Math.min(semanas, 6));
@@ -205,6 +204,19 @@ public class DashboardFragment extends Fragment {
             valorTarjeta(tarjetaHoras, getString(R.string.dashboard_valor_error));
         }
         unPedidoMenos();
+    }
+
+    // Sin decimales de sobra: 145 horas exactas muestra "145", no "145.00" --
+    // pero 7.5 sigue mostrando "7.5", no se redondea a un entero.
+    private String formatearHoras(double horas) {
+        if (horas == Math.floor(horas)) {
+            return String.format(Locale.getDefault(), "%.0f", horas);
+        }
+        String formateado = String.format(Locale.getDefault(), "%.2f", horas);
+        if (formateado.endsWith("0")) {
+            formateado = formateado.substring(0, formateado.length() - 1);
+        }
+        return formateado;
     }
 
     private void onDocumentosCargados(JSONObject json) {

@@ -35,11 +35,11 @@
 
     <!-- Dashboard -->
     <string name="dashboard_encabezado">CTN Pasantías</string>
-    <string name="dashboard_dossier">Dossier de pasante técnico</string>
+    <string name="dashboard_dossier">Credencial de pasante técnico</string>
     <string name="dashboard_pasante_activo">Pasante activo</string>
     <string name="dashboard_cedula">Cédula de identidad</string>
-    <string name="dashboard_expediente">N° de expediente</string>
-    <string name="dashboard_expediente_valor">#CTN-%1$d</string>
+    <string name="dashboard_expediente">ID de alumno</string>
+    <string name="dashboard_expediente_valor">%1$d</string>
     <string name="dashboard_saludo">Hola, %1$s</string>
     <string name="dashboard_subtitulo">Así va tu pasantía</string>
     <string name="dashboard_semanas">Semanas cargadas</string>
@@ -74,7 +74,7 @@
 
     <!-- Documentos -->
     <string name="titulo_documentos_pasantia">Documentación de Pasantía</string>
-    <string name="subtitulo_documentos_pasantia">Comprobantes y formularios de tu expediente</string>
+    <string name="subtitulo_documentos_pasantia">Subí y revisá los documentos de tu expediente</string>
     <string name="titulo_subir_documento">Subir documento</string>
     <string name="boton_subir">Subir</string>
     <string name="boton_elegir_archivo">Elegir archivo (PDF)</string>
