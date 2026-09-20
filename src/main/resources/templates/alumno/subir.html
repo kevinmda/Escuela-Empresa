@@ -85,6 +85,7 @@
                            th:classappend="${subidosPorTipo[tipo.name()] >= limites[tipo.name()]} ? ' sb-tipo--completo'">
                         <input type="radio" name="tipoDocumento" required
                                th:value="${tipo.name()}"
+                               th:checked="${tipo.name() == ultimoTipo}"
                                th:disabled="${subidosPorTipo[tipo.name()] >= limites[tipo.name()]}">
                         <span class="sb-tipo-nombre" th:text="${tipo.descripcion}">Contrato de Pasantía</span>
                         <span class="sb-tipo-cuenta"

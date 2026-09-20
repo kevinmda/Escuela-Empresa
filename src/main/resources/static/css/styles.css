@@ -488,9 +488,13 @@ img {
 
 /* Encabezado de grupo ("Hoy", "Ayer", "Hace 3 días"...): mismo tratamiento que
    un <legend> chico, no es un aviso en sí, así que no lleva el fondo ni el
-   hover de .cuenta-item. */
+   hover de .cuenta-item. El borde de abajo es lo que faltaba para que no se
+   viera todo flotando junto: separa el título del grupo de los avisos que
+   le siguen, en vez de dejarlos pegados con solo un espacio en blanco. */
 .aviso-grupo-titulo {
-    margin: 0.5rem 0.6rem 0.2rem;
+    margin: 0.5rem 0.6rem 0.35rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--line);
     font-size: 0.72rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -6437,6 +6441,16 @@ input:read-only {
 
 .sb-vacio p + p {
     margin-top: 0.5rem;
+}
+
+/* Solo cuando reemplaza al formulario principal (hijo directo de <main>, no
+   el que va adentro de la sección de Documentos adjuntos ni el de la tabla de
+   abajo, esos ya tienen su propio espaciado por el "gap" del panel que los
+   contiene): el formulario que reemplaza trae margin-bottom: 2.5rem, y
+   .sb-vacio lo pisaba con margin: 0, así que quedaba pegada a la sección de
+   Documentos adjuntos de acá abajo. */
+main > .sb-vacio {
+    margin-bottom: 2.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

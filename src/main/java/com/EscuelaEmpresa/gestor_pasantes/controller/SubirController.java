@@ -69,7 +69,8 @@ public class SubirController {
     }
 
     @GetMapping("/alumno/subir")
-    public String mostrarSubir(Model model, Authentication authentication) {
+    public String mostrarSubir(@RequestParam(required = false) String ultimoTipo,
+                                Model model, Authentication authentication) {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         List<DocumentoSubido> documentos =
@@ -80,6 +81,12 @@ public class SubirController {
         // DOCUMENTOS_ADJUNTOS no entra ahí: tiene su propio apartado, más abajo.
         List<TipoDocumento> tiposExpediente = limitesDocumentoService.obtenerTiposExpediente();
         model.addAttribute("tiposDocumento", tiposExpediente);
+
+        // El tipo que se subió la vez anterior (viaja como parámetro en el redirect
+        // de POST /alumno/subir, no se guarda en ningún lado): para no tener que
+        // volver a elegir el mismo tipo a mano cada vez, como al subir las seis
+        // plantillas semanales una por una.
+        model.addAttribute("ultimoTipo", ultimoTipo);
 
         // Pasar información de límites para cada tipo, como mapas indexados por
         // el nombre del enum (tipo.name()), para poder leerlos en el template
@@ -129,7 +136,8 @@ public class SubirController {
 
         if (archivo.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Seleccioná un archivo para subir.");
-            return "redirect:/alumno/subir";
+            return "redirect:/alumno/subir" + (tipoDocumentoStr != null && !tipoDocumentoStr.isBlank()
+                    ? "?ultimoTipo=" + tipoDocumentoStr : "");
         }
 
         // Validar que se haya seleccionado un tipo de documento
@@ -146,6 +154,12 @@ public class SubirController {
             return "redirect:/alumno/subir";
         }
 
+        // De acá para abajo, el tipo ya es válido: se propaga en todos los
+        // redirects que siguen (éxito o error) para que quede seleccionado al
+        // volver -- así no hay que volver a elegirlo a mano, por ejemplo al
+        // subir las seis plantillas semanales una por una.
+        String redirectConTipo = "redirect:/alumno/subir?ultimoTipo=" + tipoDocumento.name();
+
         // DOCUMENTOS_ADJUNTOS es el expediente ya combinado (los otros diez
         // comprobantes): no tiene sentido subirlo antes de que esos diez estén
         // completos. La pantalla ya lo deja deshabilitado hasta entonces; esto
@@ -155,28 +169,28 @@ public class SubirController {
             redirectAttributes.addFlashAttribute("error",
                     "Todavía no completaste los 10 comprobantes del expediente. " +
                     "Documentos Adjuntos se habilita recién cuando esa entrega esté completa.");
-            return "redirect:/alumno/subir";
+            return redirectConTipo;
         }
 
         // VALIDACIÓN DE LÍMITES: Verificar si ya alcanzó el máximo de subidas para este tipo
         if (!limitesDocumentoService.puedeSubirDocumento(alumno.getIdAl(), tipoDocumento)) {
             String mensaje = limitesDocumentoService.obtenerMensajeError(tipoDocumento);
             redirectAttributes.addFlashAttribute("error", mensaje);
-            return "redirect:/alumno/subir";
+            return redirectConTipo;
         }
         ValidacionResultado validacion = validacionDocumentoService.validarDocumentoCompleto(archivo, tamanioMaximo.toBytes());
         
         if (!validacion.isValido() || validacion.tieneErrores()) {
             redirectAttributes.addFlashAttribute("error", 
                 "El documento no es válido: " + validacion.getErrores());
-            return "redirect:/alumno/subir";
+            return redirectConTipo;
         }
 
         documentoAlmacenamientoService.guardar(archivo, tipoDocumento, alumno);
 
         redirectAttributes.addFlashAttribute("exito",
             "Documento de tipo '" + tipoDocumento.getDescripcion() + "' subido correctamente.");
-        return "redirect:/alumno/subir";
+        return redirectConTipo;
     }
 
     @GetMapping("/alumno/subir/{idDs}/ver")
