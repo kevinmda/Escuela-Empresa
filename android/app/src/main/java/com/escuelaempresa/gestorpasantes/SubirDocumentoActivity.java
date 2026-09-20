@@ -290,7 +290,7 @@ public class SubirDocumentoActivity extends AppCompatActivity {
 
             sigueEnVistaPrevia = true;
             mostrarVistaPreviaPdf(bitmap);
-        } catch (IOException | OutOfMemoryError e) {
+        } catch (OutOfMemoryError e) {
             mostrarError(getString(R.string.error_procesando_escaneo));
         } finally {
             if (bitmap != null && !sigueEnVistaPrevia) {
