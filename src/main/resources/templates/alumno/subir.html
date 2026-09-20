@@ -227,7 +227,17 @@
         function activarDropzone(dropzone, inputArchivo, dropzoneTitulo) {
             if (!dropzone || !inputArchivo || !dropzoneTitulo) return;
 
+            // Aviso de "un archivo a la vez": mismo estilo que el resto de los
+            // mensajes de error de esta página (.mensaje-error), oculto hasta
+            // que haga falta.
+            const avisoMultiples = document.createElement('p');
+            avisoMultiples.className = 'mensaje-error dropzone-aviso-multiples';
+            avisoMultiples.textContent = 'Solo podés subir un archivo a la vez. Soltá uno solo.';
+            avisoMultiples.hidden = true;
+            dropzone.insertAdjacentElement('afterend', avisoMultiples);
+
             function actualizarNombreArchivo() {
+                avisoMultiples.hidden = true;
                 if (inputArchivo.files && inputArchivo.files.length > 0) {
                     dropzoneTitulo.textContent = inputArchivo.files[0].name;
                     dropzone.classList.add('dropzone-con-archivo');
@@ -250,10 +260,22 @@
             dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dropzone-activo'));
             dropzone.addEventListener('drop', (e) => {
                 dropzone.classList.remove('dropzone-activo');
-                if (e.dataTransfer.files.length > 0) {
-                    inputArchivo.files = e.dataTransfer.files;
-                    actualizarNombreArchivo();
+                if (e.dataTransfer.files.length === 0) return;
+
+                if (e.dataTransfer.files.length > 1) {
+                    // El input no tiene "multiple" -- eso ya alcanza para que el
+                    // diálogo nativo (clic en la zona) solo deje elegir uno --
+                    // pero asignarle un FileList de varios por código, como acá
+                    // abajo, igual lo aceptaba entero: terminaba subiéndose
+                    // nada más que el primero sin avisar que el resto se
+                    // ignoró. Se rechaza el drop entero en vez de quedarse con
+                    // uno solo en silencio.
+                    avisoMultiples.hidden = false;
+                    return;
                 }
+
+                inputArchivo.files = e.dataTransfer.files;
+                actualizarNombreArchivo();
             });
         }
 
