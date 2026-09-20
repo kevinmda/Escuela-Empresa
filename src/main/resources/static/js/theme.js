@@ -438,7 +438,18 @@
 
         cuentas.forEach(function (cuenta) {
             cuenta.addEventListener('toggle', function () {
-                if (cuenta.open) posicionarMenuCuenta(cuenta);
+                if (!cuenta.open) return;
+
+                // requestAnimationFrame y no la llamada directa: el evento "toggle"
+                // dispara apenas cambia el atributo open, que en algunos motores
+                // (Safari/iOS entre ellos) puede ser antes de que el layout del
+                // <details> ya recien revelado este asentado. Medir con
+                // getBoundingClientRect() en ese instante podia devolver la
+                // posicion vieja (la de antes de abrirse) y dejar el menu
+                // "fixed" en un lugar que no correspondia a nada visible.
+                requestAnimationFrame(function () {
+                    if (cuenta.open) posicionarMenuCuenta(cuenta);
+                });
             });
         });
 
