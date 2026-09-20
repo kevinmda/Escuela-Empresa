@@ -2,13 +2,10 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.GestorPasantes.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardBackgroundColor="@color/superficie"
-    app:cardCornerRadius="@dimen/radio_tarjeta"
-    app:cardElevation="0dp"
-    app:strokeColor="@color/contorno"
-    app:strokeWidth="1dp">
+    app:cardElevation="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,21 +15,21 @@
 
         <ImageView
             android:id="@+id/iconoTarjeta"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="@drawable/bg_icono_circular"
-            android:backgroundTint="@color/primario_contenedor"
-            android:padding="7dp"
+            android:padding="8dp"
             android:contentDescription="@null"
-            app:tint="@color/on_primario_contenedor"
-            tools:src="@drawable/ic_planilla" />
+            tools:src="@drawable/ic_planilla"
+            tools:backgroundTint="@color/primario_contenedor"
+            tools:tint="@color/on_primario_contenedor" />
 
         <TextView
             android:id="@+id/valorTarjeta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/espacio_sm"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textColor="@color/texto_principal"
             android:maxLines="1"
             android:ellipsize="end"
@@ -42,6 +39,7 @@
             android:id="@+id/etiquetaTarjeta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="@color/texto_secundario"
             android:maxLines="2"

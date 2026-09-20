@@ -6,6 +6,12 @@
     <color name="on_primario_contenedor">#D9E7FB</color>
     <color name="acento">#6FCBA0</color>
     <color name="on_acento">#08341F</color>
+    <color name="acento_contenedor">#144B32</color>
+    <color name="on_acento_contenedor">#B7EBCD</color>
+    <color name="secundario_contenedor">#5C3D00</color>
+    <color name="on_secundario_contenedor">#FFDDAF</color>
+    <color name="terciario_contenedor">#4A3070</color>
+    <color name="on_terciario_contenedor">#E8DDFF</color>
     <color name="error">#F2B8B0</color>
     <color name="on_error">#4E0A03</color>
     <color name="fondo">#14171C</color>

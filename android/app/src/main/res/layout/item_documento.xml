@@ -2,14 +2,10 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.GestorPasantes.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/espacio_xs"
-    app:cardBackgroundColor="@color/superficie"
-    app:cardCornerRadius="@dimen/radio_tarjeta"
-    app:cardElevation="0dp"
-    app:strokeColor="@color/contorno"
-    app:strokeWidth="1dp">
+    android:layout_margin="@dimen/espacio_xs">
 
     <LinearLayout
         android:layout_width="match_parent"

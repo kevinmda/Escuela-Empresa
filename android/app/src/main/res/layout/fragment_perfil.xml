@@ -60,14 +60,10 @@
             </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.GestorPasantes.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_lg"
-                app:cardBackgroundColor="@color/superficie"
-                app:cardCornerRadius="@dimen/radio_tarjeta"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/contorno"
-                app:strokeWidth="1dp">
+                android:layout_marginTop="@dimen/espacio_lg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -89,7 +85,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/botonFormularios"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_lg"

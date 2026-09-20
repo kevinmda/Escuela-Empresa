@@ -8,8 +8,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -78,10 +80,17 @@ public class DashboardFragment extends Fragment {
         tarjetaDocumentos = view.findViewById(R.id.tarjetaDocumentos);
         tarjetaEmpresa = view.findViewById(R.id.tarjetaEmpresa);
 
-        prepararTarjeta(tarjetaSemanas, R.drawable.ic_planilla, getString(R.string.dashboard_semanas));
-        prepararTarjeta(tarjetaHoras, R.drawable.ic_reloj, getString(R.string.dashboard_horas));
-        prepararTarjeta(tarjetaDocumentos, R.drawable.ic_documentos, getString(R.string.dashboard_documentos));
-        prepararTarjeta(tarjetaEmpresa, R.drawable.ic_maletin, getString(R.string.dashboard_empresa));
+        // Cada tarjeta usa un rol de color M3 distinto (primary/secondary/tertiary/
+        // acento) -- todas del mismo blanco liso era justamente lo que hacía sentir
+        // la pantalla chata. El icono va en "on container" para que siempre contraste.
+        prepararTarjeta(tarjetaSemanas, R.drawable.ic_planilla, getString(R.string.dashboard_semanas),
+                R.color.primario_contenedor, R.color.on_primario_contenedor);
+        prepararTarjeta(tarjetaHoras, R.drawable.ic_reloj, getString(R.string.dashboard_horas),
+                R.color.secundario_contenedor, R.color.on_secundario_contenedor);
+        prepararTarjeta(tarjetaDocumentos, R.drawable.ic_documentos, getString(R.string.dashboard_documentos),
+                R.color.terciario_contenedor, R.color.on_terciario_contenedor);
+        prepararTarjeta(tarjetaEmpresa, R.drawable.ic_maletin, getString(R.string.dashboard_empresa),
+                R.color.acento_contenedor, R.color.on_acento_contenedor);
 
         estadoError.<MaterialButton>findViewById(R.id.botonReintentar).setOnClickListener(v -> cargarTodo());
         refrescar.setOnRefreshListener(this::cargarTodo);
@@ -89,8 +98,12 @@ public class DashboardFragment extends Fragment {
         cargarTodo();
     }
 
-    private void prepararTarjeta(MaterialCardView tarjeta, int icono, String etiqueta) {
-        ((ImageView) tarjeta.findViewById(R.id.iconoTarjeta)).setImageResource(icono);
+    private void prepararTarjeta(MaterialCardView tarjeta, int icono, String etiqueta,
+                                  @ColorRes int colorContenedor, @ColorRes int colorOnContenedor) {
+        ImageView vistaIcono = tarjeta.findViewById(R.id.iconoTarjeta);
+        vistaIcono.setImageResource(icono);
+        vistaIcono.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), colorContenedor));
+        vistaIcono.setImageTintList(ContextCompat.getColorStateList(requireContext(), colorOnContenedor));
         ((TextView) tarjeta.findViewById(R.id.etiquetaTarjeta)).setText(etiqueta);
     }
 
