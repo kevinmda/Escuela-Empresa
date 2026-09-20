@@ -6,12 +6,16 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -19,6 +23,7 @@ import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -32,6 +37,7 @@ import com.escuelaempresa.gestorpasantes.network.VolleyMultipartRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
 import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
+import com.escuelaempresa.gestorpasantes.util.VistaAjusteEsquinas;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -189,6 +195,7 @@ public class SubirDocumentoActivity extends AppCompatActivity {
 
         mostrarCargando(true);
         Bitmap bitmap = null;
+        boolean sigueEnDialogo = false;
         try {
             bitmap = decodificarBitmapEscalado(archivoFotoTemporal, LADO_MAXIMO_ESCANEO_PX);
             if (bitmap == null) {
@@ -203,6 +210,79 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             }
             bitmap = corregirRotacion(bitmap, archivoFotoTemporal);
 
+            // De acá en más sigue en mostrarDialogoAjusteEsquinas() /
+            // continuarProcesandoConEsquinas(), esperando a que el alumno
+            // arrastre las esquinas y confirme -- por eso el bitmap NO se
+            // recicla en el finally de este método (sigueEnDialogo en true) ni
+            // se apaga el "cargando" (mostrarDialogoAjusteEsquinas lo apaga
+            // ella misma, ya que de acá en más el alumno tiene que poder
+            // tocar la pantalla).
+            sigueEnDialogo = true;
+            mostrarDialogoAjusteEsquinas(bitmap);
+        } catch (IOException | OutOfMemoryError e) {
+            mostrarError(getString(R.string.error_procesando_escaneo));
+        } finally {
+            if (bitmap != null && !sigueEnDialogo) {
+                bitmap.recycle();
+            }
+            archivoFotoTemporal.delete();
+            archivoFotoTemporal = null;
+            if (!sigueEnDialogo) {
+                mostrarCargando(false);
+            }
+        }
+    }
+
+    // Diálogo a pantalla completa con VistaAjusteEsquinas: el alumno arrastra
+    // las cuatro esquinas para que coincidan con los bordes reales de la hoja
+    // (arrancan en las esquinas de la propia foto, así que si el papel ya
+    // ocupa todo el cuadro no hace falta tocar nada) y confirma o cancela.
+    private void mostrarDialogoAjusteEsquinas(Bitmap bitmapRotado) {
+        mostrarCargando(false);
+
+        View vistaDialogo = getLayoutInflater().inflate(R.layout.dialogo_ajuste_esquinas, null);
+        VistaAjusteEsquinas vistaEsquinas = vistaDialogo.findViewById(R.id.vistaAjusteEsquinas);
+        vistaEsquinas.setBitmap(bitmapRotado);
+
+        AlertDialog dialogo = new AlertDialog.Builder(this)
+                .setView(vistaDialogo)
+                .setCancelable(false)
+                .create();
+        // A pantalla completa: un AlertDialog normal queda chico por defecto,
+        // y acá hace falta el espacio para poder arrastrar las esquinas con
+        // precisión.
+        if (dialogo.getWindow() != null) {
+            dialogo.getWindow().setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+
+        vistaDialogo.findViewById(R.id.botonCancelarAjuste).setOnClickListener(v -> {
+            dialogo.dismiss();
+            bitmapRotado.recycle();
+        });
+
+        vistaDialogo.findViewById(R.id.botonConfirmarAjuste).setOnClickListener(v -> {
+            float[] esquinas = vistaEsquinas.obtenerEsquinasEnBitmap();
+            dialogo.dismiss();
+            continuarProcesandoConEsquinas(bitmapRotado, esquinas);
+        });
+
+        dialogo.show();
+    }
+
+    // Continúa el procesamiento después de que el alumno confirmó el ajuste
+    // de esquinas: aplana la perspectiva, aplica el efecto tipo escáner y
+    // arma el PDF -- lo mismo que hacía procesarFotoEscaneada() antes de que
+    // el ajuste de esquinas se metiera en el medio.
+    private void continuarProcesandoConEsquinas(Bitmap bitmapRotado, float[] esquinas) {
+        mostrarCargando(true);
+        Bitmap bitmap = bitmapRotado;
+        try {
+            Bitmap aplanado = aplanarPerspectiva(bitmap, esquinas);
+            bitmap.recycle();
+            bitmap = aplanado;
+
             Bitmap ajustado = ajustarComoEscaneo(bitmap);
             bitmap.recycle();
             bitmap = ajustado;
@@ -210,7 +290,10 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             String nombrePdf = "escaneo_"
                     + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date())
                     + ".pdf";
-            File carpeta = archivoFotoTemporal.getParentFile();
+            File carpeta = new File(getCacheDir(), "documentos");
+            if (!carpeta.exists()) {
+                carpeta.mkdirs();
+            }
             File archivoPdf = new File(carpeta, nombrePdf);
             escribirBitmapComoPdf(bitmap, archivoPdf);
 
@@ -224,9 +307,54 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             if (bitmap != null) {
                 bitmap.recycle();
             }
-            archivoFotoTemporal.delete();
             mostrarCargando(false);
         }
+    }
+
+    // Aplana el cuadrilátero marcado por el alumno (las cuatro esquinas
+    // reales de la hoja en la foto, tal como quedaron en VistaAjusteEsquinas)
+    // a un rectángulo derecho -- warp de perspectiva con
+    // Matrix.setPolyToPoly(), que con 4 puntos hace una transformación
+    // proyectiva real (no solo rotar/escalar), sin necesitar ninguna
+    // librería de visión por computadora aparte.
+    private Bitmap aplanarPerspectiva(Bitmap original, float[] esquinasOrigen) {
+        // esquinasOrigen: sup-izq, sup-der, inf-der, inf-izq (mismo orden en
+        // que las arma VistaAjusteEsquinas.obtenerEsquinasEnBitmap()). El
+        // ancho/alto del rectángulo destino sale del lado más largo de cada
+        // par (arriba/abajo, izquierda/derecha), para no recortar nada del
+        // documento aunque el ángulo de la foto haya alargado un lado más que
+        // el opuesto.
+        float anchoSuperior = distanciaEntrePuntos(esquinasOrigen, 0, 1);
+        float anchoInferior = distanciaEntrePuntos(esquinasOrigen, 3, 2);
+        float altoIzquierdo = distanciaEntrePuntos(esquinasOrigen, 0, 3);
+        float altoDerecho = distanciaEntrePuntos(esquinasOrigen, 1, 2);
+
+        int anchoDestino = Math.max((int) Math.max(anchoSuperior, anchoInferior), 1);
+        int altoDestino = Math.max((int) Math.max(altoIzquierdo, altoDerecho), 1);
+
+        float[] esquinasDestino = {
+                0, 0,
+                anchoDestino, 0,
+                anchoDestino, altoDestino,
+                0, altoDestino
+        };
+
+        Matrix matriz = new Matrix();
+        matriz.setPolyToPoly(esquinasOrigen, 0, esquinasDestino, 0, 4);
+
+        Bitmap resultado = Bitmap.createBitmap(anchoDestino, altoDestino, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(resultado);
+        canvas.drawColor(Color.WHITE);
+        Paint pincel = new Paint(
+                Paint.FILTER_BITMAP_FLAG | Paint.ANTI_ALIAS_FLAG);
+        canvas.drawBitmap(original, matriz, pincel);
+        return resultado;
+    }
+
+    private float distanciaEntrePuntos(float[] puntos, int indiceA, int indiceB) {
+        float dx = puntos[indiceA * 2] - puntos[indiceB * 2];
+        float dy = puntos[indiceA * 2 + 1] - puntos[indiceB * 2 + 1];
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     // inSampleSize solo acepta potencias de 2, y BitmapFactory las redondea

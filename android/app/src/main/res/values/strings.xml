@@ -95,6 +95,8 @@
     <string name="hint_tipo_documento">Tipo de documento</string>
     <string name="hint_nombre_archivo">Nombre del archivo</string>
     <string name="nombre_archivo_vacio">Ponele un nombre al archivo antes de subirlo.</string>
+    <string name="ajustar_esquinas_instrucciones">Arrastrá los cuatro puntos verdes para que coincidan con las esquinas reales de la hoja.</string>
+    <string name="confirmar_ajuste">Listo</string>
     <string name="documentos_vacio">Todavía no subiste documentos.</string>
     <string name="boton_cargar_mas">Cargar más</string>
     <string name="documento_subido_ok">Documento subido correctamente.</string>
