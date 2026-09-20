@@ -17,6 +17,7 @@ import android.provider.OpenableColumns;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -272,12 +273,12 @@ public class SubirDocumentoActivity extends AppCompatActivity {
     }
 
     // Continúa el procesamiento después de que el alumno confirmó el ajuste
-    // de esquinas: aplana la perspectiva, aplica el efecto tipo escáner y
-    // arma el PDF -- lo mismo que hacía procesarFotoEscaneada() antes de que
-    // el ajuste de esquinas se metiera en el medio.
+    // de esquinas: aplana la perspectiva y aplica el efecto tipo escáner --
+    // después de esto sigue mostrarVistaPreviaPdf(), no arma el PDF todavía.
     private void continuarProcesandoConEsquinas(Bitmap bitmapRotado, float[] esquinas) {
         mostrarCargando(true);
         Bitmap bitmap = bitmapRotado;
+        boolean sigueEnVistaPrevia = false;
         try {
             Bitmap aplanado = aplanarPerspectiva(bitmap, esquinas);
             bitmap.recycle();
@@ -287,6 +288,59 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             bitmap.recycle();
             bitmap = ajustado;
 
+            sigueEnVistaPrevia = true;
+            mostrarVistaPreviaPdf(bitmap);
+        } catch (IOException | OutOfMemoryError e) {
+            mostrarError(getString(R.string.error_procesando_escaneo));
+        } finally {
+            if (bitmap != null && !sigueEnVistaPrevia) {
+                bitmap.recycle();
+            }
+            if (!sigueEnVistaPrevia) {
+                mostrarCargando(false);
+            }
+        }
+    }
+
+    // Diálogo a pantalla completa mostrando el resultado final (ya con el
+    // efecto tipo escáner aplicado) antes de armar el PDF de verdad: "Usar
+    // esta" sigue a finalizarPdf(), "Descartar" corta acá -- no se genera
+    // ningún PDF, el alumno puede reintentar con "Escanear" desde cero.
+    private void mostrarVistaPreviaPdf(Bitmap bitmapFinal) {
+        mostrarCargando(false);
+
+        View vistaDialogo = getLayoutInflater().inflate(R.layout.dialogo_vista_previa_pdf, null);
+        ImageView imagenVistaPrevia = vistaDialogo.findViewById(R.id.imagenVistaPrevia);
+        imagenVistaPrevia.setImageBitmap(bitmapFinal);
+
+        AlertDialog dialogo = new AlertDialog.Builder(this)
+                .setView(vistaDialogo)
+                .setCancelable(false)
+                .create();
+        if (dialogo.getWindow() != null) {
+            dialogo.getWindow().setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+
+        vistaDialogo.findViewById(R.id.botonDescartarVistaPrevia).setOnClickListener(v -> {
+            dialogo.dismiss();
+            bitmapFinal.recycle();
+        });
+
+        vistaDialogo.findViewById(R.id.botonUsarVistaPrevia).setOnClickListener(v -> {
+            dialogo.dismiss();
+            finalizarPdf(bitmapFinal);
+        });
+
+        dialogo.show();
+    }
+
+    // Último paso: recién acá se escribe el PDF de verdad a disco, una vez
+    // que el alumno ya vio y aceptó cómo va a quedar.
+    private void finalizarPdf(Bitmap bitmapFinal) {
+        mostrarCargando(true);
+        try {
             String nombrePdf = "escaneo_"
                     + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date())
                     + ".pdf";
@@ -295,7 +349,7 @@ public class SubirDocumentoActivity extends AppCompatActivity {
                 carpeta.mkdirs();
             }
             File archivoPdf = new File(carpeta, nombrePdf);
-            escribirBitmapComoPdf(bitmap, archivoPdf);
+            escribirBitmapComoPdf(bitmapFinal, archivoPdf);
 
             archivoElegido = FileProvider.getUriForFile(this,
                     getPackageName() + ".fileprovider", archivoPdf);
@@ -304,9 +358,7 @@ public class SubirDocumentoActivity extends AppCompatActivity {
         } catch (IOException | OutOfMemoryError e) {
             mostrarError(getString(R.string.error_procesando_escaneo));
         } finally {
-            if (bitmap != null) {
-                bitmap.recycle();
-            }
+            bitmapFinal.recycle();
             mostrarCargando(false);
         }
     }

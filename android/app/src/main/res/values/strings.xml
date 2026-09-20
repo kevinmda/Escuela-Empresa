@@ -97,6 +97,9 @@
     <string name="nombre_archivo_vacio">Ponele un nombre al archivo antes de subirlo.</string>
     <string name="ajustar_esquinas_instrucciones">Arrastrá los cuatro puntos verdes para que coincidan con las esquinas reales de la hoja.</string>
     <string name="confirmar_ajuste">Listo</string>
+    <string name="vista_previa_titulo">Así va a quedar el PDF</string>
+    <string name="vista_previa_descartar">Descartar</string>
+    <string name="vista_previa_usar">Usar esta</string>
     <string name="documentos_vacio">Todavía no subiste documentos.</string>
     <string name="boton_cargar_mas">Cargar más</string>
     <string name="documento_subido_ok">Documento subido correctamente.</string>
