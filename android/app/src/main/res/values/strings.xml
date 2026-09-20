@@ -93,6 +93,8 @@
     <string name="error_camara_no_disponible">No se encontró ninguna app de cámara en el dispositivo.</string>
     <string name="error_procesando_escaneo">No se pudo generar el PDF a partir de la foto. Probá de nuevo.</string>
     <string name="hint_tipo_documento">Tipo de documento</string>
+    <string name="hint_nombre_archivo">Nombre del archivo</string>
+    <string name="nombre_archivo_vacio">Ponele un nombre al archivo antes de subirlo.</string>
     <string name="documentos_vacio">Todavía no subiste documentos.</string>
     <string name="boton_cargar_mas">Cargar más</string>
     <string name="documento_subido_ok">Documento subido correctamente.</string>

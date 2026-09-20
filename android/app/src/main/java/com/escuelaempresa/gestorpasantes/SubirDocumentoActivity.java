@@ -60,6 +60,8 @@ public class SubirDocumentoActivity extends AppCompatActivity {
 
     private Spinner spinnerTipo;
     private TextView textoArchivoElegido;
+    private com.google.android.material.textfield.TextInputLayout campoNombreArchivo;
+    private com.google.android.material.textfield.TextInputEditText inputNombreArchivo;
     private MaterialButton botonSubir;
     private ProgressBar progreso;
 
@@ -101,6 +103,8 @@ public class SubirDocumentoActivity extends AppCompatActivity {
 
         spinnerTipo = findViewById(R.id.spinnerTipoDocumento);
         textoArchivoElegido = findViewById(R.id.textoArchivoElegido);
+        campoNombreArchivo = findViewById(R.id.campoNombreArchivo);
+        inputNombreArchivo = findViewById(R.id.inputNombreArchivo);
         MaterialButton botonElegirArchivo = findViewById(R.id.botonElegirArchivo);
         MaterialButton botonEscanear = findViewById(R.id.botonEscanear);
         botonSubir = findViewById(R.id.botonSubirDocumento);
@@ -117,7 +121,7 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             if (uri != null) {
                 archivoElegido = uri;
                 nombreArchivoElegido = obtenerNombreArchivo(uri);
-                textoArchivoElegido.setText(nombreArchivoElegido);
+                mostrarArchivoElegido(nombreArchivoElegido);
             }
         });
 
@@ -213,7 +217,7 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             archivoElegido = FileProvider.getUriForFile(this,
                     getPackageName() + ".fileprovider", archivoPdf);
             nombreArchivoElegido = nombrePdf;
-            textoArchivoElegido.setText(nombreArchivoElegido);
+            mostrarArchivoElegido(nombreArchivoElegido);
         } catch (IOException | OutOfMemoryError e) {
             mostrarError(getString(R.string.error_procesando_escaneo));
         } finally {
@@ -243,54 +247,98 @@ public class SubirDocumentoActivity extends AppCompatActivity {
         return BitmapFactory.decodeFile(archivo.getAbsolutePath(), opciones);
     }
 
-    // Ajuste automático de brillo/contraste tipo "escáner": una foto de celular
-    // suele salir con el papel en un gris apagado en vez de blanco, y el texto
-    // en un gris oscuro en vez de negro (luz ambiente, sombra de la mano, etc.).
-    // Esto estira el rango real de tonos de la foto para que el más oscuro
-    // llegue a negro y el más claro llegue a blanco -- mismo "auto contraste"
-    // que trae cualquier app de escaneo. Se aplica el mismo estiramiento a los
-    // tres canales (no se pasa a escala de grises) para no perder el color de
-    // una firma o un sello -- a diferencia de una conversión a blanco y negro,
-    // esto solo estira el contraste, no saca el color.
+    // Ajuste automático tipo CamScanner: el papel y el texto se llevan a
+    // blanco y negro fuerte (mucho más legible que la foto original, con su
+    // gris apagado por la luz ambiente), pero la tinta azul de una firma o un
+    // sello se mantiene en color -- para un documento oficial puede importar
+    // distinguir una firma original de una fotocopia.
+    private static final int UMBRAL_AZUL = 20;
+
     private Bitmap ajustarComoEscaneo(Bitmap original) {
         int ancho = original.getWidth();
         int alto = original.getHeight();
         int[] pixeles = new int[ancho * alto];
         original.getPixels(pixeles, 0, ancho, 0, 0, ancho, alto);
 
-        // 1. Encontrar el rango real de tonos de la foto, usando la luminancia
-        // perceptual (no cada canal por separado, para no correr el balance de
-        // color de la foto y que salga con un tinte raro).
-        int minLuma = 255;
-        int maxLuma = 0;
+        // 1. Histograma de luminancia, solo de los píxeles que NO son tinta
+        // azul (el papel y el texto en negro/gris) -- así una firma azul no
+        // corre el rango de contraste del resto del documento.
+        int[] histograma = new int[256];
+        long totalNoAzul = 0;
         for (int pixel : pixeles) {
             int r = (pixel >> 16) & 0xFF;
             int g = (pixel >> 8) & 0xFF;
             int b = pixel & 0xFF;
-            int luma = (int) (0.299 * r + 0.587 * g + 0.114 * b);
-            if (luma < minLuma) minLuma = luma;
-            if (luma > maxLuma) maxLuma = luma;
+            if (!esTintaAzul(r, g, b)) {
+                histograma[calcularLuma(r, g, b)]++;
+                totalNoAzul++;
+            }
         }
 
-        // Rango mínimo de 10: una foto ya casi plana (por ejemplo, una hoja en
-        // blanco sin texto) no debería estirarse a full contraste, eso
-        // amplificaría el ruido del sensor en vez de mejorar nada.
+        // 2. Percentiles 1 y 99 en vez de min/max crudo: un puñado de píxeles
+        // sueltos (una sombra en una esquina, un reflejo de luz) no debería
+        // definir todo el rango de contraste.
+        int minLuma = percentilDeHistograma(histograma, totalNoAzul, true);
+        int maxLuma = percentilDeHistograma(histograma, totalNoAzul, false);
         int rango = Math.max(maxLuma - minLuma, 10);
 
-        // 2. Estirar los tres canales con el mismo factor (no cada uno por su
-        // cuenta): mantiene la proporción entre R, G y B, así un sello rojo
-        // sigue viéndose rojo en vez de virar de color.
+        // 3. Estirar ese rango a blanco y negro, salvo la tinta azul, que se
+        // mantiene en color (con el mismo estiramiento en sus tres canales,
+        // para que también se vea más nítida).
         for (int i = 0; i < pixeles.length; i++) {
             int pixel = pixeles[i];
-            int r = recortarA0y255((((pixel >> 16) & 0xFF) - minLuma) * 255 / rango);
-            int g = recortarA0y255((((pixel >> 8) & 0xFF) - minLuma) * 255 / rango);
-            int b = recortarA0y255(((pixel & 0xFF) - minLuma) * 255 / rango);
-            pixeles[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+            int r = (pixel >> 16) & 0xFF;
+            int g = (pixel >> 8) & 0xFF;
+            int b = pixel & 0xFF;
+
+            if (esTintaAzul(r, g, b)) {
+                r = recortarA0y255((r - minLuma) * 255 / rango);
+                g = recortarA0y255((g - minLuma) * 255 / rango);
+                b = recortarA0y255((b - minLuma) * 255 / rango);
+                pixeles[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+            } else {
+                int gris = recortarA0y255((calcularLuma(r, g, b) - minLuma) * 255 / rango);
+                pixeles[i] = (0xFF << 24) | (gris << 16) | (gris << 8) | gris;
+            }
         }
 
         Bitmap resultado = Bitmap.createBitmap(ancho, alto, Bitmap.Config.ARGB_8888);
         resultado.setPixels(pixeles, 0, ancho, 0, 0, ancho, alto);
         return resultado;
+    }
+
+    // El canal azul se destaca claramente sobre el rojo y el verde: el
+    // negro/gris del texto y el blanco/crema del papel tienen los tres
+    // canales parejos, así que no entran acá -- esto agarra nada más que una
+    // lapicera o un sello azul.
+    private boolean esTintaAzul(int r, int g, int b) {
+        return b > r + UMBRAL_AZUL && b > g + UMBRAL_AZUL;
+    }
+
+    private int calcularLuma(int r, int g, int b) {
+        return (int) (0.299 * r + 0.587 * g + 0.114 * b);
+    }
+
+    // desdeElInicio=true busca el percentil 1 (recorriendo el histograma de
+    // 0 a 255); false busca el percentil 99 (recorriendo al revés, de 255 a 0).
+    private int percentilDeHistograma(int[] histograma, long total, boolean desdeElInicio) {
+        if (total == 0) return desdeElInicio ? 0 : 255;
+
+        long corte = Math.max(1, total / 100);
+        long acumulado = 0;
+        if (desdeElInicio) {
+            for (int i = 0; i < 256; i++) {
+                acumulado += histograma[i];
+                if (acumulado >= corte) return i;
+            }
+            return 255;
+        } else {
+            for (int i = 255; i >= 0; i--) {
+                acumulado += histograma[i];
+                if (acumulado >= corte) return i;
+            }
+            return 0;
+        }
     }
 
     private int recortarA0y255(int valor) {
@@ -351,6 +399,24 @@ public class SubirDocumentoActivity extends AppCompatActivity {
         }
     }
 
+    // Muestra el campo para renombrar en vez del texto fijo de "ningún archivo
+    // elegido": se le carga el nombre tal como llegó (del selector o del
+    // escaneo) pero sin la extensión .pdf, porque esa queda fija aparte
+    // (app:suffixText en el layout) -- así no hay riesgo de que el alumno la
+    // borre o la cambie sin querer.
+    private void mostrarArchivoElegido(String nombreCompleto) {
+        textoArchivoElegido.setVisibility(View.GONE);
+        campoNombreArchivo.setVisibility(View.VISIBLE);
+        inputNombreArchivo.setText(quitarExtensionPdf(nombreCompleto));
+    }
+
+    private String quitarExtensionPdf(String nombre) {
+        if (nombre != null && nombre.toLowerCase(Locale.ROOT).endsWith(".pdf")) {
+            return nombre.substring(0, nombre.length() - 4);
+        }
+        return nombre;
+    }
+
     private String obtenerNombreArchivo(Uri uri) {
         String nombre = "documento.pdf";
         ContentResolver resolver = getContentResolver();
@@ -370,6 +436,19 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             mostrarError(getString(R.string.ningun_archivo_elegido));
             return;
         }
+
+        // El alumno pudo haber cambiado el nombre en inputNombreArchivo desde
+        // que se eligió/escaneó el archivo -- eso manda por sobre
+        // nombreArchivoElegido (el original) al momento de subir. La
+        // extensión .pdf no se toca: en el campo nunca se muestra (queda como
+        // suffixText fijo en el layout), así que acá se agrega siempre.
+        String nombreEditado = inputNombreArchivo.getText() != null
+                ? inputNombreArchivo.getText().toString().trim() : "";
+        if (nombreEditado.isEmpty()) {
+            mostrarError(getString(R.string.nombre_archivo_vacio));
+            return;
+        }
+        String nombreFinal = nombreEditado + ".pdf";
 
         int posicionTipo = spinnerTipo.getSelectedItemPosition();
         String codigoTipo = CODIGOS_TIPO[posicionTipo];
@@ -400,7 +479,7 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             @Override
             protected Map<String, DatosArchivo> getFileParams() {
                 Map<String, DatosArchivo> archivos = new HashMap<>();
-                archivos.put("archivo", new DatosArchivo(nombreArchivoElegido, "application/pdf", contenido));
+                archivos.put("archivo", new DatosArchivo(nombreFinal, "application/pdf", contenido));
                 return archivos;
             }
         };

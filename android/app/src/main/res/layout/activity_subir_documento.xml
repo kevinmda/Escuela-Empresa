@@ -48,6 +48,24 @@
             app:icon="@android:drawable/ic_menu_camera"
             android:text="@string/boton_escanear" />
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/campoNombreArchivo"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_sm"
+            android:hint="@string/hint_nombre_archivo"
+            android:visibility="gone"
+            app:suffixText=".pdf">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputNombreArchivo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <TextView
             android:id="@+id/textoArchivoElegido"
             android:layout_width="match_parent"
