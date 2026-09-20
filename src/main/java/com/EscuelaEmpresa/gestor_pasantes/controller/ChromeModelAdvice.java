@@ -1,6 +1,8 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -123,13 +125,24 @@ public class ChromeModelAdvice {
             // también la clave de esta ocurrencia (ver AvisoLeido).
             LocalDate fechaSextaPlanilla = planillas.get(0).getFechaHasta();
             String clave = fechaSextaPlanilla.toString();
+            // fecha_hasta la elige el alumno al cargar la planilla, y puede caer
+            // después de hoy (una semana de prueba con fecha futura, por
+            // ejemplo) -- sin este límite, ese aviso terminaba ordenándose como
+            // "más reciente" que una subida real de hoy en documentos_adjuntos,
+            // aunque en el mundo real no haya pasado todavía. min() lo acota a
+            // hoy como máximo, nunca antes de tiempo. Zona horaria explícita,
+            // mismo motivo que en ChromeContext.etiquetaDia().
+            LocalDate hoyEnParaguay = LocalDate.now(ZoneId.of("America/Asuncion"));
+            LocalDateTime momento = fechaSextaPlanilla.isAfter(hoyEnParaguay)
+                    ? hoyEnParaguay.atStartOfDay()
+                    : fechaSextaPlanilla.atStartOfDay();
             avisos.add(new ChromeContext.Aviso(
                     "Ya se habilitaron tus documentos finales",
                     "/alumno/documentos/al-terminar",
                     "listo",
                     "documentos_finales",
                     clave,
-                    fechaSextaPlanilla.atStartOfDay(),
+                    momento,
                     yaLeido(alumno, "documentos_finales", clave)));
         }
 
