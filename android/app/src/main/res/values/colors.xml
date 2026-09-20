@@ -29,21 +29,21 @@
     <color name="fondo">#F4F2EC</color>
     <color name="superficie">#FFFFFF</color>
     <color name="superficie_variante">#E7ECF2</color>
-    <!-- --line de la web es #DCD6C8 (un gris cálido, de la misma familia que --bg),
+    <!-- —line de la web es #DCD6C8 (un gris cálido, de la misma familia que —bg),
          no el gris azulado que había acá. -->
     <color name="contorno">#DCD6C8</color>
-    <!-- --ink de la web hace doble función: acción primaria Y texto principal.
+    <!-- —ink de la web hace doble función: acción primaria Y texto principal.
          Achica la separación que tenía la app entre "primario" (color de acción)
          y "texto_principal" (un gris carbón sin relación con la paleta). -->
     <color name="texto_principal">#16233D</color>
-    <!-- --ink-soft exacto de la web (antes difería en el último dígito). -->
+    <!-- —ink-soft exacto de la web (antes difería en el último dígito). -->
     <color name="texto_secundario">#55637A</color>
     <color name="blanco">#FFFFFF</color>
 
     <!-- Login: la web fuerza modo oscuro en estas pantallas sin importar el
-         tema guardado del usuario (auth-split--login en styles.css, no tienen
+         tema guardado del usuario (auth-split—login en styles.css, no tienen
          toggle). Colores fijos acá, iguales a los de esa clase, en vez de los
-         de arriba (que sí cambian con values-night/) -- si no, el login se
+         de arriba (que sí cambian con values-night/) — si no, el login se
          vería distinto según el tema del sistema, cosa que la web no hace. -->
     <color name="login_bg">#14171C</color>
     <color name="login_superficie">#1D222A</color>
@@ -52,7 +52,7 @@
     <color name="login_acento">#E5B04D</color>
     <color name="login_contorno">#333D4C</color>
     <color name="login_error">#F08A7D</color>
-    <!-- --field de la web: color-mix(in srgb, var(--bg) 55%, var(--surface))
+    <!-- —field de la web: color-mix(in srgb, var(—bg) 55%, var(—surface))
          con los valores oscuros de arriba. -->
     <color name="login_campo">#181C22</color>
 </resources>

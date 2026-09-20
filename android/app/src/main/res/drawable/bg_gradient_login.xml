@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mismo degradado de tres puntas que .auth-split--login en styles.css:
+<!-- Mismo degradado de tres puntas que .auth-split—login en styles.css:
      navy, rojo y dorado del logo, cada uno mezclado a baja intensidad sobre
-     el fondo oscuro del login (#14171C) -- calculado a mano acá porque los
+     el fondo oscuro del login (#14171C) — calculado a mano acá porque los
      shape drawables de Android no tienen color-mix(). 315° para que vaya de
      la esquina superior izquierda a la inferior derecha, como el 135deg de
      la web. -->

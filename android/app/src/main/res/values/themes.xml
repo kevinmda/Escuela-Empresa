@@ -46,7 +46,7 @@
         <item name="android:minHeight">52dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:letterSpacing">0</item>
-        <!-- --radius-btn de la web es 999px (pastilla completa): 50% del alto
+        <!-- —radius-btn de la web es 999px (pastilla completa): 50% del alto
              del propio botón da lo mismo sin importar el minHeight que tenga
              cada uno. -->
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.GestorPasantes.Pastilla</item>
@@ -57,9 +57,9 @@
         <item name="cornerSize">50%</item>
     </style>
 
-    <!-- Login: la web fuerza modo oscuro en estas pantallas (auth-split--login
+    <!-- Login: la web fuerza modo oscuro en estas pantallas (auth-split—login
          en styles.css), sin toggle ni depender del tema guardado del usuario
-         -- mismo criterio acá, con los colores login_* fijos (ver colors.xml)
+         — mismo criterio acá, con los colores login_* fijos (ver colors.xml)
          en vez de los de arriba, que sí cambian con values-night/. -->
     <style name="Theme.GestorPasantes.Login" parent="Theme.GestorPasantes">
         <item name="colorPrimary">@color/login_acento</item>
@@ -80,7 +80,7 @@
 
     <!-- Sin esto, el toolbar de recuperar/restablecer contraseña heredaría
          colorPrimary (dorado, ver Theme.GestorPasantes.Login de arriba) como
-         fondo -- una barra dorada no es el tratamiento de estas pantallas en
+         fondo — una barra dorada no es el tratamiento de estas pantallas en
          la web, ahí es una superficie oscura más, sin barra destacada. -->
     <style name="Widget.GestorPasantes.Toolbar.Login" parent="Widget.Material3.Toolbar">
         <item name="android:background">@color/login_bg</item>
