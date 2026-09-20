@@ -4522,14 +4522,23 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
        sigue para ese lado (ver inicializarRielDesbordado en theme.js, que
        prende y apaga estas clases según el scroll real). Sin esto, cuatro o
        cinco secciones en un riel sin scrollbar visible leen como una lista
-       corta y completa. */
+       corta y completa.
+
+       flex-basis tiene que quedar en auto, no en 0: con 0 el ancho de 1.25rem
+       se ignora por completo (el tamaño en flex sale del flex-basis, no de
+       width, cuando el primero es un valor fijo) y la caja pasa a pesar 0px.
+       El margen negativo seguía descontando esos 1.25rem igual, así que el
+       primer enlace ("Inicio") arrancaba corrido por afuera del riel, medio
+       tapado por el borde de la pantalla. Con auto, width sí se respeta: la
+       caja ocupa sus 1.25rem y el margen negativo los cancela, dejando ancho
+       neto cero en el riel pero espacio real para pintar el degradado. */
     .barra-riel::before,
     .barra-riel::after {
         content: "";
         position: sticky;
         width: 1.25rem;
         height: 100%;
-        flex: 0 0 0;
+        flex: 0 0 auto;
         pointer-events: none;
         opacity: 0;
         transition: opacity 0.15s ease;
@@ -4561,6 +4570,26 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
        body, asi que el relleno hay que calcularlo, no asumirlo. */
     .nav-links {
         padding: 0.7rem 0.9rem;
+    }
+
+    /* Con pocas secciones (alumno: Inicio/Documentos/Subir) el riel quedaba
+       con las pastillas apretadas a la izquierda y un tramo de pista vacío a
+       la derecha, sin motivo: sobraba ancho de sobra en la pantalla. flex-grow
+       reparte ese sobrante entre las pastillas; flex-shrink en 0 deja intacto
+       el caso de cinco secciones (coordinación), que sigue sin entrar y
+       desplazándose en horizontal como antes. */
+    .barra-riel > .nav-links,
+    .barra-riel > .cuenta {
+        flex: 1 0 auto;
+    }
+
+    .barra-riel > .nav-links {
+        text-align: center;
+    }
+
+    .barra-riel > .cuenta > .cuenta-boton {
+        width: 100%;
+        justify-content: center;
     }
 
     /* overflow-x: auto en el riel hace que overflow-y tambien recorte, asi que el
