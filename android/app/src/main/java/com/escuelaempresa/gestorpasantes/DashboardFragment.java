@@ -25,15 +25,17 @@ import com.escuelaempresa.gestorpasantes.session.SessionManager;
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Locale;
 
-// Pantalla de inicio: resume en 4 tarjetas lo que antes había que ir a buscar a
-// tres pestañas distintas (perfil, planilla, documentos). No agrega ningún dato
-// que las otras pantallas no tuvieran ya -- solo lo junta y lo cuenta.
+// Pantalla de inicio: resume en una tarjeta tipo "dossier" (mismo concepto que
+// la credencial de alumno/index.html en la web) y 4 tarjetas lo que antes había
+// que ir a buscar a tres pestañas distintas. No agrega ningún dato que las
+// otras pantallas no tuvieran ya -- solo lo junta y lo cuenta.
 public class DashboardFragment extends Fragment {
 
     private SwipeRefreshLayout refrescar;
@@ -41,6 +43,9 @@ public class DashboardFragment extends Fragment {
     private View grilla;
     private View estadoError;
     private TextView textoSaludo;
+    private TextView textoEspecialidadCurso;
+    private TextView textoCedula;
+    private TextView textoExpediente;
 
     private MaterialCardView tarjetaSemanas;
     private MaterialCardView tarjetaHoras;
@@ -74,23 +79,32 @@ public class DashboardFragment extends Fragment {
         grilla = view.findViewById(R.id.grillaDashboard);
         estadoError = view.findViewById(R.id.estadoErrorDashboard);
         textoSaludo = view.findViewById(R.id.textoSaludo);
+        textoEspecialidadCurso = view.findViewById(R.id.textoEspecialidadCurso);
+        textoCedula = view.findViewById(R.id.textoCedula);
+        textoExpediente = view.findViewById(R.id.textoExpediente);
 
         tarjetaSemanas = view.findViewById(R.id.tarjetaSemanas);
         tarjetaHoras = view.findViewById(R.id.tarjetaHoras);
         tarjetaDocumentos = view.findViewById(R.id.tarjetaDocumentos);
         tarjetaEmpresa = view.findViewById(R.id.tarjetaEmpresa);
 
-        // Cada tarjeta usa un rol de color M3 distinto (primary/secondary/tertiary/
-        // acento) -- todas del mismo blanco liso era justamente lo que hacía sentir
-        // la pantalla chata. El icono va en "on container" para que siempre contraste.
-        prepararTarjeta(tarjetaSemanas, R.drawable.ic_planilla, getString(R.string.dashboard_semanas),
-                R.color.primario_contenedor, R.color.on_primario_contenedor);
-        prepararTarjeta(tarjetaHoras, R.drawable.ic_reloj, getString(R.string.dashboard_horas),
-                R.color.secundario_contenedor, R.color.on_secundario_contenedor);
-        prepararTarjeta(tarjetaDocumentos, R.drawable.ic_documentos, getString(R.string.dashboard_documentos),
-                R.color.terciario_contenedor, R.color.on_terciario_contenedor);
-        prepararTarjeta(tarjetaEmpresa, R.drawable.ic_maletin, getString(R.string.dashboard_empresa),
+        // Mismos 4 roles de color que usa la web para distinguir bloques: dorado
+        // (acento de marca), verde (progreso/éxito), azul (info) y navy (marca
+        // principal) -- no los 4 iguales, que es lo que hacía sentir todo plano.
+        prepararTarjeta(tarjetaSemanas, R.drawable.ic_calendario, getString(R.string.dashboard_semanas),
                 R.color.acento_contenedor, R.color.on_acento_contenedor);
+        prepararTarjeta(tarjetaHoras, R.drawable.ic_reloj, getString(R.string.dashboard_horas),
+                R.color.exito_contenedor, R.color.on_exito_contenedor);
+        prepararTarjeta(tarjetaDocumentos, R.drawable.ic_escudo, getString(R.string.dashboard_documentos),
+                R.color.secundario_contenedor, R.color.on_secundario_contenedor);
+        prepararTarjeta(tarjetaEmpresa, R.drawable.ic_maletin, getString(R.string.dashboard_empresa),
+                R.color.primario_contenedor, R.color.on_primario_contenedor);
+
+        LinearProgressIndicator progresoSemanas = tarjetaSemanas.findViewById(R.id.progresoTarjeta);
+        progresoSemanas.setMax(6);
+        progresoSemanas.setIndicatorColor(ContextCompat.getColor(requireContext(), R.color.on_acento_contenedor));
+        progresoSemanas.setTrackColor(ContextCompat.getColor(requireContext(), R.color.superficie));
+        progresoSemanas.setVisibility(View.VISIBLE);
 
         estadoError.<MaterialButton>findViewById(R.id.botonReintentar).setOnClickListener(v -> cargarTodo());
         refrescar.setOnRefreshListener(this::cargarTodo);
@@ -147,7 +161,17 @@ public class DashboardFragment extends Fragment {
         }
         try {
             PerfilAlumno perfil = PerfilAlumno.desdeJson(json);
-            textoSaludo.setText(getString(R.string.dashboard_saludo, perfil.nombres));
+            textoSaludo.setText(perfil.nombreCompleto());
+
+            String especialidad = (perfil.especialidad == null || perfil.especialidad.isEmpty())
+                    ? getString(R.string.sin_asignar) : perfil.especialidad;
+            textoEspecialidadCurso.setText(
+                    especialidad + " · Curso " + perfil.curso + ", Sección " + perfil.seccion);
+
+            textoCedula.setText(perfil.ci == null || perfil.ci.isEmpty()
+                    ? getString(R.string.dashboard_valor_error) : perfil.ci);
+            textoExpediente.setText(getString(R.string.dashboard_expediente_valor, perfil.idAl));
+
             String empresa = (perfil.empresa == null || perfil.empresa.isEmpty())
                     ? getString(R.string.sin_asignar) : perfil.empresa;
             valorTarjeta(tarjetaEmpresa, empresa);
@@ -172,6 +196,9 @@ public class DashboardFragment extends Fragment {
             valorTarjeta(tarjetaSemanas, getString(R.string.dashboard_semanas_valor, semanas));
             valorTarjeta(tarjetaHoras,
                     getString(R.string.dashboard_horas_valor, String.format(Locale.getDefault(), "%.2f", totalHoras)));
+
+            LinearProgressIndicator progresoSemanas = tarjetaSemanas.findViewById(R.id.progresoTarjeta);
+            progresoSemanas.setProgress(Math.min(semanas, 6));
         } catch (Exception e) {
             planillasFallo = true;
             valorTarjeta(tarjetaSemanas, getString(R.string.dashboard_valor_error));

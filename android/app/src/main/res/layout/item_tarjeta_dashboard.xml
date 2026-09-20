@@ -45,5 +45,16 @@
             android:maxLines="2"
             tools:text="Semanas cargadas" />
 
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progresoTarjeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/espacio_xs"
+            android:visibility="gone"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="5dp"
+            tools:progress="66"
+            tools:visibility="visible" />
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

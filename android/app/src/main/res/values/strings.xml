@@ -3,7 +3,12 @@
     <string name="app_name">Gestor de Pasantes</string>
 
     <!-- Login -->
-    <string name="subtitulo_login">Portal del alumno pasante</string>
+    <string name="nombre_colegio">Colegio Técnico Nacional de Asunción</string>
+    <string name="chip_escuela_empresa">Escuela Empresa</string>
+    <string name="subtitulo_login">Sistema de Gestión de Pasantías</string>
+    <string name="titulo_ingresar">Ingresar</string>
+    <string name="chip_portal">Portal %1$d</string>
+    <string name="subtitulo_ingresar">Acceso para alumnos pasantes</string>
     <string name="hint_email">Email</string>
     <string name="hint_password">Contraseña</string>
     <string name="boton_ingresar">Ingresar</string>
@@ -30,6 +35,12 @@
     <string name="tab_planilla">Planilla</string>
 
     <!-- Dashboard -->
+    <string name="dashboard_encabezado">CTN Pasantías</string>
+    <string name="dashboard_dossier">Dossier de pasante técnico</string>
+    <string name="dashboard_pasante_activo">Pasante activo</string>
+    <string name="dashboard_cedula">Cédula de identidad</string>
+    <string name="dashboard_expediente">N° de expediente</string>
+    <string name="dashboard_expediente_valor">#CTN-%1$d</string>
     <string name="dashboard_saludo">Hola, %1$s</string>
     <string name="dashboard_subtitulo">Así va tu pasantía</string>
     <string name="dashboard_semanas">Semanas cargadas</string>
@@ -71,6 +82,8 @@
     <string name="error_contrasena_muy_corta">La contraseña tiene que tener al menos 6 caracteres</string>
 
     <!-- Documentos -->
+    <string name="titulo_documentos_pasantia">Documentación de Pasantía</string>
+    <string name="subtitulo_documentos_pasantia">Comprobantes y formularios de tu expediente</string>
     <string name="titulo_subir_documento">Subir documento</string>
     <string name="boton_subir">Subir</string>
     <string name="boton_elegir_archivo">Elegir archivo (PDF)</string>
@@ -83,6 +96,13 @@
     <string name="documentos_vacio">Todavía no subiste documentos.</string>
     <string name="boton_cargar_mas">Cargar más</string>
     <string name="documento_subido_ok">Documento subido correctamente.</string>
+    <string name="chip_validado">Validado</string>
+    <string name="chip_pendiente">Pendiente de validación</string>
+    <string name="dashboard_estado_dossier">Estado del dossier</string>
+    <string name="dashboard_progreso_documental">Progreso documental</string>
+    <string name="dashboard_documentos_validados">%1$d de %2$d documentos validados</string>
+    <string name="dashboard_validados">Validados</string>
+    <string name="dashboard_pendientes">Pendientes</string>
     <string name="documento_eliminado_ok">Documento eliminado.</string>
     <string name="confirmar_eliminar_documento">¿Eliminar este documento?</string>
     <string name="boton_descargar_documento">Descargar documento</string>
@@ -90,6 +110,8 @@
 
     <!-- Planilla -->
     <string name="titulo_planilla">Planilla semanal</string>
+    <string name="subtitulo_planilla">Registro de tu bitácora semanal de pasantía</string>
+    <string name="resumen_semanas_cargadas">Semanas cargadas</string>
     <string name="planillas_vacio">Todavía no cargaste ninguna planilla.</string>
     <string name="boton_nueva_planilla">Cargar semana</string>
     <string name="hint_supervisor">Supervisor</string>

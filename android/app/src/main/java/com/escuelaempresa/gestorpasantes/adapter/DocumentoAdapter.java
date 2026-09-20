@@ -73,6 +73,18 @@ public class DocumentoAdapter extends RecyclerView.Adapter<DocumentoAdapter.Docu
         holder.fechaSubida.setText(documento.fechaSubida);
         holder.botonDescargar.setOnClickListener(v -> escucha.alDescargar(documento));
         holder.botonEliminar.setOnClickListener(v -> escucha.alEliminar(documento));
+
+        android.content.Context contexto = holder.itemView.getContext();
+        if (documento.validado) {
+            holder.chipEstado.setText(R.string.chip_validado);
+            holder.chipEstado.setBackgroundResource(R.drawable.bg_chip_exito);
+            holder.chipEstado.setTextColor(androidx.core.content.ContextCompat.getColor(contexto, R.color.on_exito_contenedor));
+        } else {
+            holder.chipEstado.setText(R.string.chip_pendiente);
+            holder.chipEstado.setBackgroundResource(R.drawable.bg_chip_neutro);
+            holder.chipEstado.setTextColor(androidx.core.content.ContextCompat.getColor(contexto, R.color.texto_secundario));
+        }
+
         AnimacionResorte.entradaDeFila(holder.itemView, position, posicionesYaAnimadas);
     }
 
@@ -81,10 +93,24 @@ public class DocumentoAdapter extends RecyclerView.Adapter<DocumentoAdapter.Docu
         return documentos.size();
     }
 
+    // Usado por la tarjeta "Estado del dossier" para mostrar cuantos de los
+    // documentos ya cargados en pantalla estan validados. Se recalcula despues
+    // de cada reemplazarTodo()/agregarPagina(), no es un valor que se guarde.
+    public int contarValidados() {
+        int contador = 0;
+        for (Documento documento : documentos) {
+            if (documento.validado) {
+                contador++;
+            }
+        }
+        return contador;
+    }
+
     static class DocumentoViewHolder extends RecyclerView.ViewHolder {
         final TextView tipo;
         final TextView nombreArchivo;
         final TextView fechaSubida;
+        final TextView chipEstado;
         final ImageButton botonDescargar;
         final ImageButton botonEliminar;
 
@@ -93,6 +119,7 @@ public class DocumentoAdapter extends RecyclerView.Adapter<DocumentoAdapter.Docu
             tipo = itemView.findViewById(R.id.textoTipoDocumento);
             nombreArchivo = itemView.findViewById(R.id.textoNombreArchivo);
             fechaSubida = itemView.findViewById(R.id.textoFechaSubida);
+            chipEstado = itemView.findViewById(R.id.chipEstadoDocumento);
             botonDescargar = itemView.findViewById(R.id.botonDescargar);
             botonEliminar = itemView.findViewById(R.id.botonEliminarDocumento);
             AnimacionResorte.feedbackToque(botonDescargar);

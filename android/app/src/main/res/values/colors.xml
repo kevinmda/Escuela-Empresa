@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primario">#1E5AA8</color>
-    <color name="primario_oscuro">#123E7A</color>
-    <color name="primario_contenedor">#D9E7FB</color>
-    <color name="on_primario_contenedor">#0B2A55</color>
-    <color name="acento">#2E9E6B</color>
-    <color name="on_acento">#FFFFFF</color>
-    <color name="acento_contenedor">#D6F0E2</color>
-    <color name="on_acento_contenedor">#0B3B26</color>
-    <color name="secundario_contenedor">#FFE3C2</color>
-    <color name="on_secundario_contenedor">#4A2800</color>
+    <!-- Misma paleta que la web (static/css/styles.css): navy y dorado salen
+         del logo del colegio, no son colores M3 genéricos. -->
+    <color name="primario">#16233D</color>
+    <color name="primario_oscuro">#0E1626</color>
+    <color name="primario_contenedor">#DCE1EA</color>
+    <color name="on_primario_contenedor">#16233D</color>
+
+    <color name="acento">#D99A1F</color>
+    <color name="on_acento">#2A1B03</color>
+    <color name="acento_contenedor">#FBEECD</color>
+    <color name="on_acento_contenedor">#8A5D0A</color>
+
+    <color name="secundario_contenedor">#DCE8F5</color>
+    <color name="on_secundario_contenedor">#1B4E82</color>
+
     <color name="terciario_contenedor">#E8DDFF</color>
     <color name="on_terciario_contenedor">#2C1B4D</color>
-    <color name="error">#C0392B</color>
+
+    <color name="exito">#2F7A4D</color>
+    <color name="on_exito">#FFFFFF</color>
+    <color name="exito_contenedor">#E3F2E8</color>
+    <color name="on_exito_contenedor">#1E5236</color>
+
+    <color name="error">#C1272D</color>
     <color name="on_error">#FFFFFF</color>
-    <color name="fondo">#F5F7FA</color>
+
+    <color name="fondo">#F4F2EC</color>
     <color name="superficie">#FFFFFF</color>
     <color name="superficie_variante">#E7ECF2</color>
     <color name="contorno">#D7DEE7</color>

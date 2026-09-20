@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -30,7 +31,9 @@ import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 import com.escuelaempresa.gestorpasantes.util.VisorArchivos;
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONArray;
@@ -46,6 +49,10 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
     private View textoVacio;
     private ShimmerFrameLayout shimmer;
     private View estadoError;
+    private MaterialCardView tarjetaEstadoDossier;
+    private TextView textoPorcentajeValidado;
+    private LinearProgressIndicator progresoDocumentos;
+    private TextView textoResumenDocumentos;
 
     private DocumentoAdapter adapter;
     private SessionManager sessionManager;
@@ -77,6 +84,10 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
         shimmer = view.findViewById(R.id.shimmerDocumentos);
         estadoError = view.findViewById(R.id.estadoErrorDocumentos);
         estadoError.<MaterialButton>findViewById(R.id.botonReintentar).setOnClickListener(v -> cargarPagina(0));
+        tarjetaEstadoDossier = view.findViewById(R.id.tarjetaEstadoDossier);
+        textoPorcentajeValidado = view.findViewById(R.id.textoPorcentajeValidado);
+        progresoDocumentos = view.findViewById(R.id.progresoDocumentos);
+        textoResumenDocumentos = view.findViewById(R.id.textoResumenDocumentos);
 
         int columnas = getResources().getInteger(R.integer.columnas_documentos);
         listaDocumentos.setLayoutManager(new GridLayoutManager(requireContext(), columnas));
@@ -141,9 +152,28 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
             quedanMasPaginas = !json.optBoolean("last", true);
             botonCargarMas.setVisibility(quedanMasPaginas ? View.VISIBLE : View.GONE);
             textoVacio.setVisibility(adapter.estaVacio() ? View.VISIBLE : View.GONE);
+            actualizarResumenDossier();
         } catch (Exception e) {
             mostrarError(getString(R.string.error_red));
         }
+    }
+
+    // Se calcula sobre lo que ya está cargado en el adapter, no sobre el total
+    // del servidor: con el límite real de documentos por alumno (10 como
+    // mucho) la primera página siempre trae todo, así que el número no miente.
+    private void actualizarResumenDossier() {
+        int total = adapter.getItemCount();
+        if (total == 0) {
+            tarjetaEstadoDossier.setVisibility(View.GONE);
+            return;
+        }
+        int validados = adapter.contarValidados();
+        int porcentaje = Math.round((validados * 100f) / total);
+
+        tarjetaEstadoDossier.setVisibility(View.VISIBLE);
+        textoPorcentajeValidado.setText(porcentaje + "%");
+        progresoDocumentos.setProgress(porcentaje);
+        textoResumenDocumentos.setText(getString(R.string.dashboard_documentos_validados, validados, total));
     }
 
     private void onError(int pagina, VolleyError error) {
@@ -199,6 +229,7 @@ public class DocumentosFragment extends Fragment implements DocumentoAdapter.Esc
                 respuesta -> {
                     adapter.quitar(documento);
                     textoVacio.setVisibility(adapter.estaVacio() ? View.VISIBLE : View.GONE);
+                    actualizarResumenDossier();
                     mostrarError(getString(R.string.documento_eliminado_ok));
                 },
                 error -> mostrarError(getString(R.string.error_red)));

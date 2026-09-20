@@ -14,7 +14,7 @@
         android:gravity="center">
 
         <LinearLayout
-            android:layout_width="360dp"
+            android:layout_width="380dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_horizontal"
@@ -28,80 +28,137 @@
                 android:padding="12dp"
                 android:contentDescription="@null"
                 app:tint="@color/on_primario_contenedor"
-                app:srcCompat="@drawable/ic_planilla" />
+                app:srcCompat="@drawable/ic_escudo" />
 
             <TextView
-                android:id="@+id/textoTitulo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_sm"
-                android:text="@string/app_name"
-                android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                android:textColor="@color/texto_principal"
-                android:gravity="center" />
+                android:gravity="center"
+                android:text="@string/nombre_colegio"
+                android:textAllCaps="true"
+                android:letterSpacing="0.04"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="@color/texto_secundario" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/espacio_sm"
+                style="@style/Texto.GestorPasantes.Chip"
+                android:background="@drawable/bg_chip_acento"
+                android:textColor="@color/on_acento_contenedor"
+                android:text="@string/chip_escuela_empresa" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/espacio_sm"
                 android:layout_marginBottom="@dimen/espacio_md"
+                android:gravity="center"
                 android:text="@string/subtitulo_login"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/texto_secundario"
-                android:gravity="center" />
+                android:textColor="@color/texto_secundario" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campoEmail"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.GestorPasantes.Card"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/hint_email">
+                android:layout_height="wrap_content">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputEmail"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textEmailAddress" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="@dimen/espacio_lg">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/campoPassword"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_sm"
-                app:passwordToggleEnabled="true"
-                android:hint="@string/hint_password">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="2dp">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/inputPassword"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textPassword" />
-            </com.google.android.material.textfield.TextInputLayout>
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="@string/titulo_ingresar"
+                            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                            android:textColor="@color/texto_principal" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/botonIngresar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_md"
-                android:text="@string/boton_ingresar" />
+                        <TextView
+                            android:id="@+id/chipPortal"
+                            style="@style/Texto.GestorPasantes.Chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_chip_neutro"
+                            android:textColor="@color/texto_secundario" />
+                    </LinearLayout>
 
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/progresoLogin"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_sm"
-                android:indeterminate="true"
-                android:visibility="gone" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/espacio_md"
+                        android:text="@string/subtitulo_ingresar"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="@color/texto_secundario" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/botonOlvideContrasena"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/espacio_xs"
-                android:text="@string/boton_olvide_contrasena" />
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/campoEmail"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_email">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/inputEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textEmailAddress" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/campoPassword"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/espacio_sm"
+                        app:passwordToggleEnabled="true"
+                        android:hint="@string/hint_password">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/inputPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/botonIngresar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/espacio_md"
+                        android:text="@string/boton_ingresar" />
+
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/progresoLogin"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="@dimen/espacio_md"
+                        android:indeterminate="true"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/botonOlvideContrasena"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="@dimen/espacio_sm"
+                        android:text="@string/boton_olvide_contrasena" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

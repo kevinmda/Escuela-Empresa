@@ -8,6 +8,7 @@ public class PerfilAlumno {
     public final int idAl;
     public final String nombres;
     public final String apellidos;
+    public final String ci;
     public final String email;
     public final String telefono;
     public final String curso;
@@ -16,11 +17,12 @@ public class PerfilAlumno {
     public final String empresa;
     public final String supervisor;
 
-    private PerfilAlumno(int idAl, String nombres, String apellidos, String email, String telefono,
+    private PerfilAlumno(int idAl, String nombres, String apellidos, String ci, String email, String telefono,
                           String curso, String seccion, String especialidad, String empresa, String supervisor) {
         this.idAl = idAl;
         this.nombres = nombres;
         this.apellidos = apellidos;
+        this.ci = ci;
         this.email = email;
         this.telefono = telefono;
         this.curso = curso;
@@ -35,6 +37,7 @@ public class PerfilAlumno {
                 json.getInt("idAl"),
                 json.optString("nombres", ""),
                 json.optString("apellidos", ""),
+                json.optString("ci", ""),
                 json.optString("email", ""),
                 json.optString("telefono", ""),
                 json.optString("curso", ""),

@@ -28,7 +28,9 @@ import com.escuelaempresa.gestorpasantes.util.AnimacionResorte;
 import com.escuelaempresa.gestorpasantes.util.VisorArchivos;
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONArray;
@@ -36,6 +38,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escucha {
 
@@ -47,6 +50,10 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
     private View textoVacio;
     private ShimmerFrameLayout shimmer;
     private View estadoError;
+    private MaterialCardView tarjetaResumen;
+    private android.widget.TextView textoResumenHoras;
+    private android.widget.TextView textoResumenSemanas;
+    private LinearProgressIndicator progresoResumen;
 
     private PlanillaAdapter adapter;
     private SessionManager sessionManager;
@@ -81,6 +88,10 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
         shimmer = view.findViewById(R.id.shimmerPlanillas);
         estadoError = view.findViewById(R.id.estadoErrorPlanillas);
         estadoError.<MaterialButton>findViewById(R.id.botonReintentar).setOnClickListener(v -> cargarPagina(0));
+        tarjetaResumen = view.findViewById(R.id.tarjetaResumenPlanillas);
+        textoResumenHoras = view.findViewById(R.id.textoResumenHoras);
+        textoResumenSemanas = view.findViewById(R.id.textoResumenSemanas);
+        progresoResumen = view.findViewById(R.id.progresoResumenPlanillas);
 
         listaPlanillas.setLayoutManager(new LinearLayoutManager(requireContext()));
         listaPlanillas.setAdapter(adapter);
@@ -146,9 +157,25 @@ public class PlanillaFragment extends Fragment implements PlanillaAdapter.Escuch
             boolean quedanMasPaginas = !json.optBoolean("last", true);
             botonCargarMas.setVisibility(quedanMasPaginas ? View.VISIBLE : View.GONE);
             textoVacio.setVisibility(adapter.estaVacio() ? View.VISIBLE : View.GONE);
+            actualizarResumen();
         } catch (Exception e) {
             mostrarError(getString(R.string.error_red));
         }
+    }
+
+    // Igual criterio que Documentos: con el máximo real de 6 planillas por
+    // alumno, la primera página (tamaño 10) siempre trae todas.
+    private void actualizarResumen() {
+        int semanas = adapter.getItemCount();
+        if (semanas == 0) {
+            tarjetaResumen.setVisibility(View.GONE);
+            return;
+        }
+        tarjetaResumen.setVisibility(View.VISIBLE);
+        double horas = adapter.sumarHoras();
+        textoResumenHoras.setText(String.format(Locale.getDefault(), "%.2f hs", horas));
+        progresoResumen.setProgress(Math.min(semanas, 6));
+        textoResumenSemanas.setText(semanas + " de 6 semanas cargadas");
     }
 
     private void onError(int pagina, VolleyError error) {

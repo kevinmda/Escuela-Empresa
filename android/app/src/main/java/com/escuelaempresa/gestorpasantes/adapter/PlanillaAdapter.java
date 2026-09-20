@@ -48,6 +48,21 @@ public class PlanillaAdapter extends RecyclerView.Adapter<PlanillaAdapter.Planil
         return planillas.isEmpty();
     }
 
+    // Igual que DocumentoAdapter.contarValidados(): se calcula sobre lo que ya
+    // está cargado en pantalla. Con el máximo real de 6 planillas por alumno,
+    // una sola página (tamaño 10) siempre trae todas.
+    public double sumarHoras() {
+        double total = 0;
+        for (PlanillaResumen planilla : planillas) {
+            try {
+                total += Double.parseDouble(planilla.totalHoras);
+            } catch (NumberFormatException ignorada) {
+                // dato raro del servidor -- no suma, no rompe el total
+            }
+        }
+        return total;
+    }
+
     @NonNull
     @Override
     public PlanillaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
