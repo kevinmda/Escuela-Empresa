@@ -4,15 +4,15 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.EmailService;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitadorEnvioCodigosService;
+import com.EscuelaEmpresa.gestor_pasantes.service.LimitadorPeticionesPorIpService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.mail.MailException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -37,17 +37,27 @@ public class OlvideContrasenaController {
     // note la espera, pero corta un loop automatizado.
     private static final int COOLDOWN_REENVIO_SEGUNDOS = 60;
 
+    // Este endpoint es publico y sin sesion: cualquiera puede mandarle el
+    // formulario las veces que quiera. El limite por cuenta de
+    // LimitadorEnvioCodigos ya frena cuanto se le puede mandar a UN email; esto
+    // frena cuantos pedidos acepta por minuto un mismo origen, sin importar a
+    // cuantos emails distintos apunten.
+    private static final String CLAVE_LIMITADOR_IP = "olvide-contrasena";
+
     private final UsuarioRepository usuarioRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final LimitadorEnvioCodigosService limitadorEnvioCodigos;
+    private final LimitadorPeticionesPorIpService limitadorPeticiones;
 
     public OlvideContrasenaController(UsuarioRepository usuarioRepository, EmailService emailService,
-            PasswordEncoder passwordEncoder, LimitadorEnvioCodigosService limitadorEnvioCodigos) {
+            PasswordEncoder passwordEncoder, LimitadorEnvioCodigosService limitadorEnvioCodigos,
+            LimitadorPeticionesPorIpService limitadorPeticiones) {
         this.usuarioRepository = usuarioRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.limitadorEnvioCodigos = limitadorEnvioCodigos;
+        this.limitadorPeticiones = limitadorPeticiones;
     }
 
     @GetMapping("/olvide-contrasena")
@@ -70,11 +80,18 @@ public class OlvideContrasenaController {
     }
 
     @PostMapping("/olvide-contrasena")
-    public String enviarCodigo(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String enviarCodigo(HttpSession session, HttpServletRequest request) {
         String email = (String) session.getAttribute(ATRIBUTO_SESION_EMAIL);
 
         if (email == null) {
             return "redirect:/login";
+        }
+
+        // Se revisa antes de tocar la base, y con la misma salida de siempre si no
+        // hay cupo: un origen que ya gasto su cupo del minuto no se entera de que
+        // lo gasto, solo ve la misma pantalla que veria si la cuenta no existiera.
+        if (!limitadorPeticiones.permitir(CLAVE_LIMITADOR_IP + ":" + request.getRemoteAddr())) {
+            return "redirect:/restablecer-contrasena";
         }
 
         Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
@@ -92,42 +109,44 @@ public class OlvideContrasenaController {
                     ? null
                     : usuario.getTokenExpiracion().minusMinutes(MINUTOS_VIGENCIA_CODIGO);
 
-            if (ultimoEnvio != null && ultimoEnvio.plusSeconds(COOLDOWN_REENVIO_SEGUNDOS).isAfter(LocalDateTime.now())) {
-                redirectAttributes.addFlashAttribute("error",
-                        "Ya te mandamos un código. Revisá tu correo (también la carpeta de spam) antes de pedir otro.");
-                return "redirect:/restablecer-contrasena";
-            }
+            boolean dentroDelCooldown = ultimoEnvio != null
+                    && ultimoEnvio.plusSeconds(COOLDOWN_REENVIO_SEGUNDOS).isAfter(LocalDateTime.now());
 
-            String codigo = codigoTodaviaVigente(usuario);
+            // Antes, estar dentro del cooldown mostraba un mensaje distinto
+            // ("Ya te mandamos un código...") en la pantalla siguiente. Pero ese
+            // mensaje SOLO podia aparecer para una cuenta que existe (a una que no
+            // existe nunca se le genera un código para empezar), asi que mandar el
+            // mismo email dos veces seguidas y mirar si aparece el mensaje alcanzaba
+            // para saber si esta registrado. Ahora, dentro del cooldown, se hace
+            // exactamente lo mismo que si la cuenta no existiera: nada, en silencio.
+            if (!dentroDelCooldown) {
+                String codigo = codigoTodaviaVigente(usuario);
 
-            // Se emite un codigo nuevo SOLO cuando el anterior ya vencio, y recien
-            // ahi se reinicia el contador de intentos. Antes cada pedido generaba uno
-            // nuevo y ponia intentosCodigo en 0, asi que los 5 intentos se renovaban
-            // a voluntad: se probaban 5, se pedia otro codigo, y otros 5, sin techo.
-            // Mientras el codigo siga vivo se reenvia el mismo y el contador queda
-            // donde estaba, que es lo que hace que el maximo signifique algo.
-            if (codigo == null) {
-                codigo = generarCodigoNumerico();
-                usuario.setTokenActivacion(codigo);
-                usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(MINUTOS_VIGENCIA_CODIGO));
-                usuario.setIntentosCodigo(0);
-                usuarioRepository.save(usuario);
-            }
+                // Se emite un codigo nuevo SOLO cuando el anterior ya vencio, y recien
+                // ahi se reinicia el contador de intentos. Antes cada pedido generaba uno
+                // nuevo y ponia intentosCodigo en 0, asi que los 5 intentos se renovaban
+                // a voluntad: se probaban 5, se pedia otro codigo, y otros 5, sin techo.
+                // Mientras el codigo siga vivo se reenvia el mismo y el contador queda
+                // donde estaba, que es lo que hace que el maximo signifique algo.
+                if (codigo == null) {
+                    codigo = generarCodigoNumerico();
+                    usuario.setTokenActivacion(codigo);
+                    usuario.setTokenExpiracion(LocalDateTime.now().plusMinutes(MINUTOS_VIGENCIA_CODIGO));
+                    usuario.setIntentosCodigo(0);
+                    usuarioRepository.save(usuario);
+                }
 
-            try {
+                // enviarCorreoRecuperacion es @Async (ver EmailService): esta llamada
+                // vuelve enseguida, sin esperar a que el correo salga. Si esperara,
+                // cuanto tarda seria en si mismo una señal de que la cuenta existe.
                 emailService.enviarCorreoRecuperacion(usuario.getEmail(), codigo);
-            } catch (MailException e) {
-                // el correo no salio por un problema nuestro, no le gastamos el cupo
-                limitadorEnvioCodigos.devolverCupo(email);
-                model.addAttribute("email", email);
-                model.addAttribute("error", "No pudimos enviar el correo. Intentá de nuevo en unos minutos.");
-                return "olvide-contrasena";
             }
         }
 
-        // Siempre la misma salida: exista o no la cuenta, y se haya llegado a mandar
-        // el correo o no. Cualquier diferencia visible desde afuera seria una forma
-        // de averiguar que emails estan registrados.
+        // Siempre la misma salida: exista o no la cuenta, tenga cupo o no, este en
+        // cooldown o no. Cualquier diferencia visible desde afuera -- en el cuerpo,
+        // en los headers, o en cuanto tarda -- seria una forma de averiguar que
+        // emails estan registrados.
         return "redirect:/restablecer-contrasena";
     }
 
