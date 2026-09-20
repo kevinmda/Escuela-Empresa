@@ -199,6 +199,10 @@ public class SubirDocumentoActivity extends AppCompatActivity {
             }
             bitmap = corregirRotacion(bitmap, archivoFotoTemporal);
 
+            Bitmap ajustado = ajustarComoEscaneo(bitmap);
+            bitmap.recycle();
+            bitmap = ajustado;
+
             String nombrePdf = "escaneo_"
                     + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date())
                     + ".pdf";
@@ -237,6 +241,62 @@ public class SubirDocumentoActivity extends AppCompatActivity {
         BitmapFactory.Options opciones = new BitmapFactory.Options();
         opciones.inSampleSize = muestreo;
         return BitmapFactory.decodeFile(archivo.getAbsolutePath(), opciones);
+    }
+
+    // Ajuste automático de brillo/contraste tipo "escáner": una foto de celular
+    // suele salir con el papel en un gris apagado en vez de blanco, y el texto
+    // en un gris oscuro en vez de negro (luz ambiente, sombra de la mano, etc.).
+    // Esto estira el rango real de tonos de la foto para que el más oscuro
+    // llegue a negro y el más claro llegue a blanco -- mismo "auto contraste"
+    // que trae cualquier app de escaneo. Se aplica el mismo estiramiento a los
+    // tres canales (no se pasa a escala de grises) para no perder el color de
+    // una firma o un sello -- a diferencia de una conversión a blanco y negro,
+    // esto solo estira el contraste, no saca el color.
+    private Bitmap ajustarComoEscaneo(Bitmap original) {
+        int ancho = original.getWidth();
+        int alto = original.getHeight();
+        int[] pixeles = new int[ancho * alto];
+        original.getPixels(pixeles, 0, ancho, 0, 0, ancho, alto);
+
+        // 1. Encontrar el rango real de tonos de la foto, usando la luminancia
+        // perceptual (no cada canal por separado, para no correr el balance de
+        // color de la foto y que salga con un tinte raro).
+        int minLuma = 255;
+        int maxLuma = 0;
+        for (int pixel : pixeles) {
+            int r = (pixel >> 16) & 0xFF;
+            int g = (pixel >> 8) & 0xFF;
+            int b = pixel & 0xFF;
+            int luma = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+            if (luma < minLuma) minLuma = luma;
+            if (luma > maxLuma) maxLuma = luma;
+        }
+
+        // Rango mínimo de 10: una foto ya casi plana (por ejemplo, una hoja en
+        // blanco sin texto) no debería estirarse a full contraste, eso
+        // amplificaría el ruido del sensor en vez de mejorar nada.
+        int rango = Math.max(maxLuma - minLuma, 10);
+
+        // 2. Estirar los tres canales con el mismo factor (no cada uno por su
+        // cuenta): mantiene la proporción entre R, G y B, así un sello rojo
+        // sigue viéndose rojo en vez de virar de color.
+        for (int i = 0; i < pixeles.length; i++) {
+            int pixel = pixeles[i];
+            int r = recortarA0y255((((pixel >> 16) & 0xFF) - minLuma) * 255 / rango);
+            int g = recortarA0y255((((pixel >> 8) & 0xFF) - minLuma) * 255 / rango);
+            int b = recortarA0y255(((pixel & 0xFF) - minLuma) * 255 / rango);
+            pixeles[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+        }
+
+        Bitmap resultado = Bitmap.createBitmap(ancho, alto, Bitmap.Config.ARGB_8888);
+        resultado.setPixels(pixeles, 0, ancho, 0, 0, ancho, alto);
+        return resultado;
+    }
+
+    private int recortarA0y255(int valor) {
+        if (valor < 0) return 0;
+        if (valor > 255) return 255;
+        return valor;
     }
 
     private Bitmap corregirRotacion(Bitmap bitmap, File archivo) throws IOException {
