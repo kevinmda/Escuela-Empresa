@@ -26,6 +26,7 @@
                     style="@style/Titulo.GestorPasantes.Seccion"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/espacio_md"
                     android:text="@string/titulo_documentos_pasantia"
                     android:textColor="@color/texto_principal" />
 
@@ -155,8 +156,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/boton_cargar_mas"
                 android:visibility="gone" />
-
-            <include layout="@layout/credito_autoria" />
         </LinearLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

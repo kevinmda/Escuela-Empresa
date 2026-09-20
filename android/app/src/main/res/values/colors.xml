@@ -44,6 +44,11 @@
          web van con este fondo hundido, no en blanco liso — un campo blanco
          dentro de una superficie ya blanca no se lee como campo. -->
     <color name="campo">#F9F8F5</color>
+    <!-- Mismo valor que primario acá en claro (navy ya funciona bien como
+         relleno sólido de barra en este tema) — existe aparte para poder
+         usar un valor distinto en oscuro sin tocar colorPrimary, que se usa
+         para más cosas que solo la barra. -->
+    <color name="barra_superior">#16233D</color>
 
     <!-- Login: la web fuerza modo oscuro en estas pantallas sin importar el
          tema guardado del usuario (auth-split—login en styles.css, no tienen

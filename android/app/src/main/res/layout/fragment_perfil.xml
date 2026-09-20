@@ -20,6 +20,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/espacio_md"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -85,24 +86,23 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/botonCambiarContrasena"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_lg"
+                app:backgroundTint="@color/superficie"
+                android:textColor="@color/texto_principal"
+                app:rippleColor="@color/texto_principal"
                 android:text="@string/boton_cambiar_contrasena" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/botonCerrarSesion"
-                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_sm"
-                android:text="@string/boton_cerrar_sesion"
+                app:backgroundTint="@color/superficie"
                 android:textColor="@color/error"
-                app:strokeColor="@color/error"
-                app:rippleColor="@color/error" />
-
-            <include layout="@layout/credito_autoria" />
+                app:rippleColor="@color/error"
+                android:text="@string/boton_cerrar_sesion" />
 
         </LinearLayout>
     </ScrollView>

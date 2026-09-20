@@ -35,4 +35,11 @@
          (fondo/superficie). Coincide con login_campo de colors.xml porque acá
          y el login parten del mismo fondo/superficie oscuro. -->
     <color name="campo">#181C22</color>
+    <!-- primario (#B7C4E0) es un celeste pálido pensado como color de TEXTO
+         sobre fondo oscuro (la convención de Material para colorPrimary en
+         modo oscuro), pero Widget.GestorPasantes.Toolbar lo usa como relleno
+         sólido de la barra — ahí se ve como un celeste que no pega con la
+         marca navy/dorado. Un tono de navy propio para la barra, distinto del
+         casi negro del fondo pero sin ser pálido. -->
+    <color name="barra_superior">#1F2B45</color>
 </resources>

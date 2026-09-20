@@ -63,6 +63,15 @@
         <item name="android:minHeight">52dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:letterSpacing">0</item>
+        <!-- colorSecondary (el dorado de acento) en vez del colorPrimary por
+             default de Material: en modo oscuro colorPrimary es un celeste
+             pálido pensado como color de texto, no como relleno de botón (ver
+             el comentario en values-night/colors.xml). El dorado es el color
+             de acción de la marca en los dos temas, y ya es el que usa el
+             botón del login. -->
+        <item name="backgroundTint">?attr/colorSecondary</item>
+        <item name="android:textColor">?attr/colorOnSecondary</item>
+        <item name="rippleColor">?attr/colorOnSecondary</item>
         <!-- —radius-btn de la web es 999px (pastilla completa): 50% del alto
              del propio botón da lo mismo sin importar el minHeight que tenga
              cada uno. -->
@@ -106,9 +115,14 @@
     </style>
 
     <style name="Widget.GestorPasantes.Toolbar" parent="Widget.Material3.Toolbar">
-        <item name="android:background">?attr/colorPrimary</item>
-        <item name="titleTextColor">?attr/colorOnPrimary</item>
-        <item name="navigationIconTint">?attr/colorOnPrimary</item>
+        <!-- Color propio (barra_superior) en vez de colorPrimary: en modo
+             oscuro colorPrimary es un celeste pálido pensado como color de
+             texto, no como relleno solido de una barra (ver el comentario en
+             values-night/colors.xml). Blanco fijo para el texto/ícono porque
+             la barra es oscura (navy) en los dos temas, no solo en oscuro. -->
+        <item name="android:background">@color/barra_superior</item>
+        <item name="titleTextColor">@color/blanco</item>
+        <item name="navigationIconTint">@color/blanco</item>
     </style>
 
     <style name="Divisor.GestorPasantes" parent="">

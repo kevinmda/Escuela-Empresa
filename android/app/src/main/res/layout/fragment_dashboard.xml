@@ -32,18 +32,10 @@
                 android:padding="@dimen/espacio_md">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/dashboard_encabezado"
-                    android:textAllCaps="true"
-                    android:letterSpacing="0.04"
-                    android:textAppearance="?attr/textAppearanceLabelMedium"
-                    android:textColor="@color/texto_secundario" />
-
-                <TextView
                     style="@style/Titulo.GestorPasantes.Seccion"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/espacio_md"
                     android:layout_marginBottom="@dimen/espacio_md"
                     android:text="@string/tab_inicio"
                     android:textColor="@color/texto_principal" />
@@ -288,8 +280,6 @@
                             android:layout_weight="1"
                             android:layout_margin="@dimen/espacio_xs" />
                     </LinearLayout>
-
-                    <include layout="@layout/credito_autoria" />
                 </LinearLayout>
             </LinearLayout>
         </FrameLayout>

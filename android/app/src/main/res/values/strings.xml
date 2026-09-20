@@ -32,7 +32,6 @@
     <string name="tab_documentos">Documentos</string>
 
     <!-- Dashboard -->
-    <string name="dashboard_encabezado">CTN Pasantías</string>
     <string name="dashboard_dossier">Credencial de pasante técnico</string>
     <string name="dashboard_pasante_activo">Pasante activo</string>
     <string name="dashboard_cedula">Cédula de identidad</string>
