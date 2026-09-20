@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Barra de 3dp solo del lado izquierdo, como el border-left de "main h2" en
+     la web. Un <shape> con <stroke> dibuja el borde en los cuatro lados; para
+     uno solo hace falta un layer-list con un item angosto pegado a la
+     izquierda. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="3dp"
+        android:gravity="left">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/acento" />
+        </shape>
+    </item>
+</layer-list>

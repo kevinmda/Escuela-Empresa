@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mismo orden que la web: la cuadrícula va PRIMERO en la lista de capas de
+     CSS (queda arriba), el degradado va último (queda abajo, de fondo). Tanto
+     grid_tile como bg_gradiente_app tienen su propia versión en drawable-night/,
+     así que este único archivo ya resuelve bien para los dos temas sin
+     duplicarse. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/bg_gradiente_app" />
+    <item>
+        <bitmap
+            android:src="@drawable/grid_tile"
+            android:tileModeX="repeat"
+            android:tileModeY="repeat" />
+    </item>
+</layer-list>

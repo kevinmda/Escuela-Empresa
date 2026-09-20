@@ -15,7 +15,7 @@
         <item name="colorOnSurfaceVariant">@color/texto_secundario</item>
         <item name="colorOutline">@color/contorno</item>
         <item name="android:colorBackground">@color/fondo</item>
-        <item name="android:windowBackground">@color/fondo</item>
+        <item name="android:windowBackground">@drawable/bg_app</item>
         <item name="android:statusBarColor">@color/primario_oscuro</item>
 
         <!-- Sin esto, Android dibuja una "starting window" con el tema por defecto
@@ -136,5 +136,22 @@
         <item name="android:paddingVertical">4dp</item>
         <item name="android:textAppearance">?attr/textAppearanceLabelMedium</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Títulos de sección (Inicio, Documentos, el nombre en Perfil): misma
+         idea que "main h2" en la web — barra de acento a la izquierda y
+         sangría para separar el texto de la barra. sans-serif-medium en vez
+         de Space Grotesk (la fuente real de la web): sin poder verificar con
+         certeza los certificados exactos que hacen falta para una fuente
+         descargable de Google, se prefiere no arriesgar una fuente que
+         termine fallando en silencio — esta es la más parecida de las que
+         ya trae Android sin depender de nada externo. -->
+    <style name="Titulo.GestorPasantes.Seccion" parent="">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:background">@drawable/barra_titulo_seccion</item>
     </style>
 </resources>

@@ -105,6 +105,8 @@
                 android:layout_marginTop="@dimen/espacio_sm"
                 android:textColor="@color/login_texto_secundario"
                 android:text="@string/boton_olvide_contrasena" />
+
+            <include layout="@layout/credito_autoria" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

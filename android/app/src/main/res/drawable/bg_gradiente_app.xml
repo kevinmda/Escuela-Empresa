@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mismos tres colores del logo (navy, rojo, dorado) mezclados a baja
+     intensidad sobre el fondo de la app, como el body de toda la web — no
+     solo el login. Colores del tema claro (ver colors.xml): logo-navy #16233D,
+     danger #C1272D, accent #D99A1F, mezclados con bg #F4F2EC. 315° para ir de
+     la esquina superior izquierda a la inferior derecha, como el 135deg de la
+     web. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="315"
+        android:startColor="#ADB0B4"
+        android:centerColor="#E9C5C2"
+        android:endColor="#EBD4A6" />
+</shape>

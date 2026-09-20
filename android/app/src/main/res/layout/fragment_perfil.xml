@@ -42,9 +42,9 @@
 
                     <TextView
                         android:id="@+id/textoNombre"
+                        style="@style/Titulo.GestorPasantes.Seccion"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textAppearance="?attr/textAppearanceTitleLarge"
                         android:textColor="@color/texto_principal"
                         tools:text="Nombre Apellido" />
 
@@ -101,6 +101,8 @@
                 android:textColor="@color/error"
                 app:strokeColor="@color/error"
                 app:rippleColor="@color/error" />
+
+            <include layout="@layout/credito_autoria" />
 
         </LinearLayout>
     </ScrollView>
