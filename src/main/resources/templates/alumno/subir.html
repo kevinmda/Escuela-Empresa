@@ -234,7 +234,7 @@
             avisoMultiples.className = 'mensaje-error dropzone-aviso-multiples';
             avisoMultiples.textContent = 'Solo podés subir un archivo a la vez. Soltá uno solo.';
             avisoMultiples.hidden = true;
-            dropzone.insertAdjacentElement('afterend', avisoMultiples);
+            dropzone.insertAdjacentElement('beforebegin', avisoMultiples);
 
             function actualizarNombreArchivo() {
                 avisoMultiples.hidden = true;
