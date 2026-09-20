@@ -40,6 +40,20 @@
                     android:text="@string/tab_inicio"
                     android:textColor="@color/texto_principal" />
 
+                <!-- Mismo aviso que la campana del header web (ver
+                     ChromeContext.Aviso), pero como una fila por aviso sin
+                     leer en vez de un desplegable — acá no hay una barra
+                     superior compartida entre pantallas donde meter una
+                     campana. Vacío y oculto hasta que cargarAvisos() agregue
+                     alguna fila; no participa del shimmer/error de las otras
+                     3 tarjetas porque no es un dato crítico para la pantalla. -->
+                <LinearLayout
+                    android:id="@+id/contenedorAvisos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone" />
+
                 <!-- Tarjeta "dossier": mismo concepto que la credencial/carnet de
                      alumno/index.html en la web, adaptado a mobile. La franja
                      dorada a la izquierda es la marca de identidad, no decoración

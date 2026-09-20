@@ -1,6 +1,5 @@
 package com.EscuelaEmpresa.gestor_pasantes.controller;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.core.Authentication;
@@ -10,13 +9,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
-import com.EscuelaEmpresa.gestor_pasantes.entity.AvisoLeido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
-import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
-import com.EscuelaEmpresa.gestor_pasantes.repository.AvisoLeidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import com.EscuelaEmpresa.gestor_pasantes.service.AvisoService;
 
 // Marca como leído uno de los avisos de la campana del header (ver
 // ChromeContext.Aviso / ChromeModelAdvice). GET y no POST a propósito: es una
@@ -27,41 +24,27 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 @Controller
 public class AvisoController {
 
-    private static final List<String> CODIGOS_VALIDOS = List.of("documentos_finales", "documentos_adjuntos");
-
     private final UsuarioRepository usuarioRepository;
     private final AlumnoRepository alumnoRepository;
-    private final AvisoLeidoRepository avisoLeidoRepository;
+    private final AvisoService avisoService;
 
     public AvisoController(UsuarioRepository usuarioRepository, AlumnoRepository alumnoRepository,
-                            AvisoLeidoRepository avisoLeidoRepository) {
+                            AvisoService avisoService) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
-        this.avisoLeidoRepository = avisoLeidoRepository;
+        this.avisoService = avisoService;
     }
 
     @GetMapping("/alumno/avisos/marcar-leido")
     @ResponseBody
     public Map<String, Object> marcarLeido(@RequestParam String codigo, @RequestParam String clave,
                                             Authentication authentication) {
-        if (!CODIGOS_VALIDOS.contains(codigo)) {
-            throw new ReglaNegocioException("Código de aviso inválido");
-        }
-
         Usuario usuario = usuarioRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
         Alumno alumno = alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
                 .orElseThrow(() -> new RecursoNoEncontradoException("El usuario no es un alumno"));
 
-        // Una fila por (alumno, código): si ya había una de un aviso anterior de
-        // este mismo código, se pisa con la clave nueva en vez de acumular
-        // historial que nadie necesita leer.
-        AvisoLeido avisoLeido = avisoLeidoRepository.findByIdAlAndCodigo(alumno.getIdAl(), codigo)
-                .orElseGet(AvisoLeido::new);
-        avisoLeido.setIdAl(alumno.getIdAl());
-        avisoLeido.setCodigo(codigo);
-        avisoLeido.setClave(clave);
-        avisoLeidoRepository.save(avisoLeido);
+        avisoService.marcarLeido(alumno, codigo, clave);
 
         return Map.of("ok", true);
     }

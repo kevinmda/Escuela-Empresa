@@ -46,6 +46,7 @@
     <string name="dashboard_documentos">Documentos subidos</string>
     <string name="dashboard_empresa">Empresa asignada</string>
     <string name="dashboard_valor_error">–</string>
+    <string name="marcar_aviso_leido">Marcar como leído</string>
 
     <!-- Perfil -->
     <string name="etiqueta_curso">Curso</string>

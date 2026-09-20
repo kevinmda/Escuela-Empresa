@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.ColorRes;
@@ -17,9 +18,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
+import com.escuelaempresa.gestorpasantes.model.Aviso;
 import com.escuelaempresa.gestorpasantes.model.PerfilAlumno;
 import com.escuelaempresa.gestorpasantes.network.ApiConfig;
+import com.escuelaempresa.gestorpasantes.network.ApiJsonArrayRequest;
 import com.escuelaempresa.gestorpasantes.network.ApiJsonRequest;
+import com.escuelaempresa.gestorpasantes.network.ApiPostSimpleRequest;
 import com.escuelaempresa.gestorpasantes.network.VolleySingleton;
 import com.escuelaempresa.gestorpasantes.session.SessionManager;
 import com.facebook.shimmer.ShimmerFrameLayout;
@@ -28,6 +32,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Locale;
@@ -51,6 +56,7 @@ public class DashboardFragment extends Fragment {
     private MaterialCardView tarjetaHoras;
     private MaterialCardView tarjetaDocumentos;
     private MaterialCardView tarjetaEmpresa;
+    private LinearLayout contenedorAvisos;
 
     private SessionManager sessionManager;
 
@@ -87,6 +93,7 @@ public class DashboardFragment extends Fragment {
         tarjetaHoras = view.findViewById(R.id.tarjetaHoras);
         tarjetaDocumentos = view.findViewById(R.id.tarjetaDocumentos);
         tarjetaEmpresa = view.findViewById(R.id.tarjetaEmpresa);
+        contenedorAvisos = view.findViewById(R.id.contenedorAvisos);
 
         // Mismos 4 roles de color que usa la web para distinguir bloques: dorado
         // (acento de marca), verde (progreso/éxito), azul (info) y navy (marca
@@ -153,6 +160,72 @@ public class DashboardFragment extends Fragment {
         cola.getRequestQueue().add(new ApiJsonRequest(
                 Request.Method.GET, ApiConfig.BASE_URL + "/documentos?page=0&size=10", null, token,
                 this::onDocumentosCargados, error -> onFallo(error, 3)));
+
+        // Aparte de los 3 de arriba, sin contar en pedidosPendientes: si esto
+        // falla o tarda, no tiene sentido bloquear el resto de la pantalla por
+        // un aviso que ni siquiera puede haber. Mismo criterio "no crítico"
+        // que ya usa el resto de esta pantalla para separar lo esencial de lo
+        // que puede fallar en silencio.
+        cargarAvisos();
+    }
+
+    // Mismo aviso que la campana del header web (ver ChromeContext.Aviso /
+    // AvisoService): sin push real, la app los pide acá al abrir Inicio, no
+    // llegan solos con la app cerrada.
+    private void cargarAvisos() {
+        String token = sessionManager.obtenerToken();
+        VolleySingleton.getInstancia(requireContext()).getRequestQueue().add(new ApiJsonArrayRequest(
+                Request.Method.GET, ApiConfig.BASE_URL + "/avisos", null, token,
+                this::onAvisosCargados, error -> { /* no crítico, se ignora */ }));
+    }
+
+    private void onAvisosCargados(JSONArray json) {
+        if (!isAdded()) {
+            return;
+        }
+        contenedorAvisos.removeAllViews();
+        for (int i = 0; i < json.length(); i++) {
+            try {
+                Aviso aviso = Aviso.desdeJson(json.getJSONObject(i));
+                if (!aviso.leido) {
+                    agregarFilaAviso(aviso);
+                }
+            } catch (JSONException ignorada) {
+                // una fila con formato inesperado no debería tirar abajo el resto
+            }
+        }
+        contenedorAvisos.setVisibility(contenedorAvisos.getChildCount() > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    private void agregarFilaAviso(Aviso aviso) {
+        View fila = LayoutInflater.from(requireContext())
+                .inflate(R.layout.item_aviso, contenedorAvisos, false);
+        ((TextView) fila.findViewById(R.id.textoAviso)).setText(aviso.texto);
+        fila.findViewById(R.id.botonMarcarLeidoAviso).setOnClickListener(v -> marcarAvisoLeido(aviso, fila));
+        contenedorAvisos.addView(fila);
+    }
+
+    // No desaparece "en el momento" ni espera confirmación del servidor para
+    // sentirse instantáneo: se saca la fila apenas responde el pedido. Si
+    // falla, la fila se queda como estaba y el alumno puede volver a tocar el
+    // botón.
+    private void marcarAvisoLeido(Aviso aviso, View fila) {
+        String token = sessionManager.obtenerToken();
+        String url = ApiConfig.BASE_URL + "/avisos/marcar-leido"
+                + "?codigo=" + aviso.codigo + "&clave=" + aviso.clave;
+
+        VolleySingleton.getInstancia(requireContext()).getRequestQueue().add(new ApiPostSimpleRequest(
+                url, token,
+                respuesta -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    contenedorAvisos.removeView(fila);
+                    if (contenedorAvisos.getChildCount() == 0) {
+                        contenedorAvisos.setVisibility(View.GONE);
+                    }
+                },
+                error -> { /* la fila se queda, se puede reintentar */ }));
     }
 
     private void onPerfilCargado(JSONObject json) {
