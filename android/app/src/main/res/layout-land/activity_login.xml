@@ -5,6 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient_login"
     android:fillViewport="true">
 
     <LinearLayout
@@ -24,10 +25,10 @@
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_icono_circular"
-                android:backgroundTint="@color/primario_contenedor"
+                android:backgroundTint="@color/login_superficie"
                 android:padding="12dp"
                 android:contentDescription="@null"
-                app:tint="@color/on_primario_contenedor"
+                app:tint="@color/login_acento"
                 app:srcCompat="@drawable/ic_escudo" />
 
             <TextView
@@ -39,7 +40,7 @@
                 android:textAllCaps="true"
                 android:letterSpacing="0.04"
                 android:textAppearance="?attr/textAppearanceLabelMedium"
-                android:textColor="@color/texto_secundario" />
+                android:textColor="@color/login_texto_secundario" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -47,7 +48,7 @@
                 android:layout_marginTop="@dimen/espacio_sm"
                 style="@style/Texto.GestorPasantes.Chip"
                 android:background="@drawable/bg_chip_acento"
-                android:textColor="@color/on_acento_contenedor"
+                android:textColor="@color/login_bg"
                 android:text="@string/chip_escuela_empresa" />
 
             <TextView
@@ -58,10 +59,11 @@
                 android:gravity="center"
                 android:text="@string/subtitulo_login"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/texto_secundario" />
+                android:textColor="@color/login_texto_secundario" />
 
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.GestorPasantes.Card"
+                app:cardBackgroundColor="@color/login_superficie"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -84,7 +86,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/titulo_ingresar"
                             android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                            android:textColor="@color/texto_principal" />
+                            android:textColor="@color/login_texto" />
 
                         <TextView
                             android:id="@+id/chipPortal"
@@ -92,7 +94,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_chip_neutro"
-                            android:textColor="@color/texto_secundario" />
+                            android:textColor="@color/login_texto_secundario" />
                     </LinearLayout>
 
                     <TextView
@@ -101,7 +103,7 @@
                         android:layout_marginBottom="@dimen/espacio_md"
                         android:text="@string/subtitulo_ingresar"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="@color/texto_secundario" />
+                        android:textColor="@color/login_texto_secundario" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/campoEmail"
@@ -124,6 +126,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/espacio_sm"
                         app:passwordToggleEnabled="true"
+                        app:passwordToggleTint="@color/login_texto_secundario"
                         android:hint="@string/hint_password">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -156,6 +159,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="@dimen/espacio_sm"
+                        android:textColor="@color/login_texto_secundario"
                         android:text="@string/boton_olvide_contrasena" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

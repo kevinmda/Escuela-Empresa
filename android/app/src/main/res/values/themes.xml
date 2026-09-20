@@ -46,6 +46,46 @@
         <item name="android:minHeight">52dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:letterSpacing">0</item>
+        <!-- --radius-btn de la web es 999px (pastilla completa): 50% del alto
+             del propio botón da lo mismo sin importar el minHeight que tenga
+             cada uno. -->
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.GestorPasantes.Pastilla</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.GestorPasantes.Pastilla" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- Login: la web fuerza modo oscuro en estas pantallas (auth-split--login
+         en styles.css), sin toggle ni depender del tema guardado del usuario
+         -- mismo criterio acá, con los colores login_* fijos (ver colors.xml)
+         en vez de los de arriba, que sí cambian con values-night/. -->
+    <style name="Theme.GestorPasantes.Login" parent="Theme.GestorPasantes">
+        <item name="colorPrimary">@color/login_acento</item>
+        <item name="colorOnPrimary">@color/login_bg</item>
+        <item name="colorSurface">@color/login_superficie</item>
+        <item name="colorOnSurface">@color/login_texto</item>
+        <item name="colorOnSurfaceVariant">@color/login_texto_secundario</item>
+        <item name="colorOutline">@color/login_contorno</item>
+        <item name="colorError">@color/login_error</item>
+        <item name="android:colorBackground">@color/login_bg</item>
+        <item name="android:windowBackground">@color/login_bg</item>
+        <item name="android:statusBarColor">@color/login_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:textColorPrimary">@color/login_texto</item>
+        <item name="android:textColorSecondary">@color/login_texto_secundario</item>
+        <item name="toolbarStyle">@style/Widget.GestorPasantes.Toolbar.Login</item>
+    </style>
+
+    <!-- Sin esto, el toolbar de recuperar/restablecer contraseña heredaría
+         colorPrimary (dorado, ver Theme.GestorPasantes.Login de arriba) como
+         fondo -- una barra dorada no es el tratamiento de estas pantallas en
+         la web, ahí es una superficie oscura más, sin barra destacada. -->
+    <style name="Widget.GestorPasantes.Toolbar.Login" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/login_bg</item>
+        <item name="titleTextColor">@color/login_texto</item>
+        <item name="navigationIconTint">@color/login_texto</item>
     </style>
 
     <style name="Widget.GestorPasantes.Toolbar" parent="Widget.Material3.Toolbar">

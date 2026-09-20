@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient_login"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
@@ -29,7 +30,7 @@
                 android:layout_marginBottom="@dimen/espacio_md"
                 android:text="@string/subtitulo_restablecer_contrasena"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="@color/texto_secundario" />
+                android:textColor="@color/login_texto_secundario" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/campoCodigo"
@@ -53,6 +54,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_sm"
                 app:passwordToggleEnabled="true"
+                app:passwordToggleTint="@color/login_texto_secundario"
                 android:hint="@string/hint_contrasena_nueva">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -69,6 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/espacio_sm"
                 app:passwordToggleEnabled="true"
+                app:passwordToggleTint="@color/login_texto_secundario"
                 android:hint="@string/hint_confirmar_contrasena">
 
                 <com.google.android.material.textfield.TextInputEditText
