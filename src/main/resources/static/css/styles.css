@@ -6534,14 +6534,78 @@ main > .sb-vacio {
         text-align: center;
     }
 
-    /* La tabla se sale de la pantalla a este ancho: se le da su propio scroll
-       horizontal en vez de empujar el ancho de la pagina entera. */
-    .sb-subidos {
-        overflow-x: auto;
+    /* Cuatro columnas no entran en un telefono. Antes se le daba scroll
+       horizontal propio con un min-width fijo, pero eso deja al usuario a
+       mitad de una celda cortada apenas suelta el dedo (sin scroll-snap nada
+       lo alinea a un borde de columna) y sin ninguna pista de que hay mas
+       para el costado. Mismo arreglo que .tabla-alumnos y .tabla-asignacion:
+       cada documento pasa a ser una tarjeta con sus campos etiquetados, nada
+       que desplazar. */
+    .sb-tabla {
+        display: block;
+        white-space: normal;
     }
 
-    .sb-tabla {
-        min-width: 34rem;
+    .sb-tabla thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+
+    .sb-tabla tbody,
+    .sb-tabla tr,
+    .sb-tabla td {
+        display: block;
+    }
+
+    .sb-tabla tr {
+        padding: 0.9rem 1.1rem;
+        border-top: 1px solid var(--line);
+    }
+
+    /* El rayado cebra ordena filas de una tabla; entre tarjetas separadas por
+       borde no ordena nada y solo ensucia (mismo criterio que .tabla-alumnos). */
+    .sb-tabla tbody tr:nth-child(even) {
+        background-color: transparent;
+    }
+
+    .sb-tabla td {
+        display: grid;
+        grid-template-columns: minmax(0, 7rem) 1fr;
+        align-items: baseline;
+        gap: 0.75rem;
+        border: none;
+        padding: 0.25rem 0;
+    }
+
+    .sb-tabla td::before {
+        content: attr(data-label);
+        font-family: var(--font-display);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+    }
+
+    .sb-celda-archivo {
+        max-width: none;
+    }
+
+    .sb-celda-acciones {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+        padding-top: 0.6rem;
+    }
+
+    .sb-acciones {
+        justify-content: flex-start;
+    }
+
+    .sb-columna-acciones {
+        text-align: left;
     }
 }
 
