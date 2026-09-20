@@ -6575,7 +6575,7 @@ main > .sb-vacio {
        se lea como su propia tarjeta de un vistazo. */
     .sb-tabla tr {
         padding: 0.9rem 1.1rem;
-        border: 1px solid var(--line);
+        border: 1.5px solid var(--ink-soft);
         border-radius: var(--radius-panel);
         background-color: var(--surface);
     }
