@@ -122,10 +122,19 @@ public class ChromeModelAdvice {
 
         if (planillas.size() >= 6) {
             // findByAlumno_IdAlOrderByFechaDesdeDesc: la más nueva (la sexta) va
-            // primera. Su fecha_hasta es la referencia de "cuándo pasó esto" y
-            // también la clave de esta ocurrencia (ver AvisoLeido).
-            LocalDate fechaSextaPlanilla = planillas.get(0).getFechaHasta();
-            String clave = fechaSextaPlanilla.toString();
+            // primera.
+            PlanillaSemanal sextaPlanilla = planillas.get(0);
+            LocalDate fechaSextaPlanilla = sextaPlanilla.getFechaHasta();
+            // La clave es el id de la planilla, no su fecha_hasta: si se borra
+            // la sexta y se vuelve a cargar con las MISMAS fechas de semana
+            // (lo más probable al reintentar, sobre todo probando), fecha_hasta
+            // da igual que antes y el aviso seguía saliendo como ya leído --
+            // exactamente el mismo problema que ya se corrigió para
+            // documentos_adjuntos, pero con el id de planilla en vez del id de
+            // documento. El id, en cambio, es autoincremental: la planilla
+            // nueva SIEMPRE tiene uno distinto al de la que se borró, aunque
+            // elijas la semana con las mismas fechas.
+            String clave = String.valueOf(sextaPlanilla.getIdPs());
             // fecha_hasta la elige el alumno al cargar la planilla, y puede caer
             // después de hoy (una semana de prueba con fecha futura, por
             // ejemplo) -- sin este límite, ese aviso terminaba ordenándose como
