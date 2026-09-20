@@ -26,6 +26,10 @@
                     Contraseña restablecida correctamente. Ya podés iniciar sesión.
                 </p>
 
+                <div th:if="${error}" class="mensaje-error">
+                    <p th:text="${error}"></p>
+                </div>
+
                 <form th:action="@{/login-check}" method="post" class="auth-form">
                     <div>
                         <label for="email">Email</label>
