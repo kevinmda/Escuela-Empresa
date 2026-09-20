@@ -139,15 +139,26 @@ public class PlanillaSemanalController {
     @PostMapping("/alumno/planilla")
     public String guardarFormulario(@ModelAttribute("planillaForm") PlanillaSemanalForm form,
                                      Authentication authentication,
-                                     Model model) {
+                                     Model model,
+                                     RedirectAttributes redirectAttributes) {
 
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         try {
             planillaSemanalService.guardarPlanilla(form, alumno);
-            model.addAttribute("exito", "Planilla guardada correctamente.");
-            model.addAttribute("planillaForm", new PlanillaSemanalForm());
-            model.addAttribute("habilitado", false);
+            // Redirect y no return directo: los @ModelAttribute de
+            // ChromeModelAdvice (entre ellos, los avisos del header) se
+            // resuelven ANTES de que el cuerpo de este método corra -- así
+            // funciona Spring con los @ModelAttribute, se completan primero
+            // para armar el Model que después usa el handler. Si acá se
+            // devolviera la vista directo, el header de ESTA MISMA respuesta
+            // se calcularía con el estado de ANTES de guardar (por ejemplo,
+            // "documentos finales" no aparecía recién al completar la sexta
+            // planilla, sino que había que recargar o navegar a otro lado para
+            // que se notara). El redirect fuerza una petición GET nueva y
+            // aparte, donde el header ya se calcula después del guardado.
+            redirectAttributes.addFlashAttribute("exito", "Planilla guardada correctamente.");
+            return "redirect:/alumno/planilla";
         } catch (ReglaNegocioException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("planillaForm", form);
