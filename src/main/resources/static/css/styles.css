@@ -5403,7 +5403,18 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
    que apunte al id que genera Thymeleaf. Antes las etiquetas eran <label> sueltos
    sin asociar a nada. */
 .pl-campo {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    /* La grilla (.impr-doc-campos, .pl-grilla, etc.) estira cada celda a la
+       altura de la fila (align-items: stretch por default en grid), pero acá
+       adentro .pl-campo por sí solo no hacía nada con ese espacio de más: si
+       una etiqueta de al lado ocupa dos líneas (como "Nombre completo del
+       Padre/Encargado") y esta una sola línea (como "Área de pasantía"), el
+       input de la más corta quedaba pegado arriba, a distinta altura del de
+       al lado. justify-content: flex-end empuja todo el bloque (etiqueta +
+       input) al fondo de la celda, así los inputs quedan siempre alineados
+       entre sí sin importar cuántas líneas ocupe cada etiqueta. */
+    justify-content: flex-end;
     margin: 0;
 }
 
