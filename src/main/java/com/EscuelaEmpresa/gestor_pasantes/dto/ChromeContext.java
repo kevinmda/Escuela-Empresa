@@ -155,7 +155,7 @@ public record ChromeContext(
                     inicio,
                     new Seccion("documentos", "Documentos", null, List.of(
                             new Seccion("documentos-antes", "Antes de empezar", "/alumno/documentos/antes-de-empezar"),
-                            new Seccion("planilla", "Planillas Semanales", "/alumno/planilla"),
+                            new Seccion("planilla", "Planilla Semanal", "/alumno/planilla"),
                             new Seccion("documentos-final", "Al terminar", "/alumno/documentos/al-terminar"),
                             new Seccion("documentos-informe", "Informe de Pasantía", "/alumno/documentos/informe"),
                             new Seccion("documentos-adjuntos", "Documentos adjuntos", "/alumno/documentos/adjuntos"))),
