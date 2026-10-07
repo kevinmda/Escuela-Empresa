@@ -1,0 +1,7 @@
+# Caddy saca y renueva solo el certificado HTTPS (Let's Encrypt) para ${DOMINIO}.
+# Requisitos: el dominio apunta a la IP publica de la VM y los puertos 80 y 443
+# estan abiertos (firewall de la VM y Security List de Oracle).
+{$DOMINIO} {
+	encode gzip
+	reverse_proxy app:8080
+}

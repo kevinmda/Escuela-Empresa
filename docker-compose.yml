@@ -9,7 +9,7 @@ services:
       - mysql-data:/var/lib/mysql
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -31,11 +31,30 @@ services:
       COOKIES_SEGURAS: ${COOKIES_SEGURAS:-false}
       APP_SECURITY_FORZAR_HTTPS: ${APP_SECURITY_FORZAR_HTTPS:-false}
       APP_URL_BASE: ${APP_URL_BASE}
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60
+    # Solo localhost: al publico se sale unicamente por Caddy (HTTPS).
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     volumes:
       - uploads-data:/app/uploads
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      DOMINIO: ${DOMINIO}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
 
 volumes:
   mysql-data:
   uploads-data:
+  caddy-data:
+  caddy-config:
