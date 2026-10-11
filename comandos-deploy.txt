@@ -1,0 +1,341 @@
+COMANDOS USADOS PARA EL DEPLOY EN EL CONTENEDOR (sdp@186.17.107.54:2252)
+==========================================================================
+Todo lo que sigue se corre desde PowerShell en tu PC, salvo que se indique
+"(dentro del servidor)" - en ese caso ya tenés que estar conectado con
+`ssh escuela-empresa`.
+
+
+1. ACCESO SSH
+--------------------------------------------------------------------------
+ssh-keygen
+    Genera un par de claves (privada + publica) en ~/.ssh/. La privada
+    nunca se comparte; la publica (.pub) es la que se manda al servidor.
+
+ssh-copy-id -i ~/.ssh/id_ed25519.pub -p 2252 sdp@186.17.107.54
+    Copia tu clave publica al servidor para poder entrar sin contraseña.
+    Pide la contraseña UNA vez (la ultima que sirva).
+
+cat ~/.ssh/id_ed25519.pub | ssh -p 2252 sdp@186.17.107.54 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+    Hace lo mismo que ssh-copy-id a mano, por si esa herramienta no esta
+    disponible. Solo funciona si ya podes entrar de alguna otra forma.
+
+ssh -p 2252 sdp@186.17.107.54
+    Conecta directo por IP y puerto, sin usar el alias de ~/.ssh/config.
+
+~/.ssh/config (archivo, no comando):
+    Host escuela-empresa
+        HostName 186.17.107.54
+        Port 2252
+        User sdp
+        IdentityFile ~/.ssh/id_ed25519
+    Guarda IP/puerto/usuario bajo un alias para no tipearlos cada vez.
+
+ssh escuela-empresa
+    Conecta usando el alias de arriba. Equivale al comando largo de IP/puerto.
+
+ssh -L 8080:localhost:8080 escuela-empresa
+    Abre un tunel SSH: todo lo que le mandes a localhost:8080 en tu PC
+    viaja encapsulado hasta el puerto 8080 del servidor. Sirve para
+    probar la app en el navegador sin que el puerto este abierto al
+    publico. Hay que dejar esa terminal abierta mientras se usa.
+
+
+2. DIAGNOSTICO DEL SERVIDOR (dentro del servidor)
+--------------------------------------------------------------------------
+hostname && whoami
+    Confirma en que maquina/usuario estas parado (util para no confundir
+    tu PC local con el servidor remoto).
+
+uname -a
+    Info del kernel/sistema operativo.
+
+cat /etc/os-release
+    Que distribucion Linux es (en este caso, Arch Linux).
+
+systemd-detect-virt
+    Dice si estas dentro de una VM, un contenedor LXC, etc. Confirmo que
+    este servidor es un contenedor LXC de Proxmox.
+
+sudo -n true
+    Prueba si sudo funciona SIN pedir contraseña (si no tira error, es
+    que si funciona sin password).
+
+df -h .
+    Espacio en disco disponible en el directorio actual.
+
+ss -tlnp
+    Lista que puertos estan escuchando conexiones y que proceso los usa.
+
+sudo nft list ruleset
+sudo iptables -L -n
+    Reglas de firewall activas. Sirve para descartar que el propio
+    contenedor este bloqueando un puerto.
+
+
+3. INSTALAR DOCKER (dentro del servidor)
+--------------------------------------------------------------------------
+sudo pacman -Sy --noconfirm docker
+    Instala Docker (Arch Linux usa pacman como gestor de paquetes).
+
+sudo systemctl enable --now docker
+    Prende Docker ahora Y lo deja configurado para arrancar solo en cada
+    reinicio del contenedor.
+
+sudo systemctl status docker
+    Muestra si el servicio esta corriendo bien o con errores.
+
+sudo docker info
+    Datos generales del Docker instalado (version, driver de storage, etc).
+
+sudo docker run --rm hello-world
+    Prueba minima: baja una imagen de test y la corre. Si esto funciona,
+    Docker esta OK de punta a punta. --rm borra el contenedor de prueba
+    al terminar.
+
+sudo pacman -Sy --noconfirm docker-compose
+    Instala el plugin de Docker Compose (para manejar app + base de datos
+    juntas con un solo archivo docker-compose.yml).
+
+docker compose version
+    Confirma que el plugin de compose quedo instalado.
+
+
+4. TRAER EL CODIGO AL SERVIDOR (dentro del servidor)
+--------------------------------------------------------------------------
+sudo pacman -Sy --noconfirm git
+    Instala git (no viene de fabrica en esta imagen de Arch).
+
+git clone https://github.com/kevinmda/Escuela-Empresa.git ~/Escuela-Empresa
+    Descarga el repositorio completo a esa carpeta del servidor. Como el
+    repo es publico, no hace falta usuario/contraseña.
+
+cd ~/Escuela-Empresa && git pull
+    Trae los commits nuevos del repo remoto a la copia que esta en el
+    servidor (se corre despues de cada cambio que se pushea a GitHub).
+
+
+5. ARCHIVO .env (secretos de la app, dentro del servidor)
+--------------------------------------------------------------------------
+openssl rand -hex 16
+openssl rand -hex 32
+    Generan cadenas aleatorias seguras, usadas como contraseñas/claves
+    (MYSQL_ROOT_PASSWORD, REMEMBER_ME_KEY, JWT_SECRET).
+
+cat > .env <<EOF
+...
+EOF
+    Crea el archivo .env con todas las variables de entorno que necesitan
+    docker-compose.yml y la app (contraseñas, mail, claves). Este archivo
+    NUNCA se sube a git (esta en .gitignore).
+
+chmod 600 .env
+    Deja el archivo .env legible/editable SOLO por tu usuario, nadie mas
+    en el servidor puede leerlo.
+
+nano ~/Escuela-Empresa/.env
+    Abre el archivo en un editor de texto de terminal para editarlo a
+    mano (Ctrl+O guarda, Ctrl+X sale).
+
+
+6. LEVANTAR LA APP (dentro del servidor, parado en ~/Escuela-Empresa)
+--------------------------------------------------------------------------
+sudo docker compose up -d --build
+    Construye las imagenes (segun el Dockerfile) y levanta los
+    contenedores (app + mysql) en segundo plano (-d = "detached").
+    Hay que correrlo de nuevo cada vez que cambia el Dockerfile o el
+    codigo fuente.
+
+sudo docker compose up -d
+    Igual que arriba pero sin reconstruir la imagen. Sirve para aplicar
+    cambios del archivo .env (variables de entorno) sin tocar el codigo.
+
+sudo docker compose ps
+    Lista los contenedores del proyecto y su estado (corriendo, sano,
+    caido, etc).
+
+sudo docker logs escuela-empresa-app-1 --tail 40
+    Ultimas 40 lineas de log de la app. Es lo primero que hay que mirar
+    si algo no arranca bien.
+
+sudo docker logs escuela-empresa-app-1 -f
+    Sigue el log en vivo (como "tail -f"). Ctrl+C para salir.
+
+sudo docker compose restart
+    Reinicia todos los contenedores sin reconstruir nada.
+
+sudo docker compose stop app
+sudo docker compose start app
+    Para/prende SOLO el contenedor de la app (deja mysql corriendo).
+    Se uso para poder importar datos a mysql sin que la app este escribiendo
+    al mismo tiempo.
+
+sudo docker compose down
+    Apaga y BORRA los contenedores (no borra los volumenes de datos ni
+    las imagenes).
+
+sudo docker compose down -v
+    Igual que el anterior pero ademas borra los volumenes (osea, se
+    pierden los datos de mysql y los uploads). Se uso al revertir todo.
+
+curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8080/
+    Pide la pagina principal y solo muestra el codigo de respuesta HTTP
+    (200 = OK, 302 = redirect, etc), sin bajar el contenido. Sirve para
+    chequear rapido si la app esta viva.
+
+
+7. CREAR EL USUARIO ADMINISTRADOR EN LA BASE
+--------------------------------------------------------------------------
+python3 -c "import secrets,string; ..."
+    Genera una contraseña temporal aleatoria (corrido en tu PC local).
+
+npx --yes bcryptjs "la-contraseña" 10
+    Genera el hash BCrypt de esa contraseña (10 = cantidad de "rounds",
+    el mismo algoritmo que usa Spring Security). El hash es lo que se
+    guarda en la base, nunca la contraseña en texto plano.
+
+scp -P 2252 archivo_local.sql sdp@186.17.107.54:/tmp/archivo.sql
+    Copia un archivo desde tu PC hacia el servidor por SSH (Secure Copy).
+
+sudo docker exec -i escuela-empresa-mysql-1 mysql -uroot -p"CONTRASEÑA" escuela-empresa
+    Entra (o en este caso, le manda comandos) al cliente de mysql QUE
+    CORRE DENTRO del contenedor de la base de datos. "-i" permite pasarle
+    comandos por la entrada estandar (por ejemplo, con un pipe "<").
+
+... < archivo.sql
+    Ejecuta todo el contenido de ese archivo .sql contra la base.
+
+sudo docker exec -it escuela-empresa-mysql-1 mysql -uroot -p escuela-empresa
+    Igual que el de arriba pero "-it" abre una sesion INTERACTIVA (para
+    escribir consultas a mano, no para pasarle un archivo).
+
+
+8. MIGRAR DATOS DESDE XAMPP LOCAL
+--------------------------------------------------------------------------
+"/c/xampp/mysql/bin/mysqladmin.exe" -uroot ping
+    Chequea si el servidor MySQL de XAMPP esta corriendo en tu PC.
+
+"/c/xampp/mysql/bin/mysqldump.exe" -uroot --databases escuela-empresa --single-transaction --routines --triggers > dump.sql
+    Exporta toda la base local (estructura + datos) a un archivo .sql.
+    --single-transaction evita bloquear las tablas mientras exporta.
+
+"/c/xampp/mysql/bin/mysql.exe" -uroot -N -e "SELECT COUNT(*) FROM `escuela-empresa`.documento_scan;"
+    Corre una consulta SQL puntual sin entrar a una sesion interactiva
+    (-N oculta los nombres de columna, -e ejecuta ese comando y sale).
+
+(despues, el dump.sql se copia al servidor con scp y se importa igual
+que el archivo admin.sql del punto 7, pero conviene frenar la app antes
+con "docker compose stop app" para que no lea la base a mitad de la
+importacion)
+
+
+9. GIT (en tu PC local, para subir los archivos del deploy)
+--------------------------------------------------------------------------
+git add archivo1 archivo2 ...
+    Marca archivos especificos para el proximo commit (mejor que
+    "git add -A" para no subir algo por error).
+
+git commit -m "mensaje"
+    Guarda los cambios marcados como un punto en la historia del repo.
+
+git push origin main
+    Sube tus commits locales al repositorio remoto de GitHub, rama main.
+
+git fetch origin
+    Trae la informacion de los commits nuevos del remoto SIN mezclarlos
+    todavia con tu rama local.
+
+git rebase origin/main
+    Reordena tus commits locales para que queden arriba de los commits
+    nuevos que trajo el fetch (evita el "merge commit" feo cuando dos
+    personas subieron cosas distintas).
+
+
+10. DOMINIO GRATIS + HTTPS (lo que se armo y despues se revirtio)
+--------------------------------------------------------------------------
+curl "https://www.duckdns.org/update?domains=NOMBRE&token=TOKEN&ip=IP"
+    Le dice a DuckDNS que actualice el dominio NOMBRE.duckdns.org para
+    que apunte a esa IP. Devuelve "OK" si funciono.
+
+nslookup NOMBRE.duckdns.org
+    Consulta a que IP resuelve ese dominio ahora mismo (para confirmar
+    que el cambio de arriba ya se aplico).
+
+sudo pacman -Sy --noconfirm nginx certbot certbot-nginx
+    Instala Nginx (servidor web / reverse proxy) y Certbot (cliente de
+    Let's Encrypt para sacar certificados HTTPS gratis) con su plugin
+    para configurar Nginx automaticamente.
+
+sudo nginx -t
+    Revisa que la configuracion de Nginx no tenga errores de sintaxis
+    ANTES de aplicarla (para no tumbar el servidor con un typo).
+
+sudo systemctl enable --now nginx
+    Prende Nginx ahora y lo deja arrancando solo en cada reinicio.
+
+sudo certbot --nginx -d "midominio.duckdns.org" --non-interactive --agree-tos -m "email@ejemplo.com" --redirect
+    Pide un certificado HTTPS real y gratis para ese dominio, modifica la
+    configuracion de Nginx solo, y agrega la redireccion automatica de
+    http:// a https://. --non-interactive evita que pida confirmaciones
+    a mano (util en scripts).
+
+    IMPORTANTE: esto solo funciona si el dominio ya llega de verdad hasta
+    ese servidor desde internet (Let's Encrypt necesita poder "tocar" el
+    servidor para validar que sos vos). En nuestro caso no funciono
+    porque el trafico externo pasaba por un proxy compartido del
+    administrador que no estaba ruteando hacia este contenedor.
+
+Systemd timer (2 archivos: duckdns.service + duckdns.timer):
+    Un "service" define QUE comando correr; un "timer" define CADA
+    CUANTO correrlo (como una tarea programada / cron, pero manejada por
+    systemd). Se uso para que la IP de DuckDNS se actualice sola cada
+    5 minutos, por si el contenedor cambia de IP en algun reinicio.
+
+sudo systemctl daemon-reload
+    Le avisa a systemd que hay archivos de servicio nuevos o modificados
+    para que los relea (hace falta despues de crear/editar un .service
+    o .timer a mano).
+
+sudo systemctl list-timers duckdns.timer
+    Muestra cuando corrio por ultima vez ese timer y cuando va a correr
+    de nuevo.
+
+
+11. REVERTIR TODO (lo que se corrio al final para dejar el servidor limpio)
+--------------------------------------------------------------------------
+sudo docker compose down -v
+    Baja los contenedores Y borra los volumenes (se pierden los datos).
+
+sudo systemctl stop nginx
+sudo systemctl disable nginx
+    Apaga Nginx y saca que arranque solo en el proximo reinicio.
+
+sudo rm -f /etc/nginx/conf.d/gestor-pasantes.conf
+    Borra el archivo de configuracion que le habia agregado a Nginx.
+
+sudo certbot delete --cert-name "midominio.duckdns.org" --non-interactive
+    Borra un certificado HTTPS ya emitido (en este caso no llego a
+    emitirse ninguno, asi que no habia nada que borrar).
+
+sudo systemctl stop duckdns.timer
+sudo systemctl disable duckdns.timer
+sudo rm -f /etc/systemd/system/duckdns.timer /etc/systemd/system/duckdns.service /usr/local/bin/duckdns-update.sh
+sudo systemctl daemon-reload
+    Apaga y elimina completamente el timer que actualizaba DuckDNS.
+
+rm -rf ~/Escuela-Empresa
+    Borra la carpeta entera del proyecto clonado en el servidor.
+
+sudo docker ps -a
+    Lista TODOS los contenedores (corriendo o parados) para confirmar
+    que no quedo ninguno del proyecto.
+
+
+NOTAS GENERALES
+--------------------------------------------------------------------------
+- "sudo" antes de un comando = correrlo con permisos de administrador
+  dentro del contenedor. En este servidor no pide contraseña para sudo.
+- Los comandos que empiezan con "ssh -p 2252 sdp@186.17.107.54 '...'"
+  se corrieron DESDE tu PC pero ejecutan lo que esta entre comillas
+  DENTRO del servidor remoto, sin necesidad de conectarte manualmente.
+- pacman es el gestor de paquetes de Arch Linux (equivalente a apt en
+  Ubuntu/Debian, o a Chocolatey/winget en Windows).
