@@ -7228,6 +7228,13 @@ body:not(:has(.credito-disenio))::after {
     font-weight: 600;
 }
 
+/* Sin sección elegida, o con una sección vacía, la tabla está oculta: la barra
+   (contador y botón) no tiene nada que guardar a la vista, así que se oculta
+   con ella. */
+.tabla-scroll:has(> .tabla-asignacion.oculto) + .asignacion-barra {
+    display: none;
+}
+
 /* La fila que ya se cambió pero todavía no se guardó. */
 .tabla-asignacion tbody tr.fila-modificada,
 .tabla-asignacion tbody tr.fila-modificada:hover {
