@@ -34,94 +34,107 @@
     <main id="main-content">
         <h2>Documentos adjuntos</h2>
 
+        <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+        <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
+
         <!-- Documentos adjuntos: no genera nada nuevo, junta en un solo PDF lo
              que el alumno ya subió en /alumno/subir (los escaneos firmados, no
-             las plantillas de esta página). Solo tiene sentido pedirlo cuando
-             el expediente está completo, así que hasta entonces el botón queda
-             deshabilitado y muestra cuánto falta en vez de romper al tocarlo. -->
-        <!-- Informe final: lo que el alumno armó a partir de la plantilla Word de
-             Informe de Pasantía, exportado a PDF. Es condición para habilitar el
-             expediente de más abajo, y va al final de ese PDF. -->
-        <section class="panel sb-form sb-form--compacto" aria-labelledby="adj-informe-titulo">
-            <h3 class="sb-subidos-titulo" id="adj-informe-titulo">Informe final</h3>
-            <p class="sb-adjuntos-nota">
-                Subí tu informe final en PDF. Podés partir de la plantilla de
-                <a th:href="@{/alumno/documentos/informe}">Informe de Pasantía</a> y exportarla a PDF
-                desde Word. Se admite un solo archivo.
-            </p>
-
-            <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
-            <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
-
-            <form th:if="${informe == null}" th:action="@{/alumno/subir}" method="post"
-                  enctype="multipart/form-data" class="sb-form-adjuntos-cuerpo">
-                <input type="hidden" name="tipoDocumento" value="INFORME_FINAL">
-                <input type="hidden" name="volverA" value="adjuntos">
-
-                <label for="archivo-input-informe" class="dropzone" id="dropzone-informe">
-                    <span class="dropzone-titulo" id="dropzone-titulo-informe">Hacé click o arrastrá tu PDF acá</span>
-                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
-                </label>
-                <input type="file" id="archivo-input-informe" name="archivo" accept="application/pdf" required
-                       class="dropzone-input">
-
-                <div class="sb-form-acciones">
-                    <button type="submit" class="btn btn-primary">Subir informe</button>
-                </div>
-            </form>
-
-            <div th:if="${informe != null}" class="sb-acciones sb-informe-subido">
-                <span class="sb-celda-archivo" th:text="${informe.nombreArchivo}">informe.pdf</span>
-                <a class="btn btn-secondary sb-btn-fila"
-                   th:href="@{/alumno/subir/{id}/ver(id=${informe.idDs})}"
-                   target="_blank" rel="noopener">Ver</a>
-                <form th:action="@{/alumno/subir/{id}/eliminar(id=${informe.idDs})}" method="post"
-                      data-confirmar
-                      data-confirmar-titulo="¿Eliminar el informe?"
-                      th:attr="data-confirmar-mensaje='Archivo: ' + ${informe.nombreArchivo} + '. Si lo eliminás, se deshabilita el expediente hasta que subas uno nuevo.'"
-                      data-confirmar-texto="Eliminar">
-                    <input type="hidden" name="volverA" value="adjuntos">
-                    <button type="submit" class="btn btn-danger sb-btn-fila">Eliminar</button>
-                </form>
-            </div>
-        </section>
-
+             las plantillas de esta página) más su informe final en PDF, que se
+             sube acá mismo, dentro de la tarjeta, igual que las cédulas en
+             Autorización. Solo tiene sentido pedirlo cuando el expediente está
+             completo (los 10 comprobantes y el informe), así que hasta entonces
+             el botón queda deshabilitado y muestra cuánto falta en vez de
+             romper al tocarlo. -->
         <section class="panel impr-pliego" aria-labelledby="impr-adjuntos">
             <div class="impr-momento">
                 <h3 class="impr-momento-titulo" id="impr-adjuntos">Documentos adjuntos</h3>
                 <p class="impr-momento-nota" th:if="${expedienteCompleto}">
-                    Autorización, contrato, tus planillas semanales y las dos fichas finales que
-                    subiste, juntos en un solo PDF y en ese orden.
+                    Autorización, contrato, tus planillas semanales, las dos fichas finales y tu
+                    informe final, juntos en un solo PDF y en ese orden.
                 </p>
                 <p class="impr-momento-nota" th:unless="${expedienteCompleto}">
                     Se habilita cuando termines de subir los <span th:text="${totalLimite}">10</span>
                     comprobantes en <a th:href="@{/alumno/subir}">Subir documentos</a>
-                    y subas tu informe final en PDF (cuadro de abajo).
+                    y subas tu informe final en PDF acá abajo.
                 </p>
             </div>
 
             <ul class="impr-lista">
-                <li class="impr-doc">
-                    <div class="impr-doc-hoja">
-                        <span class="impr-hoja impr-hoja--pila" aria-hidden="true">
-                            <span class="impr-hoja-cara">
-                                <span class="impr-hoja-banda"></span>
-                                <span class="impr-hoja-renglones"></span>
+                <li class="impr-doc impr-doc--formulario">
+                    <div class="impr-doc-cabecera">
+                        <div class="impr-doc-hoja">
+                            <span class="impr-hoja impr-hoja--pila" aria-hidden="true">
+                                <span class="impr-hoja-cara">
+                                    <span class="impr-hoja-banda"></span>
+                                    <span class="impr-hoja-renglones"></span>
+                                </span>
                             </span>
-                        </span>
-                        <span class="impr-hoja-cuenta" th:text="${totalLimite} + ' documentos'">10 documentos</span>
+                            <span class="impr-hoja-cuenta" th:text="${totalLimite} + ' documentos'">10 documentos</span>
+                        </div>
+                        <div class="impr-doc-texto">
+                            <h4 class="impr-doc-titulo">Expediente completo</h4>
+                            <p class="impr-doc-desc">Generá un PDF con tus documentos ordenados y listos para imprimir. Es una herramienta opcional que te facilita la organización de la documentación. Para generarlo, necesitás haber subido los 10 documentos requeridos en la pestaña de "Subir" y tu informe final en PDF acá abajo. El informe va al final del expediente.</p>
+                        </div>
                     </div>
-                    <div class="impr-doc-texto">
-                        <h4 class="impr-doc-titulo">Expediente completo</h4>
-                        <p class="impr-doc-desc">Generá un PDF con tus documentos ordenados y listos para imprimir. Es una herramienta opcional que te facilita la organización de la documentación. Para generarlo, necesitás haber subido los 10 documentos requeridos en la pestaña de "Subir" y tu informe final en PDF en el cuadro de arriba. El informe va al final del expediente.</p>
-                    </div>
-                    <div class="impr-doc-acciones">
-                        <a th:if="${expedienteCompleto}" class="btn btn-primary"
-                           th:href="@{/alumno/imprimir/Documentos_Adjuntos.pdf}"
-                           target="_blank" rel="noopener"
-                           aria-label="Descargar documentos adjuntos en un solo PDF">Descargar</a>
-                        <button th:unless="${expedienteCompleto}" type="button" class="btn btn-primary" disabled
-                                th:text="${diezCompletos} ? 'Falta el informe' : (${totalSubidos} + ' de ' + ${totalLimite})">0 de 10</button>
+
+                    <!-- Sin informe: zona de arrastre + "Subir informe". POST con
+                         archivo, así que multipart; vuelve a esta misma página. -->
+                    <form th:if="${informe == null}" class="impr-doc-formulario" method="post"
+                          enctype="multipart/form-data" th:action="@{/alumno/subir}">
+                        <input type="hidden" name="tipoDocumento" value="INFORME_FINAL">
+                        <input type="hidden" name="volverA" value="adjuntos">
+
+                        <div class="impr-doc-campos">
+                            <div class="pl-campo">
+                                <span class="pl-campo-etiqueta">Informe final (PDF)</span>
+                                <label for="archivo-input-informe" class="dropzone" id="dropzone-informe">
+                                    <span class="dropzone-titulo" id="dropzone-titulo-informe">Hacé click o
+                                        arrastrá el PDF acá</span>
+                                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
+                                </label>
+                                <input type="file" id="archivo-input-informe" name="archivo"
+                                       accept="application/pdf" required class="dropzone-input">
+                            </div>
+                        </div>
+
+                        <div class="impr-doc-acciones">
+                            <button type="submit" class="btn btn-primary"
+                                    aria-label="Subir el informe final en PDF">Subir informe</button>
+                            <button type="button" class="btn btn-primary" disabled
+                                    th:text="${diezCompletos} ? 'Falta el informe' : (${totalSubidos} + ' de ' + ${totalLimite})">0 de 10</button>
+                        </div>
+                    </form>
+
+                    <!-- Con informe: el archivo subido, con Ver y Eliminar. -->
+                    <div th:if="${informe != null}">
+                        <div class="impr-doc-campos">
+                            <div class="pl-campo">
+                                <span class="pl-campo-etiqueta">Informe final (PDF)</span>
+                                <div class="sb-acciones sb-informe-subido">
+                                    <span class="sb-celda-archivo" th:text="${informe.nombreArchivo}">informe.pdf</span>
+                                    <a class="btn btn-secondary sb-btn-fila"
+                                       th:href="@{/alumno/subir/{id}/ver(id=${informe.idDs})}"
+                                       target="_blank" rel="noopener">Ver</a>
+                                    <form th:action="@{/alumno/subir/{id}/eliminar(id=${informe.idDs})}" method="post"
+                                          data-confirmar
+                                          data-confirmar-titulo="¿Eliminar el informe?"
+                                          th:attr="data-confirmar-mensaje='Archivo: ' + ${informe.nombreArchivo} + '. Si lo eliminás, se deshabilita el expediente hasta que subas uno nuevo.'"
+                                          data-confirmar-texto="Eliminar">
+                                        <input type="hidden" name="volverA" value="adjuntos">
+                                        <button type="submit" class="btn btn-danger sb-btn-fila">Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="impr-doc-acciones">
+                            <a th:if="${expedienteCompleto}" class="btn btn-primary"
+                               th:href="@{/alumno/imprimir/Documentos_Adjuntos.pdf}"
+                               target="_blank" rel="noopener"
+                               aria-label="Descargar documentos adjuntos en un solo PDF">Descargar</a>
+                            <button th:unless="${expedienteCompleto}" type="button" class="btn btn-primary" disabled
+                                    th:text="${totalSubidos} + ' de ' + ${totalLimite}">0 de 10</button>
+                        </div>
                     </div>
                 </li>
             </ul>
