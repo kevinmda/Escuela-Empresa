@@ -44,73 +44,19 @@
         banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // El Padre/Encargado (Contrato: solo nombre; Autorización: nombre + cédula)
-    // tiene que coincidir con lo que ya está cargado en la base, y eso solo se
-    // puede saber preguntándole al servidor. Sin este chequeo previo, el
-    // target="_blank" del formulario ya abrió la pestaña nueva para cuando la
-    // respuesta dice que había que rechazarlo -- por eso esto corre ANTES de
-    // dejar que el formulario se someta de verdad.
-    //
-    // "enviarPorFetch": true (solo Autorización) manda el formulario por fetch
-    // en vez del envío nativo del <form> -- ver enviarFormularioPorFetch más
-    // abajo para el motivo. Contrato (GET, sin archivos) sigue con
-    // form.requestSubmit(), que ahí funciona bien.
-    function activarVerificacionPadre(formId, nombreSelector, ciSelector, enviarPorFetch) {
+    // El Padre/Encargado (nombre en Contrato; nombre + cédula en Autorización) se
+    // escribe en el PDF tal cual lo ingresó el alumno: ya no se compara con lo
+    // que hay en la base. Contrato es un GET simple y se envía de forma nativa;
+    // Autorización se manda por fetch (ver enviarFormularioPorFetch más abajo).
+    function activarEnvioPorFetch(formId) {
         const form = document.getElementById(formId);
         if (!form) return;
 
-        let verificado = false;
-
         form.addEventListener('submit', function (evento) {
-            if (verificado) {
-                verificado = false;
-                return;
-            }
-
             evento.preventDefault();
-
             const boton = form.querySelector('button[type="submit"]');
-            const campoNombre = form.querySelector(nombreSelector);
-            const campoCi = ciSelector ? form.querySelector(ciSelector) : null;
-            if (!campoNombre) return;
-
-            const params = new URLSearchParams({ nombre: campoNombre.value.trim() });
-            if (campoCi) params.set('ci', campoCi.value.trim());
-
             if (boton) boton.disabled = true;
-
-            fetch('/alumno/documentos/verificar-padre?' + params.toString())
-                .then(function (respuesta) { return respuesta.json(); })
-                .then(function (resultado) {
-                    if (!resultado.valido) {
-                        mostrarError(resultado.error
-                            || 'El Padre/Encargado no coincide con lo que tenemos registrado.');
-                        if (boton) boton.disabled = false;
-                        return;
-                    }
-
-                    if (enviarPorFetch) {
-                        enviarFormularioPorFetch(form, boton);
-                        return;
-                    }
-
-                    verificado = true;
-                    if (typeof form.requestSubmit === 'function') {
-                        form.requestSubmit();
-                    } else {
-                        verificado = false; // form.submit() no dispara este listener de nuevo
-                        form.submit();
-                    }
-                    // Se reactiva también en el caso exitoso: el PDF se abre en OTRA
-                    // pestaña y esta página se queda tal cual, así que sin esto el
-                    // botón quedaba deshabilitado para siempre después del primer
-                    // click (antes solo se reactivaba si tocabas de nuevo un campo).
-                    if (boton) boton.disabled = false;
-                })
-                .catch(function () {
-                    mostrarError('No se pudo verificar los datos del Padre/Encargado. Probá de nuevo.');
-                    if (boton) boton.disabled = false;
-                });
+            enviarFormularioPorFetch(form, boton);
         });
     }
 
@@ -194,8 +140,7 @@
         activarBotonSegunObligatorios('form-contrato', 'btn-generar-contrato');
         activarBotonSegunObligatorios('form-autorizacion', 'btn-generar-autorizacion');
 
-        activarVerificacionPadre('form-contrato', '[name="padreEncargado"]', null, false);
-        activarVerificacionPadre('form-autorizacion', '[name="padreNombre"]', '[name="padreCi"]', true);
+        activarEnvioPorFetch('form-autorizacion');
 
         const tituloVacio = 'Hacé click o arrastrá el PDF acá';
 

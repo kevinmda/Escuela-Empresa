@@ -109,7 +109,24 @@ public class FormularioPdfService {
         return aBytes(document);
     }
 
+    // Versión de la API móvil: el Padre/Encargado sale de lo que está cargado en
+    // la base (el formulario web, en cambio, manda lo que el alumno escribe).
     public byte[] generarAutorizacion(Alumno alumno) throws IOException {
+        String nombrePadre = null;
+        String ciPadre = null;
+        if (alumno.getPadreTutor() != null) {
+            PadreTutor pt = alumno.getPadreTutor();
+            String primerNombre = pt.getNombres().trim().split(" ")[0];
+            String primerApellido = pt.getApellidos().trim().split(" ")[0];
+            nombrePadre = primerNombre + " " + primerApellido;
+            ciPadre = pt.getCi();
+        }
+        return generarAutorizacion(alumno, nombrePadre, ciPadre);
+    }
+
+    // Versión web: nombre y cédula del Padre/Encargado vienen del formulario
+    // tal cual los escribió el alumno, sin compararlos con la base.
+    public byte[] generarAutorizacion(Alumno alumno, String nombrePadre, String ciPadre) throws IOException {
         PDDocument document = plantillaService.cargarPdf("AUTORIZACION_PADRES_PEL.pdf");
         PDPage pagina = document.getPage(0);
 
@@ -139,13 +156,11 @@ public class FormularioPdfService {
         if (alumno.getEmpresa() != null) {
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(), 451, 698.9f);
         }
-        if (alumno.getPadreTutor() != null) {
-            PadreTutor pt = alumno.getPadreTutor();
-            String primerNombre = pt.getNombres().trim().split(" ")[0];
-            String primerApellido = pt.getApellidos().trim().split(" ")[0];
-            String nombrePadreTutor = primerNombre + " " + primerApellido;
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, nombrePadreTutor, 307, 640);
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, pt.getCi(), 137, 617.3f);
+        if (nombrePadre != null && !nombrePadre.isBlank()) {
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, nombrePadre, 307, 640);
+        }
+        if (ciPadre != null && !ciPadre.isBlank()) {
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, ciPadre, 137, 617.3f);
         }
         // Segunda autorizacion (la de repuesto)
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 393.5f, 411);
@@ -158,13 +173,11 @@ public class FormularioPdfService {
         if (alumno.getEmpresa() != null) {
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(), 451, 298.7f);
         }
-        if (alumno.getPadreTutor() != null) {
-            PadreTutor pt = alumno.getPadreTutor();
-            String primerNombre = pt.getNombres().trim().split(" ")[0];
-            String primerApellido = pt.getApellidos().trim().split(" ")[0];
-            String nombrePadreTutor = primerNombre + " " + primerApellido;
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, nombrePadreTutor, 307, 239.8f);
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, pt.getCi(), 137, 217.2f);
+        if (nombrePadre != null && !nombrePadre.isBlank()) {
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, nombrePadre, 307, 239.8f);
+        }
+        if (ciPadre != null && !ciPadre.isBlank()) {
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, ciPadre, 137, 217.2f);
         }
 
         contentStream.close();

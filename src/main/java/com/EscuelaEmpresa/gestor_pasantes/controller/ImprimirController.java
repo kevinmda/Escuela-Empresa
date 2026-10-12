@@ -2,13 +2,10 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
@@ -28,7 +25,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
 import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
-import com.EscuelaEmpresa.gestor_pasantes.entity.PadreTutor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
@@ -140,52 +136,14 @@ public class ImprimirController {
         buffer.writeTo(response.getOutputStream());
     }
 
-    // Chequeo de solo lectura (GET, sin efectos secundarios) que el JS de la
-    // página llama por fetch ANTES de someter el formulario de verdad. Sirve
-    // para el Padre/Encargado del Contrato (solo nombre) y para el de la
-    // Autorización (nombre + cédula) -- por eso "ci" es opcional. El objetivo es
-    // que un dato que no va a coincidir nunca abra la pestaña nueva del PDF: sin
-    // este paso previo, el navegador ya abrió la pestaña para cuando el servidor
-    // se entera de que hay que rechazarlo.
-    @GetMapping("/alumno/documentos/verificar-padre")
-    @ResponseBody
-    public Map<String, Object> verificarPadre(@RequestParam String nombre,
-                                               @RequestParam(required = false) String ci,
-                                               Authentication authentication) {
-        Alumno alumno = obtenerAlumnoAutenticado(authentication);
-        PadreTutor padreTutor = alumno.getPadreTutor();
-
-        if (padreTutor == null) {
-            return Map.of("valido", false, "error",
-                    "Todavía no hay un padre, madre o tutor registrado para vos. Consultá con la coordinación.");
-        }
-
-        boolean nombreOk = nombreCoincide(nombre, padreTutor);
-        boolean ciOk = ci == null || ci.isBlank() || ciCoincide(ci, padreTutor);
-
-        if (!nombreOk || !ciOk) {
-            String mensaje = (ci == null || ci.isBlank())
-                    ? "El nombre y apellido del Padre/Encargado no coincide con lo que tenemos registrado. "
-                            + "Revisalo e intentá de nuevo."
-                    : "El nombre y apellido o la cédula del padre, madre o tutor no coinciden con lo que "
-                            + "tenemos registrado. Revisalos e intentá de nuevo.";
-            return Map.of("valido", false, "error", mensaje);
-        }
-
-        return Map.of("valido", true);
-    }
-
     // supervisor, area y padreEncargado vienen del formulario (ver
     // documentos-antes-de-empezar.html); area es el único opcional. empresa NO
     // se recibe del formulario -- ese campo está bloqueado ahí porque es de la
     // base, así que se resuelve acá con el mismo criterio que el modelo de la
     // página, no con lo que mande el cliente en ese campo de solo lectura.
     //
-    // padreEncargado se verifica igual que en Autorización (ver
-    // generarPdfAutorizacion): esto es la validación del lado del servidor, la
-    // misma que ya corre /alumno/documentos/verificar-padre antes de que el
-    // navegador llegue a someter este formulario. No hay que confiar solo en el
-    // chequeo del cliente -- alguien podría saltearse el JS.
+    // padreEncargado se escribe en el PDF tal cual lo ingresó el alumno: no se
+    // compara con el Padre_Tutor cargado en la base.
     @GetMapping("/alumno/imprimir/Contrato.pdf")
     public String generarPdfContrato(@RequestParam String supervisor,
                                     @RequestParam(required = false) String area,
@@ -193,20 +151,6 @@ public class ImprimirController {
                                     Authentication authentication, HttpServletResponse response,
                                     RedirectAttributes redirectAttributes) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
-        PadreTutor padreTutor = alumno.getPadreTutor();
-
-        if (padreTutor == null) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Todavía no hay un padre, madre o tutor registrado para vos. Consultá con la coordinación.");
-            return "redirect:/alumno/documentos/antes-de-empezar";
-        }
-
-        if (!nombreCoincide(padreEncargado, padreTutor)) {
-            redirectAttributes.addFlashAttribute("error",
-                    "El nombre y apellido del Padre/Encargado no coincide con lo que tenemos registrado. "
-                            + "Revisalo e intentá de nuevo.");
-            return "redirect:/alumno/documentos/antes-de-empezar";
-        }
 
         String empresa = alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : null;
 
@@ -222,13 +166,12 @@ public class ImprimirController {
     }
 
     // Antes era un link fijo (GET, sin parámetros); ahora es un formulario con
-    // dos campos que el alumno tiene que llenar Y que tienen que coincidir con
-    // el Padre_Tutor que ya está cargado en la base (ver nombreCoincide/
-    // ciCoincide), más dos adjuntos opcionales que se agregan como páginas
+    // dos campos que el alumno tiene que llenar (se escriben en el PDF tal cual,
+    // sin compararlos con el Padre_Tutor de la base), más dos adjuntos opcionales que se agregan como páginas
     // nuevas al final del PDF. Un archivo implica multipart/form-data, que un
     // <form method="get"> no puede mandar (el navegador solo manda el nombre
     // del archivo, no su contenido), así que pasa a POST.
-    // Igual que verificar-padre: se llama por fetch, así que responde JSON en
+    // Se llama por fetch, así que responde JSON en
     // vez de escribir el PDF directo o redirigir. La razón de fondo es la
     // misma por la que este formulario pasó a POST: el archivo. Pero un POST
     // con archivos, abierto en una pestaña nueva (target="_blank"), es
@@ -250,18 +193,6 @@ public class ImprimirController {
                                                         Authentication authentication,
                                                         HttpServletRequest request) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
-        PadreTutor padreTutor = alumno.getPadreTutor();
-
-        if (padreTutor == null) {
-            return Map.of("valido", false, "error",
-                    "Todavía no hay un padre, madre o tutor registrado para vos. Consultá con la coordinación.");
-        }
-
-        if (!nombreCoincide(padreNombre, padreTutor) || !ciCoincide(padreCi, padreTutor)) {
-            return Map.of("valido", false, "error",
-                    "El nombre y apellido o la cédula del padre, madre o tutor no coinciden con lo que "
-                            + "tenemos registrado. Revisalos e intentá de nuevo.");
-        }
 
         List<MultipartFile> adjuntos = new ArrayList<>();
         for (MultipartFile adjunto : Arrays.asList(cedulaAlumno, cedulaPadre)) {
@@ -279,7 +210,7 @@ public class ImprimirController {
             adjuntos.add(adjunto);
         }
 
-        byte[] pdf = formularioPdfService.generarAutorizacion(alumno);
+        byte[] pdf = formularioPdfService.generarAutorizacion(alumno, padreNombre.trim(), padreCi.trim());
         pdf = agregarPaginasAdjuntas(pdf, adjuntos);
 
         HttpSession session = request.getSession();
@@ -445,40 +376,6 @@ public class ImprimirController {
 
         return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
             .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
-    }
-
-    // Compara por conjunto de palabras y no como texto exacto: "Juan Pérez" y
-    // "Pérez Juan" son la misma persona, y un doble espacio o una mayúscula de
-    // más no deberían bloquear a nadie. Sí hace falta que sean, palabra por
-    // palabra, las mismas -- omitir un nombre o escribir uno de más no coincide.
-    private boolean nombreCoincide(String nombreIngresado, PadreTutor padreTutor) {
-        Set<String> ingresado = palabrasNormalizadas(nombreIngresado);
-        Set<String> base = palabrasNormalizadas(padreTutor.getNombres() + " " + padreTutor.getApellidos());
-        return !ingresado.isEmpty() && ingresado.equals(base);
-    }
-
-    // Se sacan puntos y espacios antes de comparar: "1.234.567" y "1234567" son
-    // la misma cédula escrita distinto, no deberían contar como que no coincide.
-    private boolean ciCoincide(String ciIngresado, PadreTutor padreTutor) {
-        String limpio1 = ciIngresado == null ? "" : ciIngresado.replaceAll("[^0-9A-Za-z]", "");
-        String limpio2 = padreTutor.getCi() == null ? "" : padreTutor.getCi().replaceAll("[^0-9A-Za-z]", "");
-        return !limpio1.isEmpty() && limpio1.equalsIgnoreCase(limpio2);
-    }
-
-    private Set<String> palabrasNormalizadas(String texto) {
-        if (texto == null) {
-            return Set.of();
-        }
-        // NFD + sacar los caracteres combinantes (\p{M}) es como se sacan los
-        // acentos sin mapear letra por letra: "María" y "Maria" quedan iguales.
-        String normalizado = Normalizer.normalize(texto, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase()
-                .trim();
-        if (normalizado.isEmpty()) {
-            return Set.of();
-        }
-        return new LinkedHashSet<>(Arrays.asList(normalizado.split("\\s+")));
     }
 
     // PDFMergerUtility.appendDocument y no un bucle con importPage: es la
