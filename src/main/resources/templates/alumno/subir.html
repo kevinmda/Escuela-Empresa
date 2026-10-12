@@ -210,9 +210,26 @@
                  @media más abajo) el navegador tira los roles implícitos de tabla,
                  así que se reponen a mano -- mismo criterio que .tabla-alumnos y
                  .tabla-asignacion. -->
+            <!-- Eliminar varios de una vez: una casilla por fila, "Seleccionar todo"
+                 y un solo botón con una sola confirmación. Las casillas no están
+                 dentro de ningún <form>: el JS de abajo arma el POST con los ids
+                 marcados (ver #form-eliminar-varios). -->
+            <div th:if="${not #lists.isEmpty(documentos)}" class="sb-masivo">
+                <label class="sb-check-todo">
+                    <input type="checkbox" id="sb-sel-todos">
+                    <span>Seleccionar todo</span>
+                </label>
+                <button type="button" class="btn btn-danger sb-btn-fila" id="btn-eliminar-varios" disabled>
+                    Eliminar seleccionados
+                </button>
+            </div>
+
+            <form th:action="@{/alumno/subir/eliminar-varios}" method="post" id="form-eliminar-varios" hidden></form>
+
             <table th:if="${not #lists.isEmpty(documentos)}" class="sb-tabla" role="table">
                 <thead role="rowgroup">
                     <tr role="row">
+                        <th role="columnheader" scope="col" class="sb-col-check"><span class="sb-columna-acciones">Elegir</span></th>
                         <th role="columnheader" scope="col">Tipo</th>
                         <th role="columnheader" scope="col">Archivo</th>
                         <th role="columnheader" scope="col">Subido</th>
@@ -221,6 +238,10 @@
                 </thead>
                 <tbody role="rowgroup">
                     <tr role="row" th:each="doc : ${documentos}">
+                        <td role="cell" data-label="Elegir" class="sb-col-check">
+                            <input type="checkbox" class="sb-check-fila" th:value="${doc.idDs}"
+                                   th:attr="aria-label='Seleccionar ' + ${doc.nombreArchivo},data-nombre=${doc.nombreArchivo}">
+                        </td>
                         <td role="cell" data-label="Tipo"
                             th:text="${doc.tipoDocumento != null ? doc.tipoDocumento.descripcion : 'Sin especificar'}"></td>
                         <td role="cell" data-label="Archivo" class="sb-celda-archivo" th:text="${doc.nombreArchivo}"></td>
@@ -327,6 +348,69 @@
             document.getElementById('dropzone-adjuntos'),
             document.getElementById('archivo-input-adjuntos'),
             document.getElementById('dropzone-titulo-adjuntos'));
+
+        // --- Eliminar varios ---
+        (function () {
+            const checkTodos = document.getElementById('sb-sel-todos');
+            const boton = document.getElementById('btn-eliminar-varios');
+            const formulario = document.getElementById('form-eliminar-varios');
+            if (!checkTodos || !boton || !formulario) return;
+
+            const filas = Array.from(document.querySelectorAll('.sb-check-fila'));
+
+            function marcados() { return filas.filter(c => c.checked); }
+
+            function actualizar() {
+                const n = marcados().length;
+                boton.disabled = n === 0;
+                boton.textContent = n > 0 ? `Eliminar seleccionados (${n})` : 'Eliminar seleccionados';
+                checkTodos.checked = n > 0 && n === filas.length;
+                checkTodos.indeterminate = n > 0 && n < filas.length;
+            }
+
+            checkTodos.addEventListener('change', () => {
+                filas.forEach(c => { c.checked = checkTodos.checked; });
+                actualizar();
+            });
+            filas.forEach(c => c.addEventListener('change', actualizar));
+
+            function enviar(seleccion) {
+                // Se rearman los ids desde cero cada vez, por si hubo un intento anterior
+                formulario.querySelectorAll('input[name="ids"]').forEach(i => i.remove());
+                seleccion.forEach(c => {
+                    const oculto = document.createElement('input');
+                    oculto.type = 'hidden';
+                    oculto.name = 'ids';
+                    oculto.value = c.value;
+                    formulario.appendChild(oculto);
+                });
+                boton.disabled = true;
+                formulario.submit(); // submit() no dispara el listener de data-confirmar: ya se confirmó
+            }
+
+            boton.addEventListener('click', () => {
+                const seleccion = marcados();
+                if (seleccion.length === 0) return;
+
+                const mensaje = seleccion.length === 1
+                    ? `Archivo: ${seleccion[0].dataset.nombre}. Esta acción no se puede deshacer.`
+                    : `Se van a eliminar ${seleccion.length} documentos. Esta acción no se puede deshacer.`;
+
+                if (typeof window.confirmarAccion === 'function') {
+                    window.confirmarAccion({
+                        titulo: seleccion.length === 1 ? '¿Eliminar este documento?'
+                                                       : `¿Eliminar ${seleccion.length} documentos?`,
+                        mensaje: mensaje,
+                        texto: 'Eliminar',
+                        alConfirmar: () => enviar(seleccion)
+                    });
+                } else if (window.confirm(mensaje)) {
+                    enviar(seleccion);
+                }
+            });
+
+            actualizar();
+        })();
 
         activarDropzone(
             document.getElementById('dropzone-curriculum'),

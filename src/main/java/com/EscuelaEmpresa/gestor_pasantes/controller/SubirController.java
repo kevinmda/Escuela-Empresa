@@ -233,6 +233,43 @@ public class SubirController {
         Files.copy(archivo.toPath(), response.getOutputStream());
     }
 
+    // Eliminar varios de una vez (casillas de la tabla "Lo que ya subiste"). Se
+    // valida TODO antes de borrar nada: si alguno de los ids no es del alumno,
+    // no se borra ninguno. Un id que ya no existe (por ejemplo, borrado en otra
+    // pestaña) se ignora sin cortar el resto.
+    @PostMapping("/alumno/subir/eliminar-varios")
+    public String eliminarVarios(@RequestParam(name = "ids", required = false) List<Integer> ids,
+                                  Authentication authentication,
+                                  RedirectAttributes redirectAttributes) throws IOException {
+
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        if (ids == null || ids.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Elegí al menos un documento para eliminar.");
+            return "redirect:/alumno/subir";
+        }
+
+        List<DocumentoSubido> aEliminar = documentoSubidoRepository.findAllById(ids);
+        for (DocumentoSubido documento : aEliminar) {
+            if (!documento.getAlumno().getIdAl().equals(alumno.getIdAl())) {
+                throw new AccessDeniedException("No tenés permiso para eliminar estos documentos");
+            }
+        }
+
+        for (DocumentoSubido documento : aEliminar) {
+            File archivo = new File(documento.getRutaArchivo());
+            if (archivo.exists()) {
+                Files.delete(archivo.toPath());
+            }
+            documentoSubidoRepository.delete(documento);
+        }
+
+        redirectAttributes.addFlashAttribute("exito", aEliminar.size() == 1
+                ? "Documento eliminado correctamente."
+                : aEliminar.size() + " documentos eliminados correctamente.");
+        return "redirect:/alumno/subir";
+    }
+
     @PostMapping("/alumno/subir/{idDs}/eliminar")
     public String eliminarDocumento(@PathVariable Integer idDs,
                                      Authentication authentication,

@@ -6464,6 +6464,43 @@ input:read-only {
     gap: 0.4rem;
 }
 
+/* Eliminar varios: barra sobre la tabla con "Seleccionar todo" a la izquierda y
+   el botón a la derecha. */
+.sb-masivo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.sb-check-todo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+
+.sb-check-todo input,
+.sb-check-fila {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--esp, var(--accent));
+    cursor: pointer;
+}
+
+.sb-col-check {
+    width: 2.5rem;
+}
+
+.sb-masivo .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 /* Botones de fila: la altura de 44px del boton general no entra en una tabla
    sin estirar cada renglon casi al doble. Acá el boton se ve chico a proposito
    y va acompanado de su aria-label con el nombre del archivo. */
@@ -6648,6 +6685,11 @@ main > .sb-vacio {
 
     .sb-celda-archivo {
         max-width: none;
+    }
+
+    /* En tarjeta, la celda de la casilla ocupa el ancho normal de cualquier celda */
+    .sb-tabla td.sb-col-check {
+        width: auto;
     }
 
     .sb-celda-acciones {
