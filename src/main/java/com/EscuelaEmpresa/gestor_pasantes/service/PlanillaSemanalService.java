@@ -22,6 +22,12 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 @Service
 public class PlanillaSemanalService {
 
+    // La pasantía dura 5 o 6 semanas según el caso. Con MIN_SEMANAS cargadas ya
+    // se habilitan el informe, la ficha final y el expediente; la sexta es
+    // opcional pero, si se carga, también pasa a ser parte de lo que se exige.
+    public static final int MIN_SEMANAS = 5;
+    public static final int MAX_SEMANAS = 6;
+
     private final PlanillaSemanalRepository planillaSemanalRepository;
     private final PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository;
 
@@ -56,10 +62,10 @@ public class PlanillaSemanalService {
                     .filter(p -> !p.getIdPs().equals(idPsEdicion))
                     .toList();
         } else {
-            // Maximo 6 planillas por alumno (una pasantia dura exactamente 6 semanas).
+            // Maximo 6 planillas por alumno (la pasantia dura 5 o 6 semanas).
             // No aplica al editar: una edición no agrega una semana nueva.
-            if (planillasExistentes.size() >= 6) {
-                throw new ReglaNegocioException("Ya cargaste las 6 semanas de planilla. No se pueden cargar más.");
+            if (planillasExistentes.size() >= MAX_SEMANAS) {
+                throw new ReglaNegocioException("Ya cargaste el máximo de " + MAX_SEMANAS + " semanas de planilla. No se pueden cargar más.");
             }
             planilla = new PlanillaSemanal();
             planilla.setAlumno(alumno);

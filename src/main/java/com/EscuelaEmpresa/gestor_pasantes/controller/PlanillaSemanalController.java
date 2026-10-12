@@ -77,14 +77,14 @@ public class PlanillaSemanalController {
         List<PlanillaSemanal> planillas =
                 planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
 
-        boolean tieneSeisPlanillas = planillas.size() >= 6;
+        boolean tienePlanillasMinimas = planillas.size() >= PlanillaSemanalService.MIN_SEMANAS;
         boolean tieneSupervisor = alumno.getSupervisor() != null;
         boolean tieneEmpresa = alumno.getEmpresa() != null;
 
-        model.addAttribute("tieneSeisPlanillas", tieneSeisPlanillas);
+        model.addAttribute("tienePlanillasMinimas", tienePlanillasMinimas);
         model.addAttribute("tieneSupervisor", tieneSupervisor);
         model.addAttribute("tieneEmpresa", tieneEmpresa);
-        model.addAttribute("informeHabilitado", tieneSeisPlanillas && tieneSupervisor && tieneEmpresa);
+        model.addAttribute("informeHabilitado", tienePlanillasMinimas && tieneSupervisor && tieneEmpresa);
 
         // El detalle de cada requisito (a qué empresa, quién supervisa, cuántas
         // semanas llevás) para que la pantalla diga algo concreto en vez de
@@ -288,9 +288,10 @@ public class PlanillaSemanalController {
                 planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         Collections.reverse(planillas);
 
-        if (planillas.size() < 6) {
+        if (planillas.size() < PlanillaSemanalService.MIN_SEMANAS) {
             redirectAttributes.addFlashAttribute("error",
-                    "Todavía no completaste las 6 semanas de planilla, no se puede generar el informe.");
+                    "Todavía no completaste las " + PlanillaSemanalService.MIN_SEMANAS
+                            + " semanas de planilla, no se puede generar el informe.");
             return "redirect:/alumno/documentos/informe";
         }
 

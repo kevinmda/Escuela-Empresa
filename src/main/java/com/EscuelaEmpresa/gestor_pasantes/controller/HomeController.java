@@ -103,7 +103,7 @@ public class HomeController {
             // valor como "100" salga en notación científica).
             model.addAttribute("totalHorasPasantia", totalHorasPasantia.stripTrailingZeros().toPlainString());
 
-            model.addAttribute("totalLimiteDocumentos", limitesDocumentoService.obtenerLimiteTotal());
+            model.addAttribute("totalLimiteDocumentos", limitesDocumentoService.obtenerLimiteTotal(alumno.getIdAl()));
             model.addAttribute("totalSubidosDocumentos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
 
             return "alumno/index";

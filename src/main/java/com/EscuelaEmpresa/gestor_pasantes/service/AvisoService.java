@@ -58,10 +58,13 @@ public class AvisoService {
                 planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         List<ChromeContext.Aviso> avisos = new ArrayList<>();
 
-        if (planillas.size() >= 6) {
-            // findByAlumno_IdAlOrderByFechaDesdeDesc: la más nueva (la sexta) va
-            // primera.
-            PlanillaSemanal sextaPlanilla = planillas.get(0);
+        if (planillas.size() >= PlanillaSemanalService.MIN_SEMANAS) {
+            // findByAlumno_IdAlOrderByFechaDesdeDesc trae la más nueva primero,
+            // así que la planilla que completó el mínimo (la quinta, contando
+            // desde la más vieja) está MIN_SEMANAS posiciones antes del final.
+            // Se usa esa y no la más nueva para que, si después carga una sexta
+            // semana, el aviso no reaparezca como si fuera nuevo.
+            PlanillaSemanal sextaPlanilla = planillas.get(planillas.size() - PlanillaSemanalService.MIN_SEMANAS);
             LocalDate fechaSextaPlanilla = sextaPlanilla.getFechaHasta();
             // La clave es el id de la planilla, no su fecha_hasta: si se borra
             // la sexta y se vuelve a cargar con las MISMAS fechas de semana
@@ -95,7 +98,7 @@ public class AvisoService {
         }
 
         // Documentos Adjuntos (el expediente combinado, en /alumno/documentos/adjuntos)
-        // y su caja de subida en Subir se habilitan con los 10 comprobantes ya
+        // y su caja de subida en Subir se habilitan con todos los comprobantes (9 o 10) ya
         // subidos como PDF -- algo aparte e independiente de las planillas
         // cargadas en el sistema arriba. Una vez que el propio combinado ya se
         // subió de vuelta, el aviso deja de tener sentido (puedeSubirAdjuntos en
@@ -106,7 +109,7 @@ public class AvisoService {
         boolean yaSubioAdjuntos = documentos.stream()
                 .anyMatch(d -> d.getTipoDocumento() == TipoDocumento.DOCUMENTOS_ADJUNTOS);
         long totalSubidos = limitesDocumentoService.contarTotalSubidos(alumno.getIdAl());
-        int totalLimite = limitesDocumentoService.obtenerLimiteTotal();
+        int totalLimite = limitesDocumentoService.obtenerLimiteTotal(alumno.getIdAl());
 
         if (totalSubidos >= totalLimite && !yaSubioAdjuntos) {
             // El de mayor id (no el de fecha_subida más reciente) es, por

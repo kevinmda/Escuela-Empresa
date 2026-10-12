@@ -33,6 +33,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.service.ExpedientePdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.FormularioPdfService;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
+import com.EscuelaEmpresa.gestor_pasantes.service.PlanillaSemanalService;
 import com.EscuelaEmpresa.gestor_pasantes.service.PlantillaService;
 import com.EscuelaEmpresa.gestor_pasantes.service.ValidacionDocumentoService;
 import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
@@ -106,9 +107,9 @@ public class ImprimirController {
     @GetMapping("/alumno/documentos/al-terminar")
     public String mostrarDocumentosAlTerminar(Model model, Authentication authentication) {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
-        boolean tieneSeisPlanillas =
-                planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl()).size() >= 6;
-        model.addAttribute("tieneSeisPlanillas", tieneSeisPlanillas);
+        boolean tienePlanillasMinimas =
+                planillaSemanalRepository.countByAlumno_IdAl(alumno.getIdAl()) >= PlanillaSemanalService.MIN_SEMANAS;
+        model.addAttribute("tienePlanillasMinimas", tienePlanillasMinimas);
         return "alumno/documentos-al-terminar";
     }
 
@@ -117,7 +118,7 @@ public class ImprimirController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
         model.addAttribute("expedienteCompleto", expedientePdfService.estaCompleto(alumno.getIdAl()));
         model.addAttribute("totalSubidos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
-        model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal());
+        model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal(alumno.getIdAl()));
         return "alumno/documentos-adjuntos";
     }
 
@@ -136,7 +137,7 @@ public class ImprimirController {
 
         if (!expedientePdfService.estaCompleto(alumno.getIdAl())) {
             return Map.of("valido", false, "error",
-                    "Todavía no subiste los 10 comprobantes del expediente en Subir documentos.");
+                    "Todavía no subiste todos los comprobantes del expediente en Subir documentos.");
         }
         if (informe == null || informe.isEmpty()) {
             return Map.of("valido", false, "error", "Elegí tu informe final en PDF para generar el expediente.");
@@ -298,9 +299,9 @@ public class ImprimirController {
     }
 
     // area es obligatorio en el formulario (ver documentos-al-terminar.html),
-    // que además deja el campo deshabilitado hasta que hay 6 planillas -- pero
+    // que además deja el campo deshabilitado hasta que hay 5 planillas -- pero
     // eso es solo la puerta de entrada del lado del cliente. El chequeo real es
-    // este: si alguien llega igual con menos de 6 (JS desactivado, URL armada a
+    // este: si alguien llega igual con menos de 5 (JS desactivado, URL armada a
     // mano), se rechaza acá antes de generar nada.
     @GetMapping("/alumno/imprimir/Ficha_Final_Pel.pdf")
     public String generarPdfFichaFinalPel(@RequestParam String area,
@@ -310,9 +311,10 @@ public class ImprimirController {
         List<PlanillaSemanal> todasLasPlanillas =
                 planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
 
-        if (todasLasPlanillas.size() < 6) {
+        if (todasLasPlanillas.size() < PlanillaSemanalService.MIN_SEMANAS) {
             redirectAttributes.addFlashAttribute("error",
-                    "Todavía no completaste las 6 semanas de planilla, no se puede generar la ficha final.");
+                    "Todavía no completaste las " + PlanillaSemanalService.MIN_SEMANAS
+                            + " semanas de planilla, no se puede generar la ficha final.");
             return "redirect:/alumno/documentos/al-terminar";
         }
 

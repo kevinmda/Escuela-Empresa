@@ -36,13 +36,13 @@
         <section class="portada">
             <div class="portada-texto">
                 <h2 class="portada-titulo">Planilla Semanal</h2>
-                <p class="portada-sub">La pasantía por lo general es de seis semanas y cada una se carga por
+                <p class="portada-sub">La pasantía dura entre cinco y seis semanas (la sexta es opcional) y cada una se carga por
                     separado. Elegí una ya cargada para revisarla, o abrí la siguiente. También puedes bajarlo en blanco para completarlo a mano.</p>
             </div>
 
             <p class="portada-cuenta">
                 <span class="portada-cifra" th:text="${planillasAsc.size()}">0</span>
-                <span class="portada-total">de 6</span>
+                <span class="portada-total">de 5 a 6</span>
                 <span class="portada-label">semanas cargadas</span>
             </p>
         </section>
@@ -62,14 +62,14 @@
              Esto reemplaza al <select> de semanas y al boton "+ Cargar semana
              nueva", que eran dos controles sueltos en dos lugares distintos y
              que entre los dos no decian lo unico importante: que la pasantia
-             son SEIS semanas y cuantas van. El limite existe de verdad, el
-             servicio corta en la sexta ("Ya cargaste las 6 semanas de
-             planilla"), pero la pantalla no lo mencionaba en ningun lado.
+             son CINCO o SEIS semanas y cuantas van. El limite existe de verdad,
+             el servicio corta en la sexta ("Ya cargaste el maximo de 6 semanas
+             de planilla"); la sexta es opcional y por eso se rotula asi.
 
              Cada casillero es una semana: las cargadas son enlaces a su propia
              planilla, la siguiente es el boton que abre el formulario, y las que
              faltan quedan punteadas. Punteado es vacio en toda la app. -->
-        <section class="pl-semanas" aria-label="Las seis semanas de la pasantía">
+        <section class="pl-semanas" aria-label="Las semanas de la pasantía (cinco obligatorias y una sexta opcional)">
             <ol class="pl-riel">
                 <li class="pl-semana" th:each="n : ${#numbers.sequence(0, 5)}"
                     th:with="p=${n < planillasAsc.size() ? planillasAsc[n] : null}">
@@ -97,12 +97,13 @@
                             th:disabled="${habilitado}"
                             onclick="habilitarFormulario()">
                         <span class="pl-semana-orden" th:text="'Semana ' + ${n + 1}">Semana 1</span>
-                        <span class="pl-semana-fechas">Cargar</span>
+                        <span class="pl-semana-fechas" th:text="${n >= 5} ? 'Cargar (opcional)' : 'Cargar'">Cargar</span>
                     </button>
 
                     <span th:if="${p == null and n > planillasAsc.size()}"
                           class="pl-semana-caja pl-semana-caja--vacia">
                         <span class="pl-semana-orden" th:text="'Semana ' + ${n + 1}">Semana 1</span>
+                        <span class="pl-semana-fechas" th:if="${n >= 5}">Opcional</span>
                     </span>
                 </li>
             </ol>

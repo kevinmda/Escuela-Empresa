@@ -1,6 +1,6 @@
 // Habilita "Con mis datos" (Ficha final, en /alumno/documentos/al-terminar)
 // recien cuando el campo Área de pasantía tiene texto. Ese campo arranca
-// deshabilitado por el servidor (th:disabled) hasta que hay 6 planillas
+// deshabilitado por el servidor (th:disabled) hasta que hay 5 planillas
 // completas, y un campo deshabilitado siempre cuenta como "vacío" para este
 // chequeo -- así que, sin ninguna lógica extra, el botón tampoco se habilita
 // hasta que el campo lo esté.

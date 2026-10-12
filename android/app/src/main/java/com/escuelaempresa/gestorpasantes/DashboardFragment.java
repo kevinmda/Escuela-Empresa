@@ -108,7 +108,7 @@ public class DashboardFragment extends Fragment {
                 R.color.primario_contenedor, R.color.on_primario_contenedor);
 
         LinearProgressIndicator progresoSemanas = tarjetaSemanas.findViewById(R.id.progresoTarjeta);
-        progresoSemanas.setMax(6);
+        progresoSemanas.setMax(5); // el mínimo de la pasantía; la sexta semana es opcional
         progresoSemanas.setIndicatorColor(ContextCompat.getColor(requireContext(), R.color.on_acento_contenedor));
         progresoSemanas.setTrackColor(ContextCompat.getColor(requireContext(), R.color.superficie));
         progresoSemanas.setVisibility(View.VISIBLE);
@@ -270,7 +270,7 @@ public class DashboardFragment extends Fragment {
             valorTarjeta(tarjetaHoras, getString(R.string.dashboard_horas_valor, formatearHoras(totalHoras)));
 
             LinearProgressIndicator progresoSemanas = tarjetaSemanas.findViewById(R.id.progresoTarjeta);
-            progresoSemanas.setProgress(Math.min(semanas, 6));
+            progresoSemanas.setProgress(Math.min(semanas, 5));
         } catch (Exception e) {
             planillasFallo = true;
             valorTarjeta(tarjetaSemanas, getString(R.string.dashboard_valor_error));

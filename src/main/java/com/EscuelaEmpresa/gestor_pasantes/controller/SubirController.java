@@ -95,15 +95,15 @@ public class SubirController {
         Map<String, Long> subidosPorTipo = new HashMap<>();
         for (TipoDocumento tipo : tiposExpediente) {
             subidosPorTipo.put(tipo.name(), limitesDocumentoService.contarDocumentosSubidos(alumno.getIdAl(), tipo));
-            limites.put(tipo.name(), limitesDocumentoService.obtenerLimitePorTipo(tipo));
+            limites.put(tipo.name(), limitesDocumentoService.obtenerRequeridoPorTipo(alumno.getIdAl(), tipo));
         }
         model.addAttribute("limites", limites);
         model.addAttribute("subidosPorTipo", subidosPorTipo);
 
-        // El expediente completo son 10 comprobantes: 6 plantillas semanales y uno
-        // de cada uno de los otros cuatro tipos. La pantalla no lo decia en ningun
+        // El expediente completo son 9 o 10 comprobantes: 5 o 6 plantillas semanales
+        // y uno de cada uno de los otros cuatro tipos. La pantalla no lo decia en ningun
         // lado; los limites vivian escondidos en atributos data del <select>.
-        model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal());
+        model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal(alumno.getIdAl()));
         model.addAttribute("totalSubidos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
 
         // Apartado exclusivo de "Documentos adjuntos": el expediente ya combinado
@@ -176,7 +176,7 @@ public class SubirController {
         if (tipoDocumento == TipoDocumento.DOCUMENTOS_ADJUNTOS
                 && !limitesDocumentoService.expedienteCompleto(alumno.getIdAl())) {
             redirectAttributes.addFlashAttribute("error",
-                    "Todavía no completaste los 10 comprobantes del expediente. " +
+                    "Todavía no completaste todos los comprobantes del expediente. " +
                     "Documentos Adjuntos se habilita recién cuando esa entrega esté completa.");
             return redirectConTipo;
         }

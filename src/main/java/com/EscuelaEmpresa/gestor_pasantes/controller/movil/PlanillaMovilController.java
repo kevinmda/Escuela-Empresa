@@ -120,7 +120,7 @@ public class PlanillaMovilController {
     }
 
     // Mismos tres requisitos que /alumno/planilla/Informe_Pasantia.docx en la web
-    // (6 semanas, supervisor y empresa asignados), con los mismos mensajes de
+    // (5 semanas como mínimo, supervisor y empresa asignados), con los mismos mensajes de
     // error -- alli se muestran como flash message, aca como el "mensaje" del
     // JSON de error que ya interpreta ManejoErroresMovil.
     @GetMapping("/informe")
@@ -131,9 +131,10 @@ public class PlanillaMovilController {
                 planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(alumno.getIdAl());
         Collections.reverse(planillas);
 
-        if (planillas.size() < 6) {
+        if (planillas.size() < PlanillaSemanalService.MIN_SEMANAS) {
             throw new ReglaNegocioException(
-                    "Todavía no completaste las 6 semanas de planilla, no se puede generar el informe.");
+                    "Todavía no completaste las " + PlanillaSemanalService.MIN_SEMANAS
+                            + " semanas de planilla, no se puede generar el informe.");
         }
         if (alumno.getSupervisor() == null) {
             throw new ReglaNegocioException(

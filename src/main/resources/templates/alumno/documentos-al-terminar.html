@@ -63,7 +63,7 @@
                             <h4 class="impr-doc-titulo">Ficha final</h4>
                             <p class="impr-doc-desc">Tus datos completos y las fechas de inicio y fin de la pasantía,
                                 sacadas de tus planillas.</p>
-                            <!-- Sin las 6 semanas completas, el servidor no puede calcular esas
+                            <!-- Sin las 5 semanas como mínimo, el servidor no puede calcular esas
                                  fechas y la descarga termina en una pantalla de error. Decirlo
                                  antes cuesta un renglón; toparse con el error, una consulta al
                                  coordinador. -->
@@ -76,7 +76,7 @@
                         <div class="impr-doc-campos">
                             <label class="pl-campo">
                                 <span class="pl-campo-etiqueta">Área de pasantía</span>
-                                <input type="text" name="area" maxlength="150" th:disabled="${!tieneSeisPlanillas}" required>
+                                <input type="text" name="area" maxlength="150" th:disabled="${!tienePlanillasMinimas}" required>
                             </label>
                         </div>
 

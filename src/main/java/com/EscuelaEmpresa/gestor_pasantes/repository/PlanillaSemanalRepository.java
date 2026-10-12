@@ -13,6 +13,9 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 public interface PlanillaSemanalRepository extends JpaRepository<PlanillaSemanal, Integer> {
     List<PlanillaSemanal> findByAlumno_IdAlOrderByFechaDesdeDesc(Integer idAl);
 
+    // Cuántas semanas cargó el alumno (consulta derivada: no toca la base).
+    long countByAlumno_IdAl(Integer idAl);
+
     // Version paginada del mismo listado, para la API movil (GET /api/movil/planillas?page=&size=)
     Page<PlanillaSemanal> findByAlumno_IdAlOrderByFechaDesdeDesc(Integer idAl, Pageable pageable);
 

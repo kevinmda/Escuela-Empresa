@@ -40,7 +40,7 @@
     <string name="dashboard_saludo">Hola, %1$s</string>
     <string name="dashboard_subtitulo">Así va tu pasantía</string>
     <string name="dashboard_semanas">Semanas cargadas</string>
-    <string name="dashboard_semanas_valor">%1$d de 6</string>
+    <string name="dashboard_semanas_valor">%1$d de 5 a 6</string>
     <string name="dashboard_horas">Horas totales</string>
     <string name="dashboard_horas_valor">%1$s hs</string>
     <string name="dashboard_documentos">Documentos subidos</string>

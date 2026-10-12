@@ -67,8 +67,8 @@
                                 <span th:if="${tieneSupervisor}">Supervisor: <strong th:text="${nombreSupervisor}"></strong></span>
                                 <span th:unless="${tieneSupervisor}">Un supervisor o docente asignado</span>
                             </li>
-                            <li class="pl-requisito" th:classappend="${tieneSeisPlanillas} ? ' pl-requisito--listo'">
-                                <span>Semanas cargadas: <strong th:text="${cantidadPlanillas} + ' de 6'"></strong></span>
+                            <li class="pl-requisito" th:classappend="${tienePlanillasMinimas} ? ' pl-requisito--listo'">
+                                <span>Semanas cargadas: <strong th:text="${cantidadPlanillas} + ' (mínimo 5, máximo 6)'"></strong></span>
                             </li>
                         </ul>
                     </div>
