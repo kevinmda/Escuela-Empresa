@@ -6028,6 +6028,17 @@ button:disabled,
     color: var(--accent-ink);
 }
 
+/* Cuando el requisito va al lado de un botón (cuenta "0 de 10 comprobantes
+   subidos" en Documentos adjuntos), se centra con el botón en vertical y pierde
+   el margen superior que usa cuando va suelto debajo de un texto. */
+.impr-doc-acciones:has(> .impr-doc-requisito) {
+    align-items: center;
+}
+
+.impr-doc-acciones > .impr-doc-requisito {
+    margin: 0;
+}
+
 /* ---------- Contrato de pasantía: la única tarjeta con formulario ----------
    Las demás tarjetas de esta pantalla son "mirá esto y descargalo"; el
    contrato necesita datos que la base no tiene (supervisor, empresa, área) y
