@@ -26,6 +26,7 @@
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <script th:src="@{/js/theme.js}" defer></script>
     <script th:src="@{/js/cookie-consent.js}" defer></script>
+    <script th:src="@{/js/asignacionMasiva.js}" defer></script>
 
 </head>
 <body>
@@ -128,6 +129,8 @@
                 <span class="seccion-grupo" id="grupo-seccion-sup" role="group" aria-labelledby="etiqueta-seccion-sup"></span>
             </div>
 
+            <form th:action="@{/admin/supervisores/asignar-varios}" method="post" data-asignacion-masiva
+                  id="form-asignacion-sup">
             <div class="tabla-scroll">
                 <table class="tabla-asignacion oculto" id="tabla-asignacion-sup" role="table">
                     <thead role="rowgroup">
@@ -146,24 +149,30 @@
                             <td role="cell" data-label="Curso" th:text="${alumno.curso}"></td>
                             <td role="cell" data-label="Sección" th:text="${alumno.seccion}"></td>
                             <td role="cell" data-label="Supervisor" class="celda-asignar">
-                                <form th:action="@{/admin/supervisores/asignar}" method="post" class="fila-acciones">
-                                    <input type="hidden" name="idAl" th:value="${alumno.idAl}">
-                                    <span class="select-envoltorio">
-                                        <select name="idSup" class="select-asignacion">
-                                            <option value="">-- Sin asignar --</option>
-                                            <option th:each="sup : ${supervisores}"
-                                                    th:value="${sup.idSup}"
-                                                    th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
-                                                    th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
-                                        </select>
-                                    </span>
-                                    <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
-                                </form>
+                                <span class="select-envoltorio">
+                                    <select th:name="${'sup_' + alumno.idAl}" class="select-asignacion"
+                                            th:attr="data-original=${alumno.supervisor != null ? alumno.supervisor.idSup : ''},aria-label='Supervisor de ' + ${alumno.nombres + ' ' + alumno.apellidos}">
+                                        <option value="">-- Sin asignar --</option>
+                                        <option th:each="sup : ${supervisores}"
+                                                th:value="${sup.idSup}"
+                                                th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
+                                                th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
+                                    </select>
+                                </span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Un solo guardado para todas las filas cambiadas, en cualquiera de
+                 las secciones: asignacionMasiva.js lleva la cuenta y habilita el
+                 botón recién cuando hay algo para guardar. -->
+            <div class="asignacion-barra" th:unless="${alumnos.isEmpty()}">
+                <span class="asignacion-contador" data-asignacion-contador role="status" aria-live="polite">Sin cambios</span>
+                <button type="submit" class="btn-primary icono-guardar" data-asignacion-guardar disabled>Guardar cambios</button>
+            </div>
+            </form>
 
             <p th:if="${alumnos.isEmpty()}" class="mensaje-vacio">No hay alumnos cargados en esta especialidad.</p>
             <div th:unless="${alumnos.isEmpty()}" id="estado-asignacion-sup" class="estado-vacio" role="status" aria-live="polite"></div>

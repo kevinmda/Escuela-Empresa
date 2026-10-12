@@ -7198,3 +7198,47 @@ body:not(:has(.credito-disenio))::after {
         width: 100%;
     }
 }
+
+/* ---------- Guardado único de la asignación (supervisor/empresa) ----------
+
+   Una sola barra debajo de la tabla en vez de un botón por fila. Queda pegada
+   al borde inferior de la pantalla mientras se recorre la lista, así el botón
+   está siempre a mano sin tener que volver al final de una sección larga. */
+.asignacion-barra {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem 0;
+    background-color: var(--surface);
+    border-top: 1px solid var(--line);
+}
+
+.asignacion-contador {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+}
+
+.asignacion-contador--pendiente {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+/* La fila que ya se cambió pero todavía no se guardó. */
+.tabla-asignacion tbody tr.fila-modificada,
+.tabla-asignacion tbody tr.fila-modificada:hover {
+    background-color: var(--esp-tenue);
+    box-shadow: inset 3px 0 0 var(--esp-ink, var(--ink));
+}
+
+@media (max-width: 720px) {
+    .asignacion-barra {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+}

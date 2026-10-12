@@ -3,8 +3,12 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -398,40 +402,74 @@ public class AdminController {
         return "redirect:/admin/supervisores";
     }
 
-    @PostMapping("/admin/supervisores/asignar")
-    public String asignarSupervisor(@RequestParam Integer idAl,
-                                     @RequestParam(required = false) Integer idSup,
-                                     Authentication authentication,
-                                     RedirectAttributes redirectAttributes) {
+    // Guarda de una sola vez todas las asignaciones que el coordinador cambió en
+    // la tabla (un único botón "Guardar cambios"). Cada select llega como
+    // "sup_<idAl>" = idSup (o vacío para dejar al alumno sin supervisor).
+    // Se valida TODO antes de tocar nada: si una fila no corresponde a la
+    // especialidad del coordinador, no se guarda ninguna.
+    @PostMapping("/admin/supervisores/asignar-varios")
+    public String asignarSupervisores(@RequestParam Map<String, String> parametros,
+                                      Authentication authentication,
+                                      RedirectAttributes redirectAttributes) {
 
         Administrador admin = obtenerAdminAutenticado(authentication);
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
-        Alumno alumno = alumnoRepository.findById(idAl)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
-
-        // Seguridad: el coordinador solo puede tocar alumnos de su propia especialidad
-        if (!alumno.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
-            throw new AccessDeniedException("No podés modificar un alumno de otra especialidad");
+        Map<Integer, Alumno> alumnos = new LinkedHashMap<>();
+        for (Alumno alumno : alumnoRepository.findByEspecialidad_IdEspAndEgresadoFalse(especialidadFija.getIdEsp())) {
+            alumnos.put(alumno.getIdAl(), alumno);
+        }
+        Map<Integer, Supervisor> supervisores = new LinkedHashMap<>();
+        for (Supervisor supervisor : supervisorRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp())) {
+            supervisores.put(supervisor.getIdSup(), supervisor);
         }
 
-        if (idSup == null) {
-            alumno.setSupervisor(null); // se puede desasignar eligiendo "-- Sin asignar --"
-        } else {
-            Supervisor supervisor = supervisorRepository.findById(idSup)
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Supervisor no encontrado"));
+        List<Alumno> modificados = new ArrayList<>();
+        for (Map.Entry<String, String> parametro : parametros.entrySet()) {
+            if (!parametro.getKey().startsWith("sup_")) continue;
 
-            if (!supervisor.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
-                throw new AccessDeniedException("Ese supervisor no pertenece a tu especialidad");
+            Alumno alumno = alumnos.get(parsearId(parametro.getKey().substring("sup_".length())));
+            // Seguridad: el coordinador solo puede tocar alumnos de su propia especialidad
+            if (alumno == null) {
+                throw new AccessDeniedException("No podés modificar un alumno de otra especialidad");
             }
 
-            alumno.setSupervisor(supervisor);
+            Supervisor nuevo = null;
+            String valor = parametro.getValue();
+            if (valor != null && !valor.isBlank()) { // vacío = "-- Sin asignar --"
+                nuevo = supervisores.get(parsearId(valor));
+                if (nuevo == null) {
+                    throw new AccessDeniedException("Ese supervisor no pertenece a tu especialidad");
+                }
+            }
+
+            Integer idActual = alumno.getSupervisor() == null ? null : alumno.getSupervisor().getIdSup();
+            Integer idNuevo = nuevo == null ? null : nuevo.getIdSup();
+            if (!Objects.equals(idActual, idNuevo)) {
+                alumno.setSupervisor(nuevo);
+                modificados.add(alumno);
+            }
         }
 
-        alumnoRepository.save(alumno);
+        alumnoRepository.saveAll(modificados);
 
-        redirectAttributes.addFlashAttribute("exito", "Supervisor actualizado correctamente.");
+        redirectAttributes.addFlashAttribute("exito", mensajeAsignacion(modificados.size(), "supervisor"));
         return "redirect:/admin/supervisores";
+    }
+
+    private static Integer parsearId(String texto) {
+        try {
+            return Integer.valueOf(texto.trim());
+        } catch (NumberFormatException e) {
+            throw new ReglaNegocioException("Los datos enviados no son válidos. Recargá la página e intentá de nuevo.");
+        }
+    }
+
+    private static String mensajeAsignacion(int cantidad, String que) {
+        if (cantidad == 0) return "No había cambios que guardar.";
+        return cantidad == 1
+                ? "Se actualizó el " + que + " de 1 alumno."
+                : "Se actualizó el " + que + " de " + cantidad + " alumnos.";
     }
 
     @PostMapping("/admin/supervisores/editar")
@@ -608,39 +646,55 @@ public class AdminController {
         return "redirect:/admin/empresas";
     }
 
-    @PostMapping("/admin/empresas/asignar")
-    public String asignarEmpresa(@RequestParam Integer idAl,
-                                  @RequestParam(required = false) Integer idEmp,
+    // Igual que asignarSupervisores: un solo guardado para todas las filas
+    // cambiadas ("emp_<idAl>" = idEmp, o vacío para dejar sin empresa).
+    @PostMapping("/admin/empresas/asignar-varios")
+    public String asignarEmpresas(@RequestParam Map<String, String> parametros,
                                   Authentication authentication,
                                   RedirectAttributes redirectAttributes) {
 
         Administrador admin = obtenerAdminAutenticado(authentication);
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
-        Alumno alumno = alumnoRepository.findById(idAl)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
-
-        // Seguridad: el coordinador solo puede tocar alumnos de su propia especialidad
-        if (!alumno.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
-            throw new AccessDeniedException("No podés modificar un alumno de otra especialidad");
+        Map<Integer, Alumno> alumnos = new LinkedHashMap<>();
+        for (Alumno alumno : alumnoRepository.findByEspecialidad_IdEspAndEgresadoFalse(especialidadFija.getIdEsp())) {
+            alumnos.put(alumno.getIdAl(), alumno);
+        }
+        Map<Integer, Empresa> empresas = new LinkedHashMap<>();
+        for (Empresa empresa : empresaRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp())) {
+            empresas.put(empresa.getIdEmp(), empresa);
         }
 
-        if (idEmp == null) {
-            alumno.setEmpresa(null); // se puede desasignar eligiendo "-- Sin asignar --"
-        } else {
-            Empresa empresa = empresaRepository.findById(idEmp)
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Empresa no encontrada"));
+        List<Alumno> modificados = new ArrayList<>();
+        for (Map.Entry<String, String> parametro : parametros.entrySet()) {
+            if (!parametro.getKey().startsWith("emp_")) continue;
 
-            if (empresa.getEspecialidad() == null || !empresa.getEspecialidad().getIdEsp().equals(especialidadFija.getIdEsp())) {
-                throw new AccessDeniedException("Esa empresa no pertenece a tu especialidad");
+            Alumno alumno = alumnos.get(parsearId(parametro.getKey().substring("emp_".length())));
+            // Seguridad: el coordinador solo puede tocar alumnos de su propia especialidad
+            if (alumno == null) {
+                throw new AccessDeniedException("No podés modificar un alumno de otra especialidad");
             }
 
-            alumno.setEmpresa(empresa);
+            Empresa nueva = null;
+            String valor = parametro.getValue();
+            if (valor != null && !valor.isBlank()) { // vacío = "-- Sin asignar --"
+                nueva = empresas.get(parsearId(valor));
+                if (nueva == null) {
+                    throw new AccessDeniedException("Esa empresa no pertenece a tu especialidad");
+                }
+            }
+
+            Integer idActual = alumno.getEmpresa() == null ? null : alumno.getEmpresa().getIdEmp();
+            Integer idNuevo = nueva == null ? null : nueva.getIdEmp();
+            if (!Objects.equals(idActual, idNuevo)) {
+                alumno.setEmpresa(nueva);
+                modificados.add(alumno);
+            }
         }
 
-        alumnoRepository.save(alumno);
+        alumnoRepository.saveAll(modificados);
 
-        redirectAttributes.addFlashAttribute("exito", "Empresa actualizada correctamente.");
+        redirectAttributes.addFlashAttribute("exito", mensajeAsignacion(modificados.size(), "empresa"));
         return "redirect:/admin/empresas";
     }
 
