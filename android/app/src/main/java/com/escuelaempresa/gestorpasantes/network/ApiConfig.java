@@ -7,5 +7,5 @@ public final class ApiConfig {
     // Servidor de produccion. Para desarrollo local con el emulador, usar
     // "http://10.0.2.2:8080/api/movil" (localhost de la compu que corre el backend)
     // o la IP de la compu en la red Wi-Fi para un celular fisico.
-    public static final String BASE_URL = "https://desktop-75v3hk1.tail7d8f21.ts.net/api/movil";
+    public static final String BASE_URL = "https://gestor-pasante.duckdns.org/api/movil";
 }
