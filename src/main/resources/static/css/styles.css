@@ -6089,7 +6089,7 @@ input:read-only {
 .impr-doc-acciones {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 1rem;
 }
 
 /* "En blanco" va punteado, el mismo codigo que ya usan el select de asignacion

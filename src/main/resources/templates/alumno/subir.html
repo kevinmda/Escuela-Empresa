@@ -41,7 +41,7 @@
             <div class="portada-texto">
                 <h2 class="portada-titulo">Subir documentos</h2>
                 <p class="portada-sub">Acá subís en PDF los documentos firmados y sellados de tu
-                    pasantía. El expediente completo son
+                    pasantía. Los documentos subidos pueden verse desde escuela empresa y la coordinación de tu especialidad. El expediente completo son
                     <span th:text="${totalLimite}">10</span>.</p>
             </div>
 
@@ -177,8 +177,7 @@
         <section class="panel sb-form sb-form--compacto" aria-labelledby="sb-curriculum-titulo">
             <h3 class="sb-subidos-titulo" id="sb-curriculum-titulo">Currículum</h3>
             <p class="sb-adjuntos-nota">
-                Tu currículum en PDF para que esté disponible cuando lo soliciten las empresas. Lo pueden ver desde escuela empresa y la coordinación de tu
-                especialidad. Se admite un solo archivo.
+                Tu currículum en PDF para que esté disponible cuando lo soliciten las empresas. Se admite un solo archivo.
             </p>
 
             <form th:if="${puedeSubirCurriculum}" th:action="@{/alumno/subir}" method="post"
