@@ -6534,7 +6534,7 @@ input:read-only {
 
 /* El vacio deja de ser una linea en italica y dice que hacer. */
 .sb-vacio {
-    margin: 0;
+    margin: 0.4rem 0 0 0;
     padding: 2.25rem 1.5rem;
     border: 1.5px dashed color-mix(in srgb, var(--ink-soft) 40%, transparent);
     border-radius: var(--radius-panel);
