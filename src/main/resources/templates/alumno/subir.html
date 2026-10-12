@@ -40,7 +40,7 @@
         <section class="portada">
             <div class="portada-texto">
                 <h2 class="portada-titulo">Subir documentos</h2>
-                <p class="portada-sub">Acá subís en PDF los comprobantes firmados de tu
+                <p class="portada-sub">Acá subís en PDF los documentos firmados y sellados de tu
                     pasantía. El expediente completo son
                     <span th:text="${totalLimite}">10</span>.</p>
             </div>
@@ -112,7 +112,7 @@
              subiste" y el de Documentos adjuntos: dice qué pasó, no una caja
              muerta. -->
         <div th:if="${expedienteCompleto}" class="sb-vacio">
-            <p>Ya subiste los <span th:text="${totalLimite}">10</span> comprobantes del expediente.</p>
+            <p>Ya subiste los <span th:text="${totalLimite}">10</span> documentos del expediente.</p>
             <p>Para reemplazar alguno, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
         </div>
 
@@ -134,8 +134,8 @@
         <section class="panel sb-form sb-form--compacto" aria-labelledby="sb-adjuntos-titulo">
             <h3 class="sb-subidos-titulo" id="sb-adjuntos-titulo">Documentos adjuntos</h3>
             <p class="sb-adjuntos-nota">
-                El expediente completo que armás en
-                <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a>, ya firmado y escaneado. Se
+                El expediente completo con cada uno de los documentos ordenados correctamente (contrato, autorización, planillas semanales, ficha final, ficha final evaluativa e informe final), ya firmados y sellados. Puedes generarlo en
+                <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a> en caso de haber completado los documentos desde la página. Se
                 admite un solo archivo.
             </p>
 
@@ -177,7 +177,7 @@
         <section class="panel sb-form sb-form--compacto" aria-labelledby="sb-curriculum-titulo">
             <h3 class="sb-subidos-titulo" id="sb-curriculum-titulo">Currículum</h3>
             <p class="sb-adjuntos-nota">
-                Tu currículum en PDF. Lo pueden ver el coordinador y la administración de tu
+                Tu currículum en PDF para que esté disponible cuando lo soliciten las empresas. Lo pueden ver desde escuela empresa y la coordinación de tu
                 especialidad. Se admite un solo archivo.
             </p>
 
@@ -248,8 +248,8 @@
 
             <!-- El vacio deja de ser una linea en italica: dice que hacer. -->
             <p th:if="${#lists.isEmpty(documentos)}" class="sb-vacio">
-                Todavía no subiste ningún documento. Elegí arriba de qué tipo es y
-                arrastrá el PDF.
+                Todavía no subiste ningún documento. Haz click en las cajas o
+                arrastra los PDFs.
             </p>
         </section>
     </main>

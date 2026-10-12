@@ -146,7 +146,7 @@
         <section class="ahub-destinos" aria-label="Tus pantallas">
             <a class="ahub-destino ahub-destino--principal" th:href="@{/alumno/planilla}">
                 <span class="ahub-destino-titulo">Planilla Semanal</span>
-                <span class="ahub-destino-desc">Cargá tus actividades día por día y descargá el informe final de la pasantía.</span>
+                <span class="ahub-destino-desc">Descargá la planilla para completarlo a mano o completalo directamente desde la página.</span>
                 <span class="ahub-destino-dato">
                     <span th:text="${cantidadPlanillas} + ' de 6 semanas cargadas'">0 de 6 semanas cargadas</span>
                     <span aria-hidden="true"> · </span>
@@ -157,7 +157,7 @@
 
             <a class="ahub-destino" th:href="@{/alumno/subir}">
                 <span class="ahub-destino-titulo">Subir</span>
-                <span class="ahub-destino-desc">Subí en PDF la planilla que llenaste a mano.</span>
+                <span class="ahub-destino-desc">Sube en PDF los documentos correctamente completados con sus sellos y firmas respectivos.</span>
                 <span class="ahub-destino-dato"
                       th:text="${totalSubidosDocumentos} + ' de ' + ${totalLimiteDocumentos} + ' comprobantes subidos'">0 de 10 comprobantes subidos</span>
                 <span class="ahub-destino-flecha" aria-hidden="true">&rarr;</span>
@@ -165,7 +165,7 @@
 
             <a class="ahub-destino" th:href="@{/alumno/documentos/antes-de-empezar}">
                 <span class="ahub-destino-titulo">Documentos</span>
-                <span class="ahub-destino-desc">Contrato, autorización, fichas finales, el informe de pasantía y el expediente completo, todo con tus datos ya cargados.</span>
+                <span class="ahub-destino-desc">Contrato, autorización, fichas finales, el informe de pasantía y el expediente completo, todo para completar directamente desde la página o a mano.</span>
                 <span class="ahub-destino-flecha" aria-hidden="true">&rarr;</span>
             </a>
         </section>
