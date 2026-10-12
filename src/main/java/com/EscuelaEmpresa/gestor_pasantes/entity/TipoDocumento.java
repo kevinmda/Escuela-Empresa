@@ -10,7 +10,13 @@ public enum TipoDocumento {
     // ya combinado por el sistema en /alumno/imprimir) firmado/sellado y subido de
     // vuelta. No cuenta para el total de 10 comprobantes: solo existe una vez que
     // esos 10 ya están completos.
-    DOCUMENTOS_ADJUNTOS("Documentos Adjuntos");
+    DOCUMENTOS_ADJUNTOS("Documentos Adjuntos"),
+    // El currículum del alumno. No es un comprobante de la pasantía: queda afuera
+    // de los 10 del expediente (igual que DOCUMENTOS_ADJUNTOS), no se pide para
+    // habilitar nada y lo pueden ver el coordinador y el administrativo en su
+    // panel. Se guarda como texto en documento_scan.tipo_documento, así que
+    // agregarlo no cambia la estructura de la base.
+    CURRICULUM("Currículum");
 
     private final String descripcion;
 

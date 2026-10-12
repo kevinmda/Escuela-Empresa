@@ -369,7 +369,8 @@
             // que arma este PDF, así que no cuenta para saber si ya se puede
             // generar. Si el alumno lo subió, ya aparece como una fila más de la
             // tabla de arriba, con su propio enlace para verlo.
-            const tiposDelExpediente = tipos.filter(tipo => tipo.codigo !== 'DOCUMENTOS_ADJUNTOS');
+            const tiposDelExpediente = tipos.filter(tipo =>
+                tipo.codigo !== 'DOCUMENTOS_ADJUNTOS' && tipo.codigo !== 'CURRICULUM');
             const completo = tiposDelExpediente.every(tipo => tipo.subidos >= tipo.limite);
 
             if (completo) {

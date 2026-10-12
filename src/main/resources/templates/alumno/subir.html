@@ -169,6 +169,40 @@
             </div>
         </section>
 
+        <!-- Currículum: no es uno de los comprobantes de la pasantía, así que no
+             entra en la grilla de tipos ni en la cuenta de arriba. Mismo formato
+             que el apartado de Documentos adjuntos: el tipo viaja en un campo
+             oculto y hay una sola zona de arrastre. Lo ven también el
+             coordinador y el administrativo de la especialidad. -->
+        <section class="panel sb-form" aria-labelledby="sb-curriculum-titulo">
+            <h3 class="sb-subidos-titulo" id="sb-curriculum-titulo">Currículum</h3>
+            <p class="sb-adjuntos-nota">
+                Tu currículum en PDF. Lo pueden ver el coordinador y la administración de tu
+                especialidad. Se admite un solo archivo.
+            </p>
+
+            <form th:if="${puedeSubirCurriculum}" th:action="@{/alumno/subir}" method="post"
+                  enctype="multipart/form-data" class="sb-form-adjuntos-cuerpo">
+                <input type="hidden" name="tipoDocumento" value="CURRICULUM">
+
+                <label for="archivo-input-curriculum" class="dropzone" id="dropzone-curriculum">
+                    <span class="dropzone-titulo" id="dropzone-titulo-curriculum">Hacé click o arrastrá tu PDF acá</span>
+                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
+                </label>
+                <input type="file" id="archivo-input-curriculum" name="archivo" accept="application/pdf" required
+                       class="dropzone-input">
+
+                <div class="sb-form-acciones">
+                    <button type="submit" class="btn btn-primary">Subir currículum</button>
+                </div>
+            </form>
+
+            <div th:unless="${puedeSubirCurriculum}" class="sb-vacio">
+                <p>Ya subiste tu currículum.</p>
+                <p>Para reemplazarlo, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
+            </div>
+        </section>
+
         <section class="sb-subidos" aria-labelledby="sb-subidos-titulo">
             <h3 class="sb-subidos-titulo" id="sb-subidos-titulo">Lo que ya subiste</h3>
 
@@ -293,6 +327,11 @@
             document.getElementById('dropzone-adjuntos'),
             document.getElementById('archivo-input-adjuntos'),
             document.getElementById('dropzone-titulo-adjuntos'));
+
+        activarDropzone(
+            document.getElementById('dropzone-curriculum'),
+            document.getElementById('archivo-input-curriculum'),
+            document.getElementById('dropzone-titulo-curriculum'));
     </script>
 </body>
 </html>

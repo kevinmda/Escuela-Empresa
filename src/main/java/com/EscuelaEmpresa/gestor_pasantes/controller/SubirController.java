@@ -118,6 +118,15 @@ public class SubirController {
         model.addAttribute("documentoAdjuntos", documentoAdjuntos);
         model.addAttribute("puedeSubirAdjuntos", expedienteCompleto && documentoAdjuntos == null);
 
+        // Apartado del currículum: un solo PDF, siempre disponible (no depende de
+        // los comprobantes). Para reemplazarlo se elimina el anterior.
+        DocumentoSubido documentoCurriculum = documentos.stream()
+                .filter(documento -> documento.getTipoDocumento() == TipoDocumento.CURRICULUM)
+                .findFirst()
+                .orElse(null);
+        model.addAttribute("documentoCurriculum", documentoCurriculum);
+        model.addAttribute("puedeSubirCurriculum", documentoCurriculum == null);
+
         // El color de la especialidad del alumno, igual que en su inicio y en la
         // planilla semanal: es su color y este es su expediente.
         model.addAttribute("idEspecialidad",

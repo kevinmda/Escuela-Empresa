@@ -313,7 +313,10 @@
                         enlace.href = documento.url;
                         enlace.target = '_blank';
                         enlace.rel = 'noopener';
-                        enlace.textContent = documento.nombreArchivo || `Documento ${documento.idDs}`;
+                        const nombre = documento.nombreArchivo || `Documento ${documento.idDs}`;
+                        // El currículum se marca para distinguirlo de los comprobantes
+                        enlace.textContent = documento.tipoDocumento === 'CURRICULUM'
+                            ? `Currículum — ${nombre}` : nombre;
                         lista.appendChild(enlace);
                     });
                     menu.dataset.cargado = 'true';

@@ -119,7 +119,8 @@ public class AvisoService {
             // autoincremental y siempre estrictamente creciente, así que no
             // tiene ese problema.
             documentos.stream()
-                    .filter(d -> d.getTipoDocumento() != TipoDocumento.DOCUMENTOS_ADJUNTOS)
+                    .filter(d -> d.getTipoDocumento() != TipoDocumento.DOCUMENTOS_ADJUNTOS
+                            && d.getTipoDocumento() != TipoDocumento.CURRICULUM)
                     .max(Comparator.comparing(DocumentoSubido::getIdDs))
                     .ifPresent(masReciente -> {
                         String clave = String.valueOf(masReciente.getIdDs());
