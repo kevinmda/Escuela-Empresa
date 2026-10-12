@@ -89,6 +89,22 @@ public class LimitesDocumentoService {
     }
 
     /**
+     * Si el alumno ya subió su informe final en PDF (se sube en Documentos
+     * adjuntos). No es uno de los 10 comprobantes.
+     */
+    public boolean informeSubido(Integer idAlumno) {
+        return contarDocumentosSubidos(idAlumno, TipoDocumento.INFORME_FINAL) >= 1;
+    }
+
+    /**
+     * Condición para habilitar el expediente combinado (Documentos adjuntos):
+     * los diez comprobantes completos Y el informe final subido.
+     */
+    public boolean expedienteListoParaAdjuntos(Integer idAlumno) {
+        return expedienteCompleto(idAlumno) && informeSubido(idAlumno);
+    }
+
+    /**
      * Cuántos comprobantes en total componen el expediente completo (hoy son 10:
      * autorización + contrato + 6 planillas + ficha final + ficha final evaluativa).
      */

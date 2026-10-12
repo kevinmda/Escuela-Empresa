@@ -112,6 +112,10 @@ public class ImprimirController {
     @GetMapping("/alumno/documentos/adjuntos")
     public String mostrarDocumentosAdjuntos(Model model, Authentication authentication) {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        // expedienteCompleto = los diez comprobantes; informe = el PDF que subió el alumno
+        // (o null). El botón de descarga necesita las dos cosas (estaCompleto).
+        model.addAttribute("diezCompletos", limitesDocumentoService.expedienteCompleto(alumno.getIdAl()));
+        model.addAttribute("informe", expedientePdfService.obtenerInforme(alumno.getIdAl()));
         model.addAttribute("expedienteCompleto", expedientePdfService.estaCompleto(alumno.getIdAl()));
         model.addAttribute("totalSubidos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
         model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal());

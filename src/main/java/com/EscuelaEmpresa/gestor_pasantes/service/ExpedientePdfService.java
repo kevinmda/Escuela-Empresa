@@ -32,7 +32,9 @@ public class ExpedientePdfService {
             TipoDocumento.AUTORIZACION,
             TipoDocumento.PLANTILLA_SEMANAL,
             TipoDocumento.FICHA_FINAL_ALUMNO,
-            TipoDocumento.FICHA_FINAL_EVALUATIVA
+            TipoDocumento.FICHA_FINAL_EVALUATIVA,
+            // El informe final, subido en Documentos adjuntos, cierra el expediente.
+            TipoDocumento.INFORME_FINAL
     );
 
     private final DocumentoSubidoRepository documentoSubidoRepository;
@@ -44,8 +46,18 @@ public class ExpedientePdfService {
         this.limitesDocumentoService = limitesDocumentoService;
     }
 
+    // "Completo" para generar el PDF combinado: los diez comprobantes más el
+    // informe final.
     public boolean estaCompleto(Integer idAlumno) {
-        return limitesDocumentoService.expedienteCompleto(idAlumno);
+        return limitesDocumentoService.expedienteListoParaAdjuntos(idAlumno);
+    }
+
+    // El informe final que subió el alumno, o null si todavía no lo subió.
+    public DocumentoSubido obtenerInforme(Integer idAlumno) {
+        return documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(idAlumno).stream()
+                .filter(d -> d.getTipoDocumento() == TipoDocumento.INFORME_FINAL)
+                .findFirst()
+                .orElse(null);
     }
 
     // Combina los PDFs del alumno y escribe el resultado en la salida. Quien
@@ -54,7 +66,7 @@ public class ExpedientePdfService {
     public void generarPdf(Alumno alumno, OutputStream salida) throws IOException {
         if (!estaCompleto(alumno.getIdAl())) {
             throw new ReglaNegocioException(
-                    "Todavía no se entregaron los 10 comprobantes del expediente. " +
+                    "Todavía no se entregaron los 10 comprobantes del expediente y el informe final. " +
                     "Los documentos adjuntos se pueden generar recién cuando la entrega esté completa.");
         }
 

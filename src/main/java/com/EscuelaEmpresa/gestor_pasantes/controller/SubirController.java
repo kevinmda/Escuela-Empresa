@@ -110,13 +110,17 @@ public class SubirController {
         // (ver /alumno/imprimir) firmado y escaneado de vuelta. Solo se habilita
         // una vez completos los diez comprobantes, y admite un solo archivo.
         boolean expedienteCompleto = limitesDocumentoService.expedienteCompleto(alumno.getIdAl());
+        // Para subir el combinado firmado hace falta además el informe final
+        // (el mismo requisito que habilita el botón de Documentos adjuntos).
+        boolean informeSubido = limitesDocumentoService.informeSubido(alumno.getIdAl());
         DocumentoSubido documentoAdjuntos = documentos.stream()
                 .filter(documento -> documento.getTipoDocumento() == TipoDocumento.DOCUMENTOS_ADJUNTOS)
                 .findFirst()
                 .orElse(null);
         model.addAttribute("expedienteCompleto", expedienteCompleto);
         model.addAttribute("documentoAdjuntos", documentoAdjuntos);
-        model.addAttribute("puedeSubirAdjuntos", expedienteCompleto && documentoAdjuntos == null);
+        model.addAttribute("informeSubido", informeSubido);
+        model.addAttribute("puedeSubirAdjuntos", expedienteCompleto && informeSubido && documentoAdjuntos == null);
 
         // Apartado del currículum: un solo PDF, siempre disponible (no depende de
         // los comprobantes). Para reemplazarlo se elimina el anterior.
@@ -138,21 +142,25 @@ public class SubirController {
     @PostMapping("/alumno/subir")
     public String subirDocumento(@RequestParam("archivo") MultipartFile archivo,
                                   @RequestParam("tipoDocumento") String tipoDocumentoStr,
+                                  @RequestParam(required = false) String volverA,
                                   Authentication authentication,
                                   RedirectAttributes redirectAttributes) throws IOException {
 
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        // El informe final se sube desde Documentos adjuntos y vuelve ahí.
+        boolean vuelveAAdjuntos = "adjuntos".equals(volverA);
 
         if (archivo.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Seleccioná un archivo para subir.");
-            return "redirect:/alumno/subir" + (tipoDocumentoStr != null && !tipoDocumentoStr.isBlank()
-                    ? "?ultimoTipo=" + tipoDocumentoStr : "");
+            return vuelveAAdjuntos ? "redirect:/alumno/documentos/adjuntos"
+                    : "redirect:/alumno/subir" + (tipoDocumentoStr != null && !tipoDocumentoStr.isBlank()
+                            ? "?ultimoTipo=" + tipoDocumentoStr : "");
         }
 
         // Validar que se haya seleccionado un tipo de documento
         if (tipoDocumentoStr == null || tipoDocumentoStr.trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Seleccioná un tipo de documento.");
-            return "redirect:/alumno/subir";
+            return vuelveAAdjuntos ? "redirect:/alumno/documentos/adjuntos" : "redirect:/alumno/subir";
         }
 
         TipoDocumento tipoDocumento;
@@ -160,23 +168,24 @@ public class SubirController {
             tipoDocumento = TipoDocumento.valueOf(tipoDocumentoStr);
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", "Tipo de documento inválido.");
-            return "redirect:/alumno/subir";
+            return vuelveAAdjuntos ? "redirect:/alumno/documentos/adjuntos" : "redirect:/alumno/subir";
         }
 
         // De acá para abajo, el tipo ya es válido: se propaga en todos los
         // redirects que siguen (éxito o error) para que quede seleccionado al
         // volver -- así no hay que volver a elegirlo a mano, por ejemplo al
         // subir las seis plantillas semanales una por una.
-        String redirectConTipo = "redirect:/alumno/subir?ultimoTipo=" + tipoDocumento.name();
+        String redirectConTipo = vuelveAAdjuntos ? "redirect:/alumno/documentos/adjuntos"
+                : "redirect:/alumno/subir?ultimoTipo=" + tipoDocumento.name();
 
         // DOCUMENTOS_ADJUNTOS es el expediente ya combinado (los otros diez
         // comprobantes): no tiene sentido subirlo antes de que esos diez estén
         // completos. La pantalla ya lo deja deshabilitado hasta entonces; esto
         // es el mismo chequeo del lado del servidor.
         if (tipoDocumento == TipoDocumento.DOCUMENTOS_ADJUNTOS
-                && !limitesDocumentoService.expedienteCompleto(alumno.getIdAl())) {
+                && !limitesDocumentoService.expedienteListoParaAdjuntos(alumno.getIdAl())) {
             redirectAttributes.addFlashAttribute("error",
-                    "Todavía no completaste los 10 comprobantes del expediente. " +
+                    "Todavía no completaste los 10 comprobantes del expediente ni subiste el informe final. " +
                     "Documentos Adjuntos se habilita recién cuando esa entrega esté completa.");
             return redirectConTipo;
         }
@@ -272,6 +281,7 @@ public class SubirController {
 
     @PostMapping("/alumno/subir/{idDs}/eliminar")
     public String eliminarDocumento(@PathVariable Integer idDs,
+                                     @RequestParam(required = false) String volverA,
                                      Authentication authentication,
                                      RedirectAttributes redirectAttributes) throws IOException {
 
@@ -295,7 +305,7 @@ public class SubirController {
         documentoSubidoRepository.delete(documento);
 
         redirectAttributes.addFlashAttribute("exito", "Documento eliminado correctamente.");
-        return "redirect:/alumno/subir";
+        return "adjuntos".equals(volverA) ? "redirect:/alumno/documentos/adjuntos" : "redirect:/alumno/subir";
     }
 
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {

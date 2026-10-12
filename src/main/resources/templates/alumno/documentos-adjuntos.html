@@ -39,6 +39,53 @@
              las plantillas de esta página). Solo tiene sentido pedirlo cuando
              el expediente está completo, así que hasta entonces el botón queda
              deshabilitado y muestra cuánto falta en vez de romper al tocarlo. -->
+        <!-- Informe final: lo que el alumno armó a partir de la plantilla Word de
+             Informe de Pasantía, exportado a PDF. Es condición para habilitar el
+             expediente de más abajo, y va al final de ese PDF. -->
+        <section class="panel sb-form sb-form--compacto" aria-labelledby="adj-informe-titulo">
+            <h3 class="sb-subidos-titulo" id="adj-informe-titulo">Informe final</h3>
+            <p class="sb-adjuntos-nota">
+                Subí tu informe final en PDF. Podés partir de la plantilla de
+                <a th:href="@{/alumno/documentos/informe}">Informe de Pasantía</a> y exportarla a PDF
+                desde Word. Se admite un solo archivo.
+            </p>
+
+            <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+            <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
+
+            <form th:if="${informe == null}" th:action="@{/alumno/subir}" method="post"
+                  enctype="multipart/form-data" class="sb-form-adjuntos-cuerpo">
+                <input type="hidden" name="tipoDocumento" value="INFORME_FINAL">
+                <input type="hidden" name="volverA" value="adjuntos">
+
+                <label for="archivo-input-informe" class="dropzone" id="dropzone-informe">
+                    <span class="dropzone-titulo" id="dropzone-titulo-informe">Hacé click o arrastrá tu PDF acá</span>
+                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
+                </label>
+                <input type="file" id="archivo-input-informe" name="archivo" accept="application/pdf" required
+                       class="dropzone-input">
+
+                <div class="sb-form-acciones">
+                    <button type="submit" class="btn btn-primary">Subir informe</button>
+                </div>
+            </form>
+
+            <div th:if="${informe != null}" class="sb-acciones sb-informe-subido">
+                <span class="sb-celda-archivo" th:text="${informe.nombreArchivo}">informe.pdf</span>
+                <a class="btn btn-secondary sb-btn-fila"
+                   th:href="@{/alumno/subir/{id}/ver(id=${informe.idDs})}"
+                   target="_blank" rel="noopener">Ver</a>
+                <form th:action="@{/alumno/subir/{id}/eliminar(id=${informe.idDs})}" method="post"
+                      data-confirmar
+                      data-confirmar-titulo="¿Eliminar el informe?"
+                      th:attr="data-confirmar-mensaje='Archivo: ' + ${informe.nombreArchivo} + '. Si lo eliminás, se deshabilita el expediente hasta que subas uno nuevo.'"
+                      data-confirmar-texto="Eliminar">
+                    <input type="hidden" name="volverA" value="adjuntos">
+                    <button type="submit" class="btn btn-danger sb-btn-fila">Eliminar</button>
+                </form>
+            </div>
+        </section>
+
         <section class="panel impr-pliego" aria-labelledby="impr-adjuntos">
             <div class="impr-momento">
                 <h3 class="impr-momento-titulo" id="impr-adjuntos">Documentos adjuntos</h3>
@@ -48,7 +95,8 @@
                 </p>
                 <p class="impr-momento-nota" th:unless="${expedienteCompleto}">
                     Se habilita cuando termines de subir los <span th:text="${totalLimite}">10</span>
-                    comprobantes en <a th:href="@{/alumno/subir}">Subir documentos</a>.
+                    comprobantes en <a th:href="@{/alumno/subir}">Subir documentos</a>
+                    y subas tu informe final en PDF (cuadro de abajo).
                 </p>
             </div>
 
@@ -65,7 +113,7 @@
                     </div>
                     <div class="impr-doc-texto">
                         <h4 class="impr-doc-titulo">Expediente completo</h4>
-                        <p class="impr-doc-desc">Generá un PDF con tus documentos ordenados y listos para imprimir. Es una herramienta opcional que te facilita la organización de la documentación. Para generarlo, necesitás haber subido los 10 documentos requeridos en la pestaña de "Subir".</p>
+                        <p class="impr-doc-desc">Generá un PDF con tus documentos ordenados y listos para imprimir. Es una herramienta opcional que te facilita la organización de la documentación. Para generarlo, necesitás haber subido los 10 documentos requeridos en la pestaña de "Subir" y tu informe final en PDF en el cuadro de arriba. El informe va al final del expediente.</p>
                     </div>
                     <div class="impr-doc-acciones">
                         <a th:if="${expedienteCompleto}" class="btn btn-primary"
@@ -73,11 +121,53 @@
                            target="_blank" rel="noopener"
                            aria-label="Descargar documentos adjuntos en un solo PDF">Descargar</a>
                         <button th:unless="${expedienteCompleto}" type="button" class="btn btn-primary" disabled
-                                th:text="${totalSubidos} + ' de ' + ${totalLimite}">0 de 10</button>
+                                th:text="${diezCompletos} ? 'Falta el informe' : (${totalSubidos} + ' de ' + ${totalLimite})">0 de 10</button>
                     </div>
                 </li>
             </ul>
         </section>
     </main>
+
+    <script>
+        // Zona de arrastre del informe (misma lógica que en Subir, con un solo archivo).
+        (function () {
+            const dropzone = document.getElementById('dropzone-informe');
+            const input = document.getElementById('archivo-input-informe');
+            const titulo = document.getElementById('dropzone-titulo-informe');
+            if (!dropzone || !input || !titulo) return;
+
+            const aviso = document.createElement('p');
+            aviso.className = 'mensaje-error dropzone-aviso-multiples';
+            aviso.textContent = 'Solo podés subir un archivo a la vez. Soltá uno solo.';
+            aviso.hidden = true;
+            dropzone.insertAdjacentElement('beforebegin', aviso);
+
+            function actualizar() {
+                aviso.hidden = true;
+                if (input.files && input.files.length > 0) {
+                    titulo.textContent = input.files[0].name;
+                    dropzone.classList.add('dropzone-con-archivo');
+                } else {
+                    titulo.textContent = 'Hacé click o arrastrá tu PDF acá';
+                    dropzone.classList.remove('dropzone-con-archivo');
+                }
+            }
+
+            input.addEventListener('change', actualizar);
+            ['dragover', 'dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }));
+            dropzone.addEventListener('dragover', () => dropzone.classList.add('dropzone-activo'));
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dropzone-activo'));
+            dropzone.addEventListener('drop', e => {
+                dropzone.classList.remove('dropzone-activo');
+                if (e.dataTransfer.files.length === 0) return;
+                if (e.dataTransfer.files.length > 1) { aviso.hidden = false; return; }
+                input.files = e.dataTransfer.files;
+                actualizar();
+            });
+        })();
+    </script>
 </body>
 </html>
