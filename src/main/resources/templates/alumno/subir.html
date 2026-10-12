@@ -160,13 +160,7 @@
                  así que se ve igual, no una variante nueva. -->
             <p th:unless="${expedienteCompleto}" class="sb-vacio">
                 Se habilita cuando completes los <span th:text="${totalLimite}">10</span> comprobantes de arriba
-                (llevás <span th:text="${totalSubidos}">0</span>) y subas tu informe final en
-                <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a>.
-            </p>
-
-            <p th:if="${expedienteCompleto and not informeSubido}" class="sb-vacio">
-                Ya completaste los comprobantes. Falta subir tu informe final en
-                <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a>.
+                (llevás <span th:text="${totalSubidos}">0</span>).
             </p>
 
             <div th:if="${expedienteCompleto and documentoAdjuntos != null}" class="sb-vacio">

@@ -16,12 +16,7 @@ public enum TipoDocumento {
     // habilitar nada y lo pueden ver el coordinador y el administrativo en su
     // panel. Se guarda como texto en documento_scan.tipo_documento, así que
     // agregarlo no cambia la estructura de la base.
-    CURRICULUM("Currículum"),
-    // El informe final del alumno, en PDF (lo completa a partir de la plantilla
-    // Word de /alumno/documentos/informe). Se sube en Documentos adjuntos, no en
-    // Subir. No cuenta para los 10 comprobantes, pero sin él no se habilita el
-    // expediente combinado, y va al final de ese PDF (ver ExpedientePdfService).
-    INFORME_FINAL("Informe final");
+    CURRICULUM("Currículum");
 
     private final String descripcion;
 

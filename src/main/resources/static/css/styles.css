@@ -6464,19 +6464,6 @@ input:read-only {
     gap: 0.4rem;
 }
 
-/* Informe final ya subido (Documentos adjuntos): nombre del archivo a la
-   izquierda y Ver / Eliminar a la derecha. */
-.sb-informe-subido {
-    justify-content: flex-start;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-top: 0.6rem;
-}
-
-.sb-informe-subido .sb-celda-archivo {
-    margin-right: auto;
-}
-
 /* Eliminar varios: barra sobre la tabla con "Seleccionar todo" a la izquierda y
    el botón a la derecha. */
 .sb-masivo {

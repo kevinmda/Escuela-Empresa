@@ -108,8 +108,7 @@ public class AvisoService {
         long totalSubidos = limitesDocumentoService.contarTotalSubidos(alumno.getIdAl());
         int totalLimite = limitesDocumentoService.obtenerLimiteTotal();
 
-        if (totalSubidos >= totalLimite && !yaSubioAdjuntos
-                && limitesDocumentoService.informeSubido(alumno.getIdAl())) {
+        if (totalSubidos >= totalLimite && !yaSubioAdjuntos) {
             // El de mayor id (no el de fecha_subida más reciente) es, por
             // construcción, el que completó el umbral: fecha_subida es un
             // DATETIME sin fracción de segundo en la base, así que dos

@@ -34,28 +34,24 @@
     <main id="main-content">
         <h2>Documentos adjuntos</h2>
 
-        <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
-        <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
-
         <!-- Documentos adjuntos: no genera nada nuevo, junta en un solo PDF lo
              que el alumno ya subió en /alumno/subir (los escaneos firmados, no
-             las plantillas de esta página) más su informe final en PDF, que se
-             sube acá mismo, dentro de la tarjeta, igual que las cédulas en
-             Autorización. Solo tiene sentido pedirlo cuando el expediente está
-             completo (los 10 comprobantes y el informe), así que hasta entonces
-             el botón queda deshabilitado y muestra cuánto falta en vez de
-             romper al tocarlo. -->
+             las plantillas de esta página) y le agrega al final su informe
+             final en PDF. El informe NO se guarda: se elige acá, se agrega al
+             expediente en el momento y nada más. Mismo esquema que las cédulas
+             de Autorización en Antes de empezar. El botón queda deshabilitado
+             hasta que el expediente está completo Y hay un informe elegido. -->
         <section class="panel impr-pliego" aria-labelledby="impr-adjuntos">
             <div class="impr-momento">
                 <h3 class="impr-momento-titulo" id="impr-adjuntos">Documentos adjuntos</h3>
                 <p class="impr-momento-nota" th:if="${expedienteCompleto}">
-                    Autorización, contrato, tus planillas semanales, las dos fichas finales y tu
-                    informe final, juntos en un solo PDF y en ese orden.
+                    Autorización, contrato, tus planillas semanales y las dos fichas finales que
+                    subiste, más tu informe final al final, juntos en un solo PDF y en ese orden.
                 </p>
                 <p class="impr-momento-nota" th:unless="${expedienteCompleto}">
                     Se habilita cuando termines de subir los <span th:text="${totalLimite}">10</span>
                     comprobantes en <a th:href="@{/alumno/subir}">Subir documentos</a>
-                    y subas tu informe final en PDF acá abajo.
+                    y elijas tu informe final en PDF.
                 </p>
             </div>
 
@@ -73,97 +69,88 @@
                         </div>
                         <div class="impr-doc-texto">
                             <h4 class="impr-doc-titulo">Expediente completo</h4>
-                            <p class="impr-doc-desc">Generá un PDF con tus documentos ordenados y listos para imprimir. Es una herramienta opcional que te facilita la organización de la documentación. Para generarlo, necesitás haber subido los 10 documentos requeridos en la pestaña de "Subir" y tu informe final en PDF acá abajo. El informe va al final del expediente.</p>
+                            <p class="impr-doc-desc">Generá un PDF con tus documentos ordenados y listos para imprimir. Es una herramienta opcional que te facilita la organización de la documentación. Para generarlo, necesitás haber subido los 10 documentos requeridos en la pestaña de "Subir" y elegir tu informe final en PDF. El informe se agrega al final del expediente y no se guarda.</p>
                         </div>
                     </div>
 
-                    <!-- Sin informe: zona de arrastre + "Subir informe". POST con
-                         archivo, así que multipart; vuelve a esta misma página. -->
-                    <form th:if="${informe == null}" class="impr-doc-formulario" method="post"
-                          enctype="multipart/form-data" th:action="@{/alumno/subir}">
-                        <input type="hidden" name="tipoDocumento" value="INFORME_FINAL">
-                        <input type="hidden" name="volverA" value="adjuntos">
-
+                    <!-- POST con archivo: se manda por fetch (ver el script de abajo),
+                         igual que Autorización, para abrir el PDF en una pestaña nueva
+                         sin los problemas de un POST multipart con target="_blank". -->
+                    <form class="impr-doc-formulario" method="post" enctype="multipart/form-data"
+                          th:action="@{/alumno/imprimir/Documentos_Adjuntos.pdf}" id="form-adjuntos">
                         <div class="impr-doc-campos">
                             <div class="pl-campo">
                                 <span class="pl-campo-etiqueta">Informe final (PDF)</span>
-                                <label for="archivo-input-informe" class="dropzone" id="dropzone-informe">
+                                <label for="informe-input" class="dropzone" id="dropzone-informe">
                                     <span class="dropzone-titulo" id="dropzone-titulo-informe">Hacé click o
                                         arrastrá el PDF acá</span>
                                     <span class="dropzone-subtitulo">Solo archivos PDF</span>
                                 </label>
-                                <input type="file" id="archivo-input-informe" name="archivo"
-                                       accept="application/pdf" required class="dropzone-input">
+                                <input type="file" id="informe-input" name="informe"
+                                       accept="application/pdf" class="dropzone-input">
                             </div>
                         </div>
 
+                        <div id="documentos-error"></div>
+
                         <div class="impr-doc-acciones">
-                            <button type="submit" class="btn btn-primary"
-                                    aria-label="Subir el informe final en PDF">Subir informe</button>
-                            <button type="button" class="btn btn-primary" disabled
-                                    th:text="${diezCompletos} ? 'Falta el informe' : (${totalSubidos} + ' de ' + ${totalLimite})">0 de 10</button>
+                            <button type="submit" class="btn btn-primary" id="btn-generar-adjuntos"
+                                    th:disabled="${!expedienteCompleto}"
+                                    th:attr="data-expediente-completo=${expedienteCompleto}"
+                                    aria-label="Descargar documentos adjuntos en un solo PDF">Descargar</button>
+                            <span class="impr-doc-requisito" th:unless="${expedienteCompleto}"
+                                  th:text="${totalSubidos} + ' de ' + ${totalLimite} + ' comprobantes subidos'">0 de 10</span>
                         </div>
                     </form>
-
-                    <!-- Con informe: el archivo subido, con Ver y Eliminar. -->
-                    <div th:if="${informe != null}">
-                        <div class="impr-doc-campos">
-                            <div class="pl-campo">
-                                <span class="pl-campo-etiqueta">Informe final (PDF)</span>
-                                <div class="sb-acciones sb-informe-subido">
-                                    <span class="sb-celda-archivo" th:text="${informe.nombreArchivo}">informe.pdf</span>
-                                    <a class="btn btn-secondary sb-btn-fila"
-                                       th:href="@{/alumno/subir/{id}/ver(id=${informe.idDs})}"
-                                       target="_blank" rel="noopener">Ver</a>
-                                    <form th:action="@{/alumno/subir/{id}/eliminar(id=${informe.idDs})}" method="post"
-                                          data-confirmar
-                                          data-confirmar-titulo="¿Eliminar el informe?"
-                                          th:attr="data-confirmar-mensaje='Archivo: ' + ${informe.nombreArchivo} + '. Si lo eliminás, se deshabilita el expediente hasta que subas uno nuevo.'"
-                                          data-confirmar-texto="Eliminar">
-                                        <input type="hidden" name="volverA" value="adjuntos">
-                                        <button type="submit" class="btn btn-danger sb-btn-fila">Eliminar</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="impr-doc-acciones">
-                            <a th:if="${expedienteCompleto}" class="btn btn-primary"
-                               th:href="@{/alumno/imprimir/Documentos_Adjuntos.pdf}"
-                               target="_blank" rel="noopener"
-                               aria-label="Descargar documentos adjuntos en un solo PDF">Descargar</a>
-                            <button th:unless="${expedienteCompleto}" type="button" class="btn btn-primary" disabled
-                                    th:text="${totalSubidos} + ' de ' + ${totalLimite}">0 de 10</button>
-                        </div>
-                    </div>
                 </li>
             </ul>
         </section>
     </main>
 
     <script>
-        // Zona de arrastre del informe (misma lógica que en Subir, con un solo archivo).
+        // El botón se habilita solo con el expediente completo (lo decide el
+        // servidor) Y un informe elegido. El informe se manda con el formulario
+        // y no se guarda en ningún lado.
         (function () {
+            const form = document.getElementById('form-adjuntos');
+            const boton = document.getElementById('btn-generar-adjuntos');
             const dropzone = document.getElementById('dropzone-informe');
-            const input = document.getElementById('archivo-input-informe');
+            const input = document.getElementById('informe-input');
             const titulo = document.getElementById('dropzone-titulo-informe');
-            if (!dropzone || !input || !titulo) return;
+            const contenedorError = document.getElementById('documentos-error');
+            if (!form || !boton || !dropzone || !input || !titulo) return;
+
+            const expedienteCompleto = boton.dataset.expedienteCompleto === 'true';
+            const tituloVacio = 'Hacé click o arrastrá el PDF acá';
 
             const aviso = document.createElement('p');
             aviso.className = 'mensaje-error dropzone-aviso-multiples';
-            aviso.textContent = 'Solo podés subir un archivo a la vez. Soltá uno solo.';
+            aviso.textContent = 'Solo podés elegir un archivo. Soltá uno solo.';
             aviso.hidden = true;
             dropzone.insertAdjacentElement('beforebegin', aviso);
 
+            function mostrarError(mensaje) {
+                contenedorError.innerHTML = '';
+                const banner = document.createElement('div');
+                banner.className = 'mensaje-error';
+                const p = document.createElement('p');
+                p.textContent = mensaje;
+                banner.appendChild(p);
+                contenedorError.appendChild(banner);
+                banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
             function actualizar() {
                 aviso.hidden = true;
-                if (input.files && input.files.length > 0) {
+                const hayInforme = input.files && input.files.length > 0;
+                if (hayInforme) {
                     titulo.textContent = input.files[0].name;
                     dropzone.classList.add('dropzone-con-archivo');
                 } else {
-                    titulo.textContent = 'Hacé click o arrastrá tu PDF acá';
+                    titulo.textContent = tituloVacio;
                     dropzone.classList.remove('dropzone-con-archivo');
                 }
+                boton.disabled = !(expedienteCompleto && hayInforme);
             }
 
             input.addEventListener('change', actualizar);
@@ -180,6 +167,26 @@
                 input.files = e.dataTransfer.files;
                 actualizar();
             });
+
+            form.addEventListener('submit', function (evento) {
+                evento.preventDefault();
+                boton.disabled = true;
+                contenedorError.innerHTML = '';
+
+                fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin' })
+                    .then(r => r.json())
+                    .then(resultado => {
+                        if (resultado.valido) {
+                            window.open(resultado.url, '_blank');
+                        } else {
+                            mostrarError(resultado.error || 'No se pudo generar el expediente.');
+                        }
+                    })
+                    .catch(() => mostrarError('No se pudo generar el expediente. Revisá el informe e intentá de nuevo.'))
+                    .finally(actualizar);
+            });
+
+            actualizar();
         })();
     </script>
 </body>

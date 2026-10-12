@@ -48,6 +48,9 @@ public class ImprimirController {
     // descargarAutorizacionLista lo sirva una sola vez (ver esos dos métodos).
     private static final String SESION_AUTORIZACION_PDF = "autorizacionPdfBytes";
     private static final String SESION_AUTORIZACION_NOMBRE = "autorizacionPdfNombre";
+    // Lo mismo para el expediente completo con el informe agregado al final.
+    private static final String SESION_ADJUNTOS_PDF = "adjuntosPdfBytes";
+    private static final String SESION_ADJUNTOS_NOMBRE = "adjuntosPdfNombre";
 
     private final UsuarioRepository usuarioRepository;
     private final AlumnoRepository alumnoRepository;
@@ -112,32 +115,71 @@ public class ImprimirController {
     @GetMapping("/alumno/documentos/adjuntos")
     public String mostrarDocumentosAdjuntos(Model model, Authentication authentication) {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
-        // expedienteCompleto = los diez comprobantes; informe = el PDF que subió el alumno
-        // (o null). El botón de descarga necesita las dos cosas (estaCompleto).
-        model.addAttribute("diezCompletos", limitesDocumentoService.expedienteCompleto(alumno.getIdAl()));
-        model.addAttribute("informe", expedientePdfService.obtenerInforme(alumno.getIdAl()));
         model.addAttribute("expedienteCompleto", expedientePdfService.estaCompleto(alumno.getIdAl()));
         model.addAttribute("totalSubidos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
         model.addAttribute("totalLimite", limitesDocumentoService.obtenerLimiteTotal());
         return "alumno/documentos-adjuntos";
     }
 
-    @GetMapping("/alumno/imprimir/Documentos_Adjuntos.pdf")
-    public void generarPdfDocumentosAdjuntos(Authentication authentication, HttpServletResponse response) throws IOException {
+    // Expediente completo + informe final. El informe NO se guarda en la base ni
+    // en el disco: el alumno lo elige en la tarjeta de Documentos adjuntos, se
+    // agrega al final del expediente y listo. Mismo esquema que Autorización
+    // (POST con archivo por fetch -> JSON con la URL -> GET común que abre el
+    // PDF): ver generarPdfAutorizacion y descargarAutorizacionLista.
+    @PostMapping("/alumno/imprimir/Documentos_Adjuntos.pdf")
+    @ResponseBody
+    public Map<String, Object> generarPdfDocumentosAdjuntos(@RequestParam(required = false) MultipartFile informe,
+                                                              Authentication authentication,
+                                                              HttpServletRequest request) throws IOException {
 
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
-        // Se arma primero en memoria: si el expediente todavía no está completo,
-        // generarPdf tira una excepción antes de que toquemos la respuesta, y
-        // ManejoErroresGlobal puede mostrar la página de error en vez de un PDF a medio escribir.
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        expedientePdfService.generarPdf(alumno, buffer);
+        if (!expedientePdfService.estaCompleto(alumno.getIdAl())) {
+            return Map.of("valido", false, "error",
+                    "Todavía no subiste los 10 comprobantes del expediente en Subir documentos.");
+        }
+        if (informe == null || informe.isEmpty()) {
+            return Map.of("valido", false, "error", "Elegí tu informe final en PDF para generar el expediente.");
+        }
+        if (informe.getSize() > tamanioMaximo.toBytes()) {
+            return Map.of("valido", false, "error",
+                    "El informe supera el tamaño máximo permitido (" + tamanioMaximo.toMegabytes() + " MB).");
+        }
+        if (!validacionDocumentoService.validarPdfIntegridad(informe)) {
+            return Map.of("valido", false, "error", "El informe no es un PDF válido.");
+        }
+
+        // En memoria: si algo falla, no queda nada a medio escribir en la respuesta.
+        ByteArrayOutputStream expediente = new ByteArrayOutputStream();
+        expedientePdfService.generarPdf(alumno, expediente);
+        byte[] pdf = agregarPaginasAdjuntas(expediente.toByteArray(), List.of(informe));
+
+        HttpSession session = request.getSession();
+        session.setAttribute(SESION_ADJUNTOS_PDF, pdf);
+        session.setAttribute(SESION_ADJUNTOS_NOMBRE,
+                Descarga.nombreDocumento("Documentos_Adjuntos", alumno.getNombres(), alumno.getApellidos(), "pdf"));
+
+        return Map.of("valido", true, "url", "/alumno/imprimir/Documentos_Adjuntos-lista.pdf");
+    }
+
+    // El PDF que dejó listo generarPdfDocumentosAdjuntos en la sesión. Igual que
+    // Autorizacion-lista.pdf, no se borra al servirlo (el visor de PDF del
+    // navegador vuelve a pedir la misma URL para guardarlo).
+    @GetMapping("/alumno/imprimir/Documentos_Adjuntos-lista.pdf")
+    public void descargarDocumentosAdjuntosListo(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession(false);
+        byte[] pdf = session != null ? (byte[]) session.getAttribute(SESION_ADJUNTOS_PDF) : null;
+
+        if (pdf == null) {
+            throw new ReglaNegocioException("No hay ningún expediente listo para descargar. "
+                    + "Elegí tu informe y generalo de nuevo.");
+        }
+
+        String nombreArchivo = (String) session.getAttribute(SESION_ADJUNTOS_NOMBRE);
 
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition",
-                Descarga.inline(Descarga.nombreDocumento("Documentos_Adjuntos", alumno.getNombres(), alumno.getApellidos(), "pdf"),
-                        "Documentos_Adjuntos.pdf"));
-        buffer.writeTo(response.getOutputStream());
+        response.setHeader("Content-Disposition", Descarga.inline(nombreArchivo, "Documentos_Adjuntos.pdf"));
+        response.getOutputStream().write(pdf);
     }
 
     // supervisor, area y padreEncargado vienen del formulario (ver
