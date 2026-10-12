@@ -122,11 +122,11 @@ public class HomeController {
         }
 
         long alumnos = idsEspecialidad == null
-                ? alumnoRepository.count()
-                : alumnoRepository.countByEspecialidad_IdEspIn(idsEspecialidad);
+                ? alumnoRepository.countByEgresadoFalse()
+                : alumnoRepository.countByEspecialidad_IdEspInAndEgresadoFalse(idsEspecialidad);
         long sinSupervisor = idsEspecialidad == null
-                ? alumnoRepository.countBySupervisorIsNull()
-                : alumnoRepository.countByEspecialidad_IdEspInAndSupervisorIsNull(idsEspecialidad);
+                ? alumnoRepository.countBySupervisorIsNullAndEgresadoFalse()
+                : alumnoRepository.countByEspecialidad_IdEspInAndSupervisorIsNullAndEgresadoFalse(idsEspecialidad);
 
         // % de alumnos que ya entregaron su planilla de la semana actual (lunes a sábado)
         LocalDate lunesSemanaActual = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));

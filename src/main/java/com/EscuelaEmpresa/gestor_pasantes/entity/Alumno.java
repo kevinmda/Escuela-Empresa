@@ -60,8 +60,17 @@ public class Alumno {
     @JoinColumn(name = "id_Sup")
     private Supervisor supervisor;
 
+    // Egresado: ya terminó el colegio. Sus datos quedan en la base para que los
+    // consulten el coordinador y el administrativo, pero no puede usar el sistema
+    // y no cuenta en el inicio ni en la asignación de supervisores/empresas. Se
+    // marca a mano en la base (columna alumno.egresado, 0 por defecto).
+    @Column(name = "egresado", nullable = false)
+    private boolean egresado = false;
+
     public Alumno() {} //constructor vacio, necesario porque internamente se crea un objeto vacio que luego recien se va llenando
     //getter y los setter. Estos son usados activamente por Hibernate para leer y escribir los valores de cada campo al convertir entre el objeto Java y la fila SQL
+    public boolean isEgresado() { return egresado; }
+    public void setEgresado(boolean egresado) { this.egresado = egresado; }
     public Integer getIdAl() { return idAl; }
     public void setIdAl(Integer idAl) { this.idAl = idAl; }
 

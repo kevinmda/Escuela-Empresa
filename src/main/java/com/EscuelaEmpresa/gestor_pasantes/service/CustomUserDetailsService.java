@@ -38,6 +38,15 @@ public class CustomUserDetailsService implements UserDetailsService { //UserDeta
             throw new DisabledException("Usuario deshabilitado");
         }
 
+        // Un egresado ya terminó el colegio: sus datos quedan para consulta de los
+        // administradores, pero no puede entrar. Lo corta acá, sea cual sea el valor
+        // de usuario.activo, y vale igual para el login web y el de la app (ambos
+        // pasan por este servicio).
+        if (alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
+                .map(a -> a.isEgresado()).orElse(false)) {
+            throw new DisabledException("Usuario deshabilitado");
+        }
+
         if (usuario.getBloqueadoHasta() != null && usuario.getBloqueadoHasta().isAfter(java.time.LocalDateTime.now())) {
             throw new LockedException("Cuenta bloqueada temporalmente por intentos fallidos");
         }
