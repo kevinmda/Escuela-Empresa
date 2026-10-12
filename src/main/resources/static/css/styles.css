@@ -6425,7 +6425,7 @@ input:read-only {
 .sb-form-adjuntos-cuerpo {
     display: flex;
     flex-direction: column;
-    gap: 1.1rem;
+    gap: 1.6rem;
     margin-top: 0.6rem;
 }
 
