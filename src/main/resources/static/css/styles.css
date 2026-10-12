@@ -6409,6 +6409,26 @@ input:read-only {
     color: var(--accent-ink);
 }
 
+/* Paneles de Documentos adjuntos y Currículum: título, nota y zona de subida.
+   Con el gap de 1.6rem de .sb-form MAS el margen del título quedaba un hueco
+   enorme bajo el título, así que acá el gap es chico y el título no suma margen. */
+.sb-form--compacto {
+    gap: 0.6rem;
+}
+
+.sb-form--compacto > .sb-subidos-titulo {
+    margin: 0;
+}
+
+/* El <form> de estos paneles es un bloque suelto dentro del panel: sin esto la
+   zona de arrastre y el botón quedaban pegados. */
+.sb-form-adjuntos-cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin-top: 0.6rem;
+}
+
 /* ---------- Lo que ya subiste ---------- */
 
 .sb-subidos-titulo {
