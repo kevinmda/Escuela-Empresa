@@ -83,6 +83,14 @@
                          tiene su juego fijo de secciones (A, B, C...), aparezcan o no
                          alumnos cargados en ellas. -->
                     <span class="seccion-grupo" id="grupo-seccion" role="group" aria-labelledby="etiqueta-seccion"></span>
+
+                    <!-- A la derecha de la sección: a la izquierda (predeterminada) los
+                         alumnos que siguen en pasantía; a la derecha los egresados, que
+                         ya terminaron el colegio y solo quedan para consulta. -->
+                    <span class="seccion-grupo grupo-estado" id="grupo-estado" role="group" aria-label="Estado del alumno">
+                        <button type="button" class="seccion-btn" data-egresados="false" aria-pressed="true">En pasantía</button>
+                        <button type="button" class="seccion-btn" data-egresados="true" aria-pressed="false">Egresados</button>
+                    </span>
                 </div>
                 <button id="btn-descargar-zip" type="button" class="btn-secondary icono-descargar oculto">Descargar sección (ZIP)</button>
             </div>
@@ -162,6 +170,17 @@
         let idEspActual = esAdministrativo ? '' : idEspFijoInput.value;
         let nombreEspActual = esAdministrativo ? '' : idEspFijoInput.dataset.nombre;
         let seccionActual = '';
+        let egresadosActual = false; // false = en pasantía (predeterminado), true = egresados
+
+        const grupoEstado = document.getElementById('grupo-estado');
+        grupoEstado.querySelectorAll('.seccion-btn').forEach(boton => {
+            boton.addEventListener('click', () => {
+                egresadosActual = boton.dataset.egresados === 'true';
+                grupoEstado.querySelectorAll('.seccion-btn').forEach(
+                    b => b.setAttribute('aria-pressed', String(b === boton)));
+                cargarAlumnos(); // sin sección elegida todavía, no hace nada: queda para cuando la elija
+            });
+        });
 
         // --- Pintado del panel ---
 
@@ -177,8 +196,9 @@
                 return;
             }
             const sufijo = cantidad === 1 ? '1 alumno' : `${cantidad} alumnos`;
+            const estado = egresadosActual ? ' · Egresados' : '';
             panelMeta.textContent = seccionActual
-                ? `${CURSO_FIJO} · Sección ${seccionActual} · ${sufijo}`
+                ? `${CURSO_FIJO} · Sección ${seccionActual}${estado} · ${sufijo}`
                 : sufijo;
         }
 
@@ -252,7 +272,17 @@
             const fila = document.createElement('tr');
             fila.setAttribute('role', 'row');
 
-            agregarCelda(fila, a.nombres, 'Nombres', 'celda-nombre');
+            if (a.egresado) {
+                const celdaNombre = document.createElement('span');
+                celdaNombre.append(a.nombres ?? '', ' ');
+                const marca = document.createElement('span');
+                marca.className = 'badge';
+                marca.textContent = 'Egresado';
+                celdaNombre.appendChild(marca);
+                agregarCelda(fila, celdaNombre, 'Nombres', 'celda-nombre');
+            } else {
+                agregarCelda(fila, a.nombres, 'Nombres', 'celda-nombre');
+            }
             agregarCelda(fila, a.apellidos, 'Apellidos', 'celda-nombre');
             agregarCelda(fila, a.ci, 'CI');
             agregarCelda(fila, a.email, 'Email');
@@ -385,7 +415,7 @@
             mostrarCargando();
             btnDescargarZip.classList.add('oculto');
 
-            fetch(`/admin/api/alumnos-filtrados?idEsp=${idEspActual}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccionActual)}`)
+            fetch(`/admin/api/alumnos-filtrados?idEsp=${idEspActual}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccionActual)}&egresados=${egresadosActual}`)
                 .then(res => {
                     if (!res.ok) throw new Error('respuesta ' + res.status);
                     return res.json();
@@ -393,8 +423,11 @@
                 .then(alumnos => {
                     if (alumnos.length === 0) {
                         actualizarMeta(0);
-                        mostrarEstado('No hay alumnos en esta sección',
-                            `Ningún alumno de ${nombreEspActual} figura en ${CURSO_FIJO} sección ${seccionActual}.`, false);
+                        mostrarEstado(egresadosActual ? 'No hay egresados en esta sección'
+                                                      : 'No hay alumnos en esta sección',
+                            egresadosActual
+                                ? `Ningún egresado de ${nombreEspActual} figura en ${CURSO_FIJO} sección ${seccionActual}.`
+                                : `Ningún alumno de ${nombreEspActual} figura en ${CURSO_FIJO} sección ${seccionActual}.`, false);
                         return;
                     }
                     pintarAlumnos(alumnos);
@@ -416,7 +449,7 @@
 
         btnDescargarZip.addEventListener('click', () => {
             if (!idEspActual || !seccionActual) return;
-            window.location.href = `/admin/alumnos/zip?idEsp=${idEspActual}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccionActual)}`;
+            window.location.href = `/admin/alumnos/zip?idEsp=${idEspActual}&curso=${CURSO_FIJO}&seccion=${encodeURIComponent(seccionActual)}&egresados=${egresadosActual}`;
         });
 
         // El coordinador entra con la especialidad ya resuelta: le mostramos el

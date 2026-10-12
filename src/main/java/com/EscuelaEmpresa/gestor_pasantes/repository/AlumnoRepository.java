@@ -13,13 +13,18 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 
 public interface AlumnoRepository extends JpaRepository<Alumno, Integer> {
     Optional<Alumno> findByUsuario_IdUsr(Integer idUsr); //el guion dice "navegá a través de la relación Usuario de Alumno, y mirá su campo idUsr"
-    List<Alumno> findByEspecialidad_IdEsp(Integer idEsp); // todos los alumnos de una especialidad, sin filtrar por curso/sección (usado en la asignación de supervisores)
+    // alumnos en pasantía de una especialidad, sin filtrar por curso/sección (usado en la asignación
+    // de supervisores y empresas: a un egresado no se le asigna nada)
+    List<Alumno> findByEspecialidad_IdEspAndEgresadoFalse(Integer idEsp);
 
-    long countByEspecialidad_IdEspIn(List<Integer> idsEsp);
+    // Los egresados no cuentan en las estadísticas del inicio: ya no están en pasantía.
+    long countByEgresadoFalse();
 
-    long countBySupervisorIsNull();
+    long countByEspecialidad_IdEspInAndEgresadoFalse(List<Integer> idsEsp);
 
-    long countByEspecialidad_IdEspInAndSupervisorIsNull(List<Integer> idsEsp);
+    long countBySupervisorIsNullAndEgresadoFalse();
+
+    long countByEspecialidad_IdEspInAndSupervisorIsNullAndEgresadoFalse(List<Integer> idsEsp);
 
     // --- Filtro en cascada: Especialidad -> Curso -> Sección ---
 
@@ -29,7 +34,8 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Integer> {
     @Query("SELECT DISTINCT a.seccion FROM Alumno a WHERE a.especialidad.idEsp = :idEsp AND a.curso = :curso ORDER BY a.seccion")
     List<String> findSeccionesPorEspecialidadYCurso(@Param("idEsp") Integer idEsp, @Param("curso") String curso);
 
-    List<Alumno> findByEspecialidad_IdEspAndCursoAndSeccion(Integer idEsp, String curso, String seccion);
+    // egresado=false: los que siguen en pasantía; egresado=true: los que ya terminaron el colegio
+    List<Alumno> findByEspecialidad_IdEspAndCursoAndSeccionAndEgresado(Integer idEsp, String curso, String seccion, boolean egresado);
 
     // --- Búsqueda por nombre, apellido o CI (respeta el alcance: todas las especialidades
     // para administrativo, o solo la propia para coordinador, según qué lista de ids se pase) ---

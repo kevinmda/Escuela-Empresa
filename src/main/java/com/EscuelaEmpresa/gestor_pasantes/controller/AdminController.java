@@ -132,9 +132,10 @@ public class AdminController {
     public List<AlumnoFiltradoDTO> alumnosFiltrados(@RequestParam Integer idEsp,
                                                       @RequestParam String curso,
                                                       @RequestParam String seccion,
+                                                      @RequestParam(defaultValue = "false") boolean egresados,
                                                       Authentication authentication) {
         verificarEspecialidadPermitida(idEsp, authentication);
-        return alumnoRepository.findByEspecialidad_IdEspAndCursoAndSeccion(idEsp, curso, seccion)
+        return alumnoRepository.findByEspecialidad_IdEspAndCursoAndSeccionAndEgresado(idEsp, curso, seccion, egresados)
                 .stream()
                 .map(AlumnoFiltradoDTO::new)
                 .toList();
@@ -274,14 +275,16 @@ public class AdminController {
     public void descargarZip(@RequestParam Integer idEsp,
                               @RequestParam String curso,
                               @RequestParam String seccion,
+                              @RequestParam(defaultValue = "false") boolean egresados,
                               Authentication authentication,
                               HttpServletResponse response) throws IOException {
 
         verificarEspecialidadPermitida(idEsp, authentication);
 
-        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEspAndCursoAndSeccion(idEsp, curso, seccion);
+        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEspAndCursoAndSeccionAndEgresado(idEsp, curso, seccion, egresados);
 
-        String nombreZip = "Documentos_" + sanitizar(curso) + "_" + sanitizar(seccion) + ".zip";
+        String nombreZip = "Documentos_" + sanitizar(curso) + "_" + sanitizar(seccion)
+                + (egresados ? "_egresados" : "") + ".zip";
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=" + nombreZip);
 
@@ -363,7 +366,7 @@ public class AdminController {
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
         List<Supervisor> supervisores = supervisorRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp());
-        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp());
+        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEspAndEgresadoFalse(especialidadFija.getIdEsp());
 
         model.addAttribute("especialidadFija", especialidadFija);
         model.addAttribute("supervisores", supervisores);
@@ -511,7 +514,7 @@ public class AdminController {
         Especialidad especialidadFija = obtenerEspecialidadDeCoordinador(admin);
 
         List<Empresa> empresas = empresaRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp());
-        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEsp(especialidadFija.getIdEsp());
+        List<Alumno> alumnos = alumnoRepository.findByEspecialidad_IdEspAndEgresadoFalse(especialidadFija.getIdEsp());
 
         model.addAttribute("especialidadFija", especialidadFija);
         model.addAttribute("empresas", empresas);

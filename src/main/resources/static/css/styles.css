@@ -2667,6 +2667,12 @@ td input[type="email"] {
     transition-duration: 0.08s;
 }
 
+/* Selector En pasantía / Egresados: mismo control segmentado que las secciones,
+   pegado a su derecha con un poco de aire. */
+.grupo-estado {
+    margin-left: 0.9rem;
+}
+
 .seccion-etiqueta {
     font-family: var(--font-display);
     font-size: 0.8rem;

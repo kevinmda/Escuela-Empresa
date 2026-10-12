@@ -11,6 +11,7 @@ public class AlumnoFiltradoDTO {
     private String email;
     private String curso;
     private String seccion;
+    private boolean egresado;
 
     public AlumnoFiltradoDTO(Alumno alumno) {
         this.idAl = alumno.getIdAl();
@@ -20,6 +21,7 @@ public class AlumnoFiltradoDTO {
         this.email = alumno.getEmail();
         this.curso = alumno.getCurso();
         this.seccion = alumno.getSeccion();
+        this.egresado = alumno.isEgresado();
     }
 
     public Integer getIdAl() { return idAl; }
@@ -29,4 +31,5 @@ public class AlumnoFiltradoDTO {
     public String getEmail() { return email; }
     public String getCurso() { return curso; }
     public String getSeccion() { return seccion; }
+    public boolean isEgresado() { return egresado; }
 }
