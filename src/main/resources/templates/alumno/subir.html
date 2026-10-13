@@ -60,6 +60,50 @@
         </p>
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
 
+        <!-- Apartado exclusivo de Documentos adjuntos: no es uno de los cinco
+             tipos del expediente, es el expediente ya combinado (autorización +
+             contrato + planillas + las dos fichas, armado en
+             /alumno/documentos/adjuntos) firmado y escaneado de vuelta. Va
+             primero, arriba del formulario de los comprobantes (con el que
+             comparte la misma acción de "subir un PDF"), y se puede subir
+             en cualquier momento: tener los comprobantes
+             completos solo hace falta para generarlo en Documentos.
+
+             Acá no hay ningún tipo que elegir -- a diferencia de la grilla de
+             abajo, donde sí hay una decisión real entre cinco -- así que no
+             lleva ninguna tarjeta de tipo: el formulario ya manda
+             tipoDocumento=DOCUMENTOS_ADJUNTOS en un campo oculto, y directo
+             debajo está la única zona de arrastre de este apartado. -->
+        <section class="panel sb-form sb-form--compacto" aria-labelledby="sb-adjuntos-titulo">
+            <h3 class="sb-subidos-titulo" id="sb-adjuntos-titulo">Documentos adjuntos</h3>
+            <p class="sb-adjuntos-nota">
+                El expediente completo con cada uno de los documentos ordenados correctamente (contrato, autorización, planillas semanales, ficha final, ficha final evaluativa e informe final), ya firmados y sellados. Puedes generarlo en
+                <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a> en caso de haber completado los documentos desde la página. Se
+                admite un solo archivo.
+            </p>
+
+            <form th:if="${puedeSubirAdjuntos}" th:action="@{/alumno/subir}" method="post"
+                  enctype="multipart/form-data" class="sb-form-adjuntos-cuerpo">
+                <input type="hidden" name="tipoDocumento" value="DOCUMENTOS_ADJUNTOS">
+
+                <label for="archivo-input-adjuntos" class="dropzone" id="dropzone-adjuntos">
+                    <span class="dropzone-titulo" id="dropzone-titulo-adjuntos">Hacé click o arrastrá tu PDF acá</span>
+                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
+                </label>
+                <input type="file" id="archivo-input-adjuntos" name="archivo" accept="application/pdf" required
+                       class="dropzone-input">
+
+                <div class="sb-form-acciones">
+                    <button type="submit" class="btn btn-primary">Subir documento</button>
+                </div>
+            </form>
+
+            <div th:if="${documentoAdjuntos != null}" class="sb-vacio">
+                <p>Ya lo subiste.</p>
+                <p>Para reemplazarlo, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
+            </div>
+        </section>
+
         <form th:unless="${expedienteCompleto}" th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data"
               class="panel sb-form">
 
@@ -115,51 +159,6 @@
             <p>Ya subiste los <span th:text="${totalLimite}">10</span> documentos del expediente.</p>
             <p>Para reemplazar alguno, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
         </div>
-
-        <!-- Apartado exclusivo de Documentos adjuntos: no es uno de los cinco
-             tipos del expediente, es el expediente ya combinado (autorización +
-             contrato + planillas + las dos fichas, armado en
-             /alumno/documentos/adjuntos) firmado y escaneado de vuelta. Va
-             justo debajo del formulario de arriba (con el que comparte la
-             misma acción de "subir un PDF"), antes de la tabla de "Lo que ya
-             subiste" -- que es una lista de estado, no otro formulario -- y
-             se puede subir en cualquier momento: tener los comprobantes
-             completos solo hace falta para generarlo en Documentos.
-
-             Acá no hay ningún tipo que elegir -- a diferencia de la grilla de
-             arriba, donde sí hay una decisión real entre cinco -- así que no
-             lleva ninguna tarjeta de tipo: el formulario ya manda
-             tipoDocumento=DOCUMENTOS_ADJUNTOS en un campo oculto, y directo
-             debajo está la única zona de arrastre de este apartado. -->
-        <section class="panel sb-form sb-form--compacto" aria-labelledby="sb-adjuntos-titulo">
-            <h3 class="sb-subidos-titulo" id="sb-adjuntos-titulo">Documentos adjuntos</h3>
-            <p class="sb-adjuntos-nota">
-                El expediente completo con cada uno de los documentos ordenados correctamente (contrato, autorización, planillas semanales, ficha final, ficha final evaluativa e informe final), ya firmados y sellados. Puedes generarlo en
-                <a th:href="@{/alumno/documentos/adjuntos}">Documentos adjuntos</a> en caso de haber completado los documentos desde la página. Se
-                admite un solo archivo.
-            </p>
-
-            <form th:if="${puedeSubirAdjuntos}" th:action="@{/alumno/subir}" method="post"
-                  enctype="multipart/form-data" class="sb-form-adjuntos-cuerpo">
-                <input type="hidden" name="tipoDocumento" value="DOCUMENTOS_ADJUNTOS">
-
-                <label for="archivo-input-adjuntos" class="dropzone" id="dropzone-adjuntos">
-                    <span class="dropzone-titulo" id="dropzone-titulo-adjuntos">Hacé click o arrastrá tu PDF acá</span>
-                    <span class="dropzone-subtitulo">Solo archivos PDF</span>
-                </label>
-                <input type="file" id="archivo-input-adjuntos" name="archivo" accept="application/pdf" required
-                       class="dropzone-input">
-
-                <div class="sb-form-acciones">
-                    <button type="submit" class="btn btn-primary">Subir documento</button>
-                </div>
-            </form>
-
-            <div th:if="${documentoAdjuntos != null}" class="sb-vacio">
-                <p>Ya lo subiste.</p>
-                <p>Para reemplazarlo, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
-            </div>
-        </section>
 
         <!-- Currículum: no es uno de los comprobantes de la pasantía, así que no
              entra en la grilla de tipos ni en la cuenta de arriba. Mismo formato
