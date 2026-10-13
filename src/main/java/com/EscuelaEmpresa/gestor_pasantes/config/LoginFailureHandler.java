@@ -7,6 +7,8 @@ import com.EscuelaEmpresa.gestor_pasantes.service.LimitadorEnvioCodigosService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -32,6 +34,8 @@ import java.util.Optional;
 // GET /login sepa que pantalla volver a mostrar sin que el usuario tenga que re-escribir el email.
 @Component
 public class LoginFailureHandler implements AuthenticationFailureHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(LoginFailureHandler.class);
 
     private static final int MAX_INTENTOS_LOGIN = 5;
     private static final int MINUTOS_BLOQUEO = 15;
@@ -123,6 +127,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
         } catch (MailException e) {
             // el correo no se pudo enviar (Gmail caido, mal configurado, etc.)
             // evitamos que esto termine en un error 500 generico
+            log.warn("No se pudo enviar el correo de activacion a {}", email, e);
             limitadorEnvioCodigos.devolverCupo(email);
             response.sendRedirect(urlLogin("errorCorreo", email));
             return;
