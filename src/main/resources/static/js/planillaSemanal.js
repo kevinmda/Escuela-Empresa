@@ -96,11 +96,12 @@ function limpiarFormulario() {
 
 // Aviso de "tenés cambios sin guardar": aparece con el primer input real
 // dentro del formulario (nuevo o en edición) y se apaga al guardar (la
-// página recarga entera) o al limpiar con "Borrar lo escrito". El scroll
-// solo pasa en la transición de oculto a visible -- que ya está arriba de
-// todo no impide que la función se siga llamando en cada tecla (el listener
-// del fieldset es el mismo para las seis fechas y los cuatro campos del
-// resumen), y sin este chequeo la página saltaría con cada letra.
+// página recarga entera) o al limpiar con "Borrar lo escrito". El aviso
+// aparece sin mover la página: antes llevaba al alumno hacia arriba en el
+// primer cambio y le cortaba lo que estaba escribiendo. La función se sigue
+// llamando en cada tecla (el listener del fieldset es el mismo para las seis
+// fechas y los cuatro campos del resumen); el chequeo de "ya visible" evita
+// repetir el trabajo.
 function mostrarAvisoCambiosSinGuardar() {
     // idPsEdicion solo tiene valor cuando se está EDITANDO una planilla ya
     // guardada (lo pone el servidor en cargarParaEdicion). Cargando una
@@ -114,7 +115,6 @@ function mostrarAvisoCambiosSinGuardar() {
     if (!aviso || !aviso.hidden) return;
 
     aviso.hidden = false;
-    aviso.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function ocultarAvisoCambiosSinGuardar() {
