@@ -6224,6 +6224,7 @@ input:read-only {
    quinta sola al lado de un hueco. Cinco en una fila es la unica reparticion
    sin sobrante; abajo pasa a 3 + 2, que si es una reparticion deliberada. */
 .sb-tipos-grilla {
+    margin-top: 1.2rem;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.7rem;

@@ -60,6 +60,65 @@
         </p>
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
 
+        <form th:unless="${expedienteCompleto}" th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data"
+              class="panel sb-form">
+
+            <!-- ================= Los cinco tipos =================
+
+                 Antes esto era un <select> con cinco opciones, y el limite de
+                 cada tipo mas cuantos llevaba subidos vivian escondidos en
+                 atributos data de cada <option>. Habia que elegir un tipo para
+                 recien enterarse de que ya no podias subir mas de ese, y el
+                 aviso lo pintaba un script con tres colores hexadecimales
+                 escritos a mano que no son de la paleta y que, al aplicarse como
+                 estilo en linea, se saltaban el modo oscuro.
+
+                 Ahora los cinco tipos son radios con forma de tarjeta: cada uno
+                 dice su propia cuenta, el completo se ve completo y ademas queda
+                 deshabilitado, que es lo que el servidor ya hacia por su lado.
+                 El name del campo sigue siendo tipoDocumento. -->
+            <fieldset class="sb-tipos">
+                <legend class="sb-tipos-titulo">Qué estás subiendo</legend>
+                <p class="sb-adjuntos-nota">
+                    Puedes ir cargando tus documentos a medida que los tengas listos. Recordá que deben contar con las firmas y los sellos correspondientes.
+                </p>
+
+                <div class="sb-tipos-grilla">
+                    <label class="sb-tipo" th:each="tipo : ${tiposDocumento}"
+                           th:classappend="${subidosPorTipo[tipo.name()] >= limites[tipo.name()]} ? ' sb-tipo--completo'">
+                        <input type="radio" name="tipoDocumento" required
+                               th:value="${tipo.name()}"
+                               th:checked="${tipo.name() == ultimoTipo}"
+                               th:disabled="${subidosPorTipo[tipo.name()] >= limites[tipo.name()]}">
+                        <span class="sb-tipo-nombre" th:text="${tipo.descripcion}">Contrato de Pasantía</span>
+                        <span class="sb-tipo-cuenta"
+                              th:text="${subidosPorTipo[tipo.name()]} + ' de ' + ${limites[tipo.name()]}">0 de 1</span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <label for="archivo-input" class="dropzone" id="dropzone">
+                <span class="dropzone-titulo" id="dropzone-titulo">Hacé click o arrastrá tu PDF acá</span>
+                <span class="dropzone-subtitulo">Solo archivos PDF</span>
+            </label>
+            <input type="file" id="archivo-input" name="archivo" accept="application/pdf" required class="dropzone-input">
+
+            <div class="sb-form-acciones">
+                <button type="submit" class="btn btn-primary" id="btn-subir">Subir documento</button>
+            </div>
+        </form>
+
+        <!-- Con los diez comprobantes ya subidos no queda ningún tipo por
+             elegir (los cinco radios estarían deshabilitados de todos modos),
+             así que la caja entera desaparece en vez de quedar ahí sin nada
+             que se pueda tocar. Mismo tratamiento que el vacío de "Lo que ya
+             subiste" y el de Documentos adjuntos: dice qué pasó, no una caja
+             muerta. -->
+        <div th:if="${expedienteCompleto}" class="sb-vacio">
+            <p>Ya subiste los <span th:text="${totalLimite}">10</span> documentos del expediente.</p>
+            <p>Para reemplazar alguno, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
+        </div>
+
         <!-- Apartado exclusivo de Documentos adjuntos: no es uno de los cinco
              tipos del expediente, es el expediente ya combinado (autorización +
              contrato + planillas + las dos fichas, armado en
@@ -103,62 +162,6 @@
                 <p>Para reemplazarlo, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
             </div>
         </section>
-
-        <form th:unless="${expedienteCompleto}" th:action="@{/alumno/subir}" method="post" enctype="multipart/form-data"
-              class="panel sb-form">
-
-            <!-- ================= Los cinco tipos =================
-
-                 Antes esto era un <select> con cinco opciones, y el limite de
-                 cada tipo mas cuantos llevaba subidos vivian escondidos en
-                 atributos data de cada <option>. Habia que elegir un tipo para
-                 recien enterarse de que ya no podias subir mas de ese, y el
-                 aviso lo pintaba un script con tres colores hexadecimales
-                 escritos a mano que no son de la paleta y que, al aplicarse como
-                 estilo en linea, se saltaban el modo oscuro.
-
-                 Ahora los cinco tipos son radios con forma de tarjeta: cada uno
-                 dice su propia cuenta, el completo se ve completo y ademas queda
-                 deshabilitado, que es lo que el servidor ya hacia por su lado.
-                 El name del campo sigue siendo tipoDocumento. -->
-            <fieldset class="sb-tipos">
-                <legend class="sb-tipos-titulo">Qué estás subiendo</legend>
-
-                <div class="sb-tipos-grilla">
-                    <label class="sb-tipo" th:each="tipo : ${tiposDocumento}"
-                           th:classappend="${subidosPorTipo[tipo.name()] >= limites[tipo.name()]} ? ' sb-tipo--completo'">
-                        <input type="radio" name="tipoDocumento" required
-                               th:value="${tipo.name()}"
-                               th:checked="${tipo.name() == ultimoTipo}"
-                               th:disabled="${subidosPorTipo[tipo.name()] >= limites[tipo.name()]}">
-                        <span class="sb-tipo-nombre" th:text="${tipo.descripcion}">Contrato de Pasantía</span>
-                        <span class="sb-tipo-cuenta"
-                              th:text="${subidosPorTipo[tipo.name()]} + ' de ' + ${limites[tipo.name()]}">0 de 1</span>
-                    </label>
-                </div>
-            </fieldset>
-
-            <label for="archivo-input" class="dropzone" id="dropzone">
-                <span class="dropzone-titulo" id="dropzone-titulo">Hacé click o arrastrá tu PDF acá</span>
-                <span class="dropzone-subtitulo">Solo archivos PDF</span>
-            </label>
-            <input type="file" id="archivo-input" name="archivo" accept="application/pdf" required class="dropzone-input">
-
-            <div class="sb-form-acciones">
-                <button type="submit" class="btn btn-primary" id="btn-subir">Subir documento</button>
-            </div>
-        </form>
-
-        <!-- Con los diez comprobantes ya subidos no queda ningún tipo por
-             elegir (los cinco radios estarían deshabilitados de todos modos),
-             así que la caja entera desaparece en vez de quedar ahí sin nada
-             que se pueda tocar. Mismo tratamiento que el vacío de "Lo que ya
-             subiste" y el de Documentos adjuntos: dice qué pasó, no una caja
-             muerta. -->
-        <div th:if="${expedienteCompleto}" class="sb-vacio">
-            <p>Ya subiste los <span th:text="${totalLimite}">10</span> documentos del expediente.</p>
-            <p>Para reemplazar alguno, eliminalo en la tabla de abajo y subí el nuevo acá.</p>
-        </div>
 
         <!-- Currículum: no es uno de los comprobantes de la pasantía, así que no
              entra en la grilla de tipos ni en la cuenta de arriba. Mismo formato
