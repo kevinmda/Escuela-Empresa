@@ -4936,7 +4936,9 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 .subtitulo-pagina {
     color: var(--ink-soft);
     margin-bottom: 1.5rem;
-    max-width: 640px;
+    /* Más ancho que antes (640px): el texto se leía alto y angosto, con mucho
+       espacio vacío a la derecha. */
+    max-width: min(100%, 62rem);
 }
 
 .subseccion-titulo {
@@ -5025,7 +5027,8 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 .portada-sub {
     margin: 0.8rem 0 0;
-    max-width: 46ch;
+    /* 46ch dejaba el texto angosto y alto, con la mitad de la portada vacía. */
+    max-width: min(100%, 78ch);
     font-size: 0.95rem;
     line-height: 1.55;
     color: color-mix(in srgb, var(--esp-ink) 82%, transparent);
