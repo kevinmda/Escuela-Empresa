@@ -107,8 +107,10 @@ public class SubirController {
         model.addAttribute("totalSubidos", limitesDocumentoService.contarTotalSubidos(alumno.getIdAl()));
 
         // Apartado exclusivo de "Documentos adjuntos": el expediente ya combinado
-        // (ver /alumno/imprimir) firmado y escaneado de vuelta. Solo se habilita
-        // una vez completos los diez comprobantes, y admite un solo archivo.
+        // (ver /alumno/imprimir) firmado y escaneado de vuelta. Se puede subir en
+        // cualquier momento (no depende de los comprobantes: lo que exige tenerlos
+        // completos es GENERARLO en /alumno/documentos/adjuntos), y admite un solo
+        // archivo.
         boolean expedienteCompleto = limitesDocumentoService.expedienteCompleto(alumno.getIdAl());
         DocumentoSubido documentoAdjuntos = documentos.stream()
                 .filter(documento -> documento.getTipoDocumento() == TipoDocumento.DOCUMENTOS_ADJUNTOS)
@@ -116,7 +118,7 @@ public class SubirController {
                 .orElse(null);
         model.addAttribute("expedienteCompleto", expedienteCompleto);
         model.addAttribute("documentoAdjuntos", documentoAdjuntos);
-        model.addAttribute("puedeSubirAdjuntos", expedienteCompleto && documentoAdjuntos == null);
+        model.addAttribute("puedeSubirAdjuntos", documentoAdjuntos == null);
 
         // Apartado del currículum: un solo PDF, siempre disponible (no depende de
         // los comprobantes). Para reemplazarlo se elimina el anterior.
@@ -168,18 +170,6 @@ public class SubirController {
         // volver -- así no hay que volver a elegirlo a mano, por ejemplo al
         // subir las seis plantillas semanales una por una.
         String redirectConTipo = "redirect:/alumno/subir?ultimoTipo=" + tipoDocumento.name();
-
-        // DOCUMENTOS_ADJUNTOS es el expediente ya combinado (los otros diez
-        // comprobantes): no tiene sentido subirlo antes de que esos diez estén
-        // completos. La pantalla ya lo deja deshabilitado hasta entonces; esto
-        // es el mismo chequeo del lado del servidor.
-        if (tipoDocumento == TipoDocumento.DOCUMENTOS_ADJUNTOS
-                && !limitesDocumentoService.expedienteCompleto(alumno.getIdAl())) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Todavía no completaste todos los comprobantes del expediente. " +
-                    "Documentos Adjuntos se habilita recién cuando esa entrega esté completa.");
-            return redirectConTipo;
-        }
 
         // VALIDACIÓN DE LÍMITES: Verificar si ya alcanzó el máximo de subidas para este tipo
         if (!limitesDocumentoService.puedeSubirDocumento(alumno.getIdAl(), tipoDocumento)) {
