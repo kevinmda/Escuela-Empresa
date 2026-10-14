@@ -19,6 +19,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alumnos | CTN Pasantías</title>
 
+    <!-- Marcar/desmarcar egresado se manda con fetch y no con un <form>, así que
+         no hay ningún hidden field donde Thymeleaf meta el token de CSRF solo.
+         Estos dos meta sí lo exponen, para que el script los lea a mano. -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -107,6 +113,7 @@
                             <th role="columnheader" scope="col">Sección</th>
                             <th role="columnheader" scope="col">Documentos</th>
                             <th role="columnheader" scope="col">Descarga</th>
+                            <th role="columnheader" scope="col">Egresado</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-alumnos-body" role="rowgroup"></tbody>
@@ -121,7 +128,7 @@
         const esAdministrativo = /*[[${esAdministrativo}]]*/ false;
 
         const CURSO_FIJO = '3ro'; // las pasantías son siempre en 3er año
-        const COLUMNAS = ['Nombres', 'Apellidos', 'CI', 'Email', 'Curso', 'Sección', 'Documentos', 'Descarga'];
+        const COLUMNAS = ['Nombres', 'Apellidos', 'CI', 'Email', 'Curso', 'Sección', 'Documentos', 'Descarga', 'Egresado'];
 
         // Secciones que ofrece cada especialidad. Fijas: se muestran aunque no
         // haya ningún alumno cargado en esa sección, para que el coordinador vea
@@ -311,7 +318,69 @@
             btnDescargarUno.textContent = 'ZIP';
             agregarCelda(fila, btnDescargarUno, 'Descarga', 'celda-acciones');
 
+            // Marcar/desmarcar egresado: una decisión manual, así que siempre pide
+            // confirmación antes de cambiar nada (ver window.confirmarAccion en
+            // theme.js, la misma puerta de entrada al diálogo que ya usan los
+            // <form data-confirmar> del resto de la app).
+            const btnEgresado = document.createElement('button');
+            btnEgresado.type = 'button';
+            btnEgresado.className = 'btn btn-secondary';
+            btnEgresado.textContent = a.egresado ? 'Desmarcar' : 'Marcar egresado';
+            btnEgresado.addEventListener('click', () => {
+                const opciones = a.egresado
+                    ? {
+                        titulo: '¿Quitar la marca de egresado?',
+                        mensaje: `${a.nombres} ${a.apellidos} vuelve a contar como alumno en pasantía.`,
+                        texto: 'Desmarcar',
+                        variante: 'neutral',
+                        alConfirmar: () => actualizarEgresado(a.idAl, false),
+                    }
+                    : {
+                        titulo: '¿Marcar como egresado?',
+                        mensaje: `${a.nombres} ${a.apellidos} deja de contar en las estadísticas y pasa a la `
+                            + 'pestaña "Egresados". Se puede revertir después si fue un error.',
+                        texto: 'Marcar egresado',
+                        variante: 'neutral',
+                        alConfirmar: () => actualizarEgresado(a.idAl, true),
+                    };
+
+                if (typeof window.confirmarAccion === 'function') {
+                    window.confirmarAccion(opciones);
+                } else if (window.confirm(opciones.mensaje)) {
+                    opciones.alConfirmar();
+                }
+            });
+            agregarCelda(fila, btnEgresado, 'Egresado', 'celda-acciones');
+
             return fila;
+        }
+
+        // Sin un <form> de por medio no hay hidden field donde Thymeleaf meta
+        // el token de CSRF solo: se lee a mano de los <meta> del <head>.
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+        // Recarga la vista que esté activa en este momento -- filtrada por
+        // sección, o un resultado de búsqueda -- porque en cualquiera de las
+        // dos el alumno puede haber dejado de pertenecer a lo que se está
+        // mostrando (p. ej. "En pasantía" ya no incluye a quien se acaba de
+        // marcar como egresado).
+        function actualizarEgresado(idAl, egresado) {
+            fetch(`/admin/alumnos/${idAl}/egresado?egresado=${egresado}`, {
+                method: 'POST',
+                headers: csrfHeader ? { [csrfHeader]: csrfToken } : {},
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('respuesta ' + res.status);
+                    if (inputBusqueda.value.trim()) {
+                        ejecutarBusqueda();
+                    } else {
+                        cargarAlumnos();
+                    }
+                })
+                .catch(() => {
+                    window.alert('No se pudo actualizar el estado de egresado. Probá de nuevo.');
+                });
         }
 
         function pintarAlumnos(alumnos) {
