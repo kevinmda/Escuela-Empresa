@@ -80,7 +80,12 @@
         <section class="registro-seccion opi-resultados" aria-labelledby="titulo-opiniones">
             <h3 id="titulo-opiniones">Lo que opinan los alumnos de su empresa</h3>
 
-            <div class="opi-resultados-barra">
+            <!-- data-esp acá (no en toda la sección) tiñe la barra sin pretender
+                 pintar la tarjeta entera de ese color -- el administrativo puede
+                 tener tarjetas de varias especialidades debajo a la vez. Fijo para
+                 coordinador; para administrativo lo pone el script al elegir chip. -->
+            <div class="opi-resultados-barra" id="opi-resultados-barra"
+                 th:attr="data-esp=${esAdministrativo ? null : especialidadFija.idEsp}">
                 <div>
                     <span class="seccion-etiqueta" id="etiqueta-seccion-opi">Sección</span>
                     <!-- Se llena desde SECCIONES_POR_ESP en el script, "Todos" primero y
@@ -193,6 +198,7 @@
         // falta distinguir acá si es administrativo o coordinador.
         const chips = Array.from(document.querySelectorAll('.esp-chip'));
         const idEspFijoInput = document.getElementById('idEspFijo');
+        const barraResultados = document.getElementById('opi-resultados-barra');
         const grupoSeccion = document.getElementById('grupo-seccion-opi');
         const grupoCalificacion = document.getElementById('grupo-calificacion-opi');
         const inputBusqueda = document.getElementById('input-busqueda');
@@ -285,6 +291,15 @@
                 const yaElegida = chip.getAttribute('aria-pressed') === 'true';
                 idEspActual = yaElegida ? '' : chip.dataset.esp;
                 chips.forEach(c => c.setAttribute('aria-pressed', String(c === chip && !yaElegida)));
+
+                // Tiñe la barra del color de la especialidad elegida; sin
+                // ninguna elegida ("Todos"), vuelve al neutro.
+                if (idEspActual) {
+                    barraResultados.dataset.esp = idEspActual;
+                } else {
+                    delete barraResultados.dataset.esp;
+                }
+
                 renderSecciones(idEspActual);
                 aplicarFiltros();
             });

@@ -7407,15 +7407,26 @@ body:not(:has(.credito-disenio))::after {
 
 /* Barra de Sección/Calificación encima de la lista de tarjetas -- mismo
    .seccion-grupo/.seccion-btn que ya usan Alumnos, Reportes y Supervisores,
-   solo que acá van dos grupos en vez de uno. */
+   solo que acá van dos grupos en vez de uno. Mismo fondo teñido
+   (--esp-tenue) que .alumnos-panel-barra en esas pantallas -- ahí el tinte
+   sale gratis porque la barra vive dentro de un .alumnos-panel con
+   data-esp; acá .registro-seccion no tiene esa marca (el administrativo ve
+   varias especialidades mezcladas), así que el script le pone data-esp a
+   esta barra con la especialidad fija (coordinador) o la elegida en las
+   chips (administrativo) -- sin ninguna de las dos, --esp cae al
+   neutro (var(--ink)) y la barra se ve gris, no rota nada. Acá no va
+   edge-to-edge como en .alumnos-panel-barra (esta no vive pegada a los
+   bordes de un panel con overflow:hidden), así que lleva su propio radio
+   y padding en vez de apoyarse en el recorte del contenedor. */
 .opi-resultados-barra {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 1rem 2rem;
     margin-bottom: 1.25rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid var(--line);
+    padding: 0.9rem 1.1rem;
+    border-radius: var(--radius-btn);
+    background-color: var(--esp-tenue);
 }
 
 .opi-resultados-barra > div {
