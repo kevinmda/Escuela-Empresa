@@ -7355,6 +7355,14 @@ body:not(:has(.credito-disenio))::after {
     margin-bottom: 1.5rem;
 }
 
+/* "main h3" trae 1.75rem de margin-top de fábrica; acá el título es el
+   primer elemento del panel, así que ese margen solo empuja el borde de
+   arriba hacia abajo sin separarlo de nada. El gap de .opi-formulario ya
+   pone el aire que hace falta entre el título y las estrellas. */
+.opi-formulario > h3 {
+    margin-top: 0;
+}
+
 /* Sin align-items: flex-start acá -- eso hacía que TODOS los hijos (el label
    del textarea incluido) se achicaran a su ancho de contenido en vez de
    estirarse al ancho del panel, que es lo que .pl-campo necesita para que el
