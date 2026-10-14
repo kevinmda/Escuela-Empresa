@@ -7348,11 +7348,19 @@ body:not(:has(.credito-disenio))::after {
     margin-bottom: 1.5rem;
 }
 
+/* Sin align-items: flex-start acá -- eso hacía que TODOS los hijos (el label
+   del textarea incluido) se achicaran a su ancho de contenido en vez de
+   estirarse al ancho del panel, que es lo que .pl-campo necesita para que el
+   textarea de abajo (width: 100%) termine siendo angosto. El botón es el
+   único que no debe estirarse, así que ese auto-ancho se mueve a él solo. */
 .opi-form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    align-items: flex-start;
+}
+
+.opi-form > button[type="submit"] {
+    align-self: flex-start;
 }
 
 /* Ancho y alto fijos -- igual que una .opi-tarjeta ya cargada -- y sin tirador
