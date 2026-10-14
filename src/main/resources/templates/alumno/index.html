@@ -155,13 +155,14 @@
              marcarla no habla de "egresar ahora": habla de qué significa la
              autorización en sí. -->
         <section class="ahub-conservacion" aria-labelledby="ahub-conservacion-titulo">
-            <!-- La zona de la casilla va primero y con su propio fondo --esp-tenue:
-                 con la casilla sola, sin texto adentro, necesitaba algo que la
-                 distinga del resto del panel y le dé dónde apoyarse. -->
+            <!-- Misma receta que la chapa de .ahub-carnet más arriba: un bloque
+                 de --esp a toda la altura, flush contra el borde, en vez de la
+                 chapa de color + --esp-ink de siempre, la casilla sola necesitaba
+                 algo que la distinga del resto del panel y le dé dónde apoyarse. -->
             <label class="ahub-conservacion-casilla">
                 <input type="checkbox" id="chk-conservar-datos" th:checked="${alumno.autorizaConservarDatos}">
             </label>
-            <div>
+            <div class="ahub-conservacion-texto">
                 <h3 id="ahub-conservacion-titulo">Conservar mis datos como egresado</h3>
                 <p>
                     Cuando termines la pasantía, tus datos van a seguir guardados en el
