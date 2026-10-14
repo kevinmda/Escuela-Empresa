@@ -383,7 +383,7 @@ public class AdminController {
     @PostMapping("/admin/supervisores/crear")
     public String crearSupervisor(@RequestParam String nombres,
                                    @RequestParam String apellidos,
-                                   @RequestParam String email,
+                                   @RequestParam(required = false) String email,
                                    Authentication authentication,
                                    RedirectAttributes redirectAttributes) {
 
@@ -393,7 +393,7 @@ public class AdminController {
         Supervisor supervisor = new Supervisor();
         supervisor.setNombres(nombres);
         supervisor.setApellidos(apellidos);
-        supervisor.setEmail(email);
+        supervisor.setEmail(vacioANull(email));
         supervisor.setEspecialidad(especialidadFija);
 
         supervisorRepository.save(supervisor);
@@ -564,10 +564,10 @@ public class AdminController {
 
     @PostMapping("/admin/empresas/crear")
     public String crearEmpresa(@RequestParam String nombre,
-                                @RequestParam String ruc,
-                                @RequestParam String telefono,
-                                @RequestParam String email,
-                                @RequestParam String direccion,
+                                @RequestParam(required = false) String ruc,
+                                @RequestParam(required = false) String telefono,
+                                @RequestParam(required = false) String email,
+                                @RequestParam(required = false) String direccion,
                                 Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
 
@@ -576,10 +576,10 @@ public class AdminController {
 
         Empresa empresa = new Empresa();
         empresa.setNombre(nombre);
-        empresa.setRuc(ruc);
-        empresa.setTelefono(telefono);
-        empresa.setEmail(email);
-        empresa.setDireccion(direccion);
+        empresa.setRuc(vacioANull(ruc));
+        empresa.setTelefono(vacioANull(telefono));
+        empresa.setEmail(vacioANull(email));
+        empresa.setDireccion(vacioANull(direccion));
         empresa.setEspecialidad(especialidadFija);
 
         empresaRepository.save(empresa);
@@ -711,6 +711,14 @@ public class AdminController {
         }
 
         return alumno;
+    }
+
+    // RUC/Teléfono/Email/Dirección son opcionales al cargar: el campo puede llegar
+    // vacío (nunca falta del todo porque el input sigue estando en el form, solo
+    // sin "required"). Guardamos null en vez de "" para no confundir "no se cargó"
+    // con un dato vacío de verdad.
+    private String vacioANull(String texto) {
+        return (texto == null || texto.isBlank()) ? null : texto;
     }
 
     private String sanitizar(String texto) {
