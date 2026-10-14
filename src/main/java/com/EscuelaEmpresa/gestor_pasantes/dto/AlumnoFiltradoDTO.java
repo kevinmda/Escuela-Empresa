@@ -12,6 +12,7 @@ public class AlumnoFiltradoDTO {
     private String curso;
     private String seccion;
     private boolean egresado;
+    private boolean autorizaConservarDatos;
 
     public AlumnoFiltradoDTO(Alumno alumno) {
         this.idAl = alumno.getIdAl();
@@ -22,6 +23,7 @@ public class AlumnoFiltradoDTO {
         this.curso = alumno.getCurso();
         this.seccion = alumno.getSeccion();
         this.egresado = alumno.isEgresado();
+        this.autorizaConservarDatos = alumno.isAutorizaConservarDatos();
     }
 
     public Integer getIdAl() { return idAl; }
@@ -32,4 +34,5 @@ public class AlumnoFiltradoDTO {
     public String getCurso() { return curso; }
     public String getSeccion() { return seccion; }
     public boolean isEgresado() { return egresado; }
+    public boolean isAutorizaConservarDatos() { return autorizaConservarDatos; }
 }

@@ -19,6 +19,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio | CTN Pasantías</title>
 
+    <!-- La casilla de "conservar mis datos" se guarda con fetch y no con un
+         <form>, así que no hay ningún hidden field donde Thymeleaf meta el
+         token de CSRF solo. Estos dos meta sí lo exponen, para que el
+         script los lea a mano. -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -139,6 +146,29 @@
             </p>
         </section>
 
+        <!-- Fila 2.5: la autorización para conservar los datos al egresar. Es
+             un dato sobre el alumno, no un acceso a otra pantalla, así que va
+             después de las asignaciones y antes de las pantallas de trabajo.
+             Marcarla no pone egresado=true todavía -- eso lo hace el sistema
+             solo, más adelante, cuando además termine de subir sus Documentos
+             Adjuntos (ver DocumentoAlmacenamientoService). Por eso el aviso al
+             marcarla no habla de "egresar ahora": habla de qué significa la
+             autorización en sí. -->
+        <section class="ahub-conservacion" aria-labelledby="ahub-conservacion-titulo">
+            <div>
+                <h3 id="ahub-conservacion-titulo">Conservar mis datos como egresado</h3>
+                <p>
+                    Cuando termines la pasantía, tus datos van a seguir guardados en el
+                    sistema en vez de borrarse, para que puedas usar tu historial de
+                    pasantía más adelante -- por ejemplo, si una oportunidad laboral te lo pide.
+                </p>
+            </div>
+            <label class="ahub-conservacion-casilla">
+                <input type="checkbox" id="chk-conservar-datos" th:checked="${alumno.autorizaConservarDatos}">
+                <span>Quiero que mis datos se conserven cuando termine</span>
+            </label>
+        </section>
+
         <!-- Fila 3: las tres pantallas del alumno, en trío asimétrico. Tres
              tarjetas iguales en fila es el layout por defecto y no dice nada;
              acá la planilla es la tarea que vuelve cada semana y las otras dos
@@ -170,5 +200,67 @@
             </a>
         </section>
     </main>
+
+    <script>
+        // Sin un <form> de por medio no hay hidden field donde Thymeleaf meta
+        // el token de CSRF solo: se lee a mano de los <meta> del <head>.
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+        const chkConservar = document.getElementById('chk-conservar-datos');
+
+        function guardarAutorizacion(autoriza) {
+            fetch(`/alumno/autoriza-conservar-datos?autoriza=${autoriza}`, {
+                method: 'POST',
+                headers: csrfHeader ? { [csrfHeader]: csrfToken } : {},
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('respuesta ' + res.status);
+                })
+                .catch(() => {
+                    // El guardado falló: volvemos la casilla al estado de antes,
+                    // para que lo que se ve en pantalla no mienta sobre lo que
+                    // quedó guardado en la base.
+                    chkConservar.checked = !autoriza;
+                    window.alert('No se pudo guardar el cambio. Probá de nuevo.');
+                });
+        }
+
+        // Interceptamos el click (no el "change") y preventDefault siempre: así
+        // decidimos nosotros si la casilla termina marcada o no, en vez de que
+        // el navegador la tilde antes de que el alumno confirme nada. Si
+        // cancela el diálogo, la casilla simplemente se queda como estaba.
+        chkConservar.addEventListener('click', (evento) => {
+            const quiereActivarla = !chkConservar.checked;
+            evento.preventDefault();
+
+            if (!quiereActivarla) {
+                chkConservar.checked = false;
+                guardarAutorizacion(false);
+                return;
+            }
+
+            const mensaje = 'Cuando termines la pasantía, tus datos van a seguir guardados en el '
+                + 'sistema en vez de borrarse, para que puedas usar tu historial de pasantía más '
+                + 'adelante -- por ejemplo, si una oportunidad laboral te lo pide.';
+            const confirmar = () => {
+                chkConservar.checked = true;
+                guardarAutorizacion(true);
+            };
+
+            if (typeof window.confirmarAccion === 'function') {
+                window.confirmarAccion({
+                    titulo: '¿Conservar tus datos como egresado?',
+                    mensaje: mensaje,
+                    texto: 'Confirmar',
+                    variante: 'neutral',
+                    alConfirmar: confirmar,
+                });
+            } else if (window.confirm(mensaje)) {
+                confirmar();
+            }
+            // Si cancela, no tocamos checked: preventDefault ya la dejó como estaba.
+        });
+    </script>
 </body>
 </html>

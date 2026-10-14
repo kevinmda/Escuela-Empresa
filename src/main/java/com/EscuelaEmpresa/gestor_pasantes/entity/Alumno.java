@@ -63,14 +63,28 @@ public class Alumno {
     // Egresado: ya terminó el colegio. Sus datos quedan en la base para que los
     // consulten el coordinador y el administrativo, pero no puede usar el sistema
     // y no cuenta en el inicio ni en la asignación de supervisores/empresas. Se
-    // marca a mano en la base (columna alumno.egresado, 0 por defecto).
+    // pone en true solo (ver autorizaConservarDatos más abajo) o, si el alumno
+    // no dio esa autorización, se sigue marcando a mano en la base (0 por
+    // defecto en los dos casos).
     @Column(name = "egresado", nullable = false)
     private boolean egresado = false;
+
+    // Autorización del propio alumno (casilla en su Inicio, con aviso previo
+    // explicando la implicancia) para que sus datos sigan en el sistema una
+    // vez que termine la pasantía, en vez de borrarse. Con esto en true, en
+    // cuanto suba sus Documentos Adjuntos (el expediente final combinado y
+    // firmado, el último paso del proceso) el sistema pone egresado=true por
+    // su cuenta -- ver DocumentoAlmacenamientoService.marcarEgresadoSiCorresponde.
+    // Sin esta autorización, nada cambia: egresado sigue marcándose a mano.
+    @Column(name = "autoriza_conservar_datos", nullable = false)
+    private boolean autorizaConservarDatos = false;
 
     public Alumno() {} //constructor vacio, necesario porque internamente se crea un objeto vacio que luego recien se va llenando
     //getter y los setter. Estos son usados activamente por Hibernate para leer y escribir los valores de cada campo al convertir entre el objeto Java y la fila SQL
     public boolean isEgresado() { return egresado; }
     public void setEgresado(boolean egresado) { this.egresado = egresado; }
+    public boolean isAutorizaConservarDatos() { return autorizaConservarDatos; }
+    public void setAutorizaConservarDatos(boolean autorizaConservarDatos) { this.autorizaConservarDatos = autorizaConservarDatos; }
     public Integer getIdAl() { return idAl; }
     public void setIdAl(Integer idAl) { this.idAl = idAl; }
 

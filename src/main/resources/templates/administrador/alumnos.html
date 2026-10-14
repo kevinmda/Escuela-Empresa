@@ -107,6 +107,7 @@
                             <th role="columnheader" scope="col">Sección</th>
                             <th role="columnheader" scope="col">Documentos</th>
                             <th role="columnheader" scope="col">Descarga</th>
+                            <th role="columnheader" scope="col">Conservar datos</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-alumnos-body" role="rowgroup"></tbody>
@@ -121,7 +122,7 @@
         const esAdministrativo = /*[[${esAdministrativo}]]*/ false;
 
         const CURSO_FIJO = '3ro'; // las pasantías son siempre en 3er año
-        const COLUMNAS = ['Nombres', 'Apellidos', 'CI', 'Email', 'Curso', 'Sección', 'Documentos', 'Descarga'];
+        const COLUMNAS = ['Nombres', 'Apellidos', 'CI', 'Email', 'Curso', 'Sección', 'Documentos', 'Descarga', 'Conservar datos'];
 
         // Secciones que ofrece cada especialidad. Fijas: se muestran aunque no
         // haya ningún alumno cargado en esa sección, para que el coordinador vea
@@ -310,6 +311,20 @@
             btnDescargarUno.className = 'btn btn-secondary icono-descargar';
             btnDescargarUno.textContent = 'ZIP';
             agregarCelda(fila, btnDescargarUno, 'Descarga', 'celda-acciones');
+
+            // Solo para consultar: la marca la pone el propio alumno desde su
+            // Inicio, acá no hay nada para tocar. Cuando está en "Sí", en
+            // cuanto suba sus Documentos Adjuntos el sistema lo pasa a
+            // Egresado por su cuenta, sin que nadie tenga que hacer nada.
+            const conservarDatos = document.createElement('span');
+            if (a.autorizaConservarDatos) {
+                conservarDatos.className = 'badge badge-success';
+                conservarDatos.textContent = 'Sí';
+            } else {
+                conservarDatos.style.color = 'var(--ink-soft)';
+                conservarDatos.textContent = 'No';
+            }
+            agregarCelda(fila, conservarDatos, 'Conservar datos');
 
             return fila;
         }

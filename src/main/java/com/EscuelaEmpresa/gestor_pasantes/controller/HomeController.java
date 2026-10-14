@@ -12,6 +12,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.EscuelaEmpresa.gestor_pasantes.exception.RecursoNoEncontradoException;
 import com.EscuelaEmpresa.gestor_pasantes.exception.ReglaNegocioException;
@@ -23,6 +26,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
+import com.EscuelaEmpresa.gestor_pasantes.service.DocumentoAlmacenamientoService;
 import com.EscuelaEmpresa.gestor_pasantes.service.LimitesDocumentoService;
 
 @Controller
@@ -33,15 +37,18 @@ public class HomeController {
     private final AlumnoRepository alumnoRepository;
     private final PlanillaSemanalRepository planillaSemanalRepository;
     private final LimitesDocumentoService limitesDocumentoService;
+    private final DocumentoAlmacenamientoService documentoAlmacenamientoService;
 
     public HomeController(UsuarioRepository usuarioRepository, AdministradorRepository administradorRepository,
             AlumnoRepository alumnoRepository, PlanillaSemanalRepository planillaSemanalRepository,
-            LimitesDocumentoService limitesDocumentoService) {
+            LimitesDocumentoService limitesDocumentoService,
+            DocumentoAlmacenamientoService documentoAlmacenamientoService) {
         this.usuarioRepository = usuarioRepository;
         this.administradorRepository = administradorRepository;
         this.alumnoRepository = alumnoRepository;
         this.planillaSemanalRepository = planillaSemanalRepository;
         this.limitesDocumentoService = limitesDocumentoService;
+        this.documentoAlmacenamientoService = documentoAlmacenamientoService;
     }
 
     // la raiz del sitio no tenia handler, asi que entrar a http://localhost:8080/
@@ -110,6 +117,28 @@ public class HomeController {
         }
 
         throw new ReglaNegocioException("El usuario no está asociado a ningún rol");
+    }
+
+    // Casilla de "Conservar mis datos al terminar" en el Inicio del alumno. No
+    // marca egresado directamente (eso lo decide el sistema solo, ver
+    // DocumentoAlmacenamientoService.marcarEgresadoSiCorresponde): si el
+    // alumno la marca y ya tiene subidos sus Documentos Adjuntos, recién ahí
+    // se dispara. Desmarcarla es inofensivo -- si el alumno ya está egresado,
+    // ni siquiera puede volver a entrar para tocarla.
+    @PostMapping("/alumno/autoriza-conservar-datos")
+    @ResponseBody
+    public void autorizarConservarDatos(@RequestParam boolean autoriza, Authentication authentication) {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+        alumno.setAutorizaConservarDatos(autoriza);
+        alumnoRepository.save(alumno);
+        documentoAlmacenamientoService.marcarEgresadoSiCorresponde(alumno);
+    }
+
+    private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
+        Usuario usuario = usuarioRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no Encontrado"));
+        return alumnoRepository.findByUsuario_IdUsr(usuario.getIdUsr())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Alumno no encontrado"));
     }
 
     private void cargarEstadisticas(Model model, Administrador admin) {
