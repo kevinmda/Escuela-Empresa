@@ -3756,24 +3756,62 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     color: var(--ink-soft);
 }
 
-.ahub-conservacion-casilla {
+.ahub-conservacion-toggle {
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    border-radius: var(--radius-field);
-    background-color: var(--esp-tenue);
-    border: 1px solid var(--esp-edge);
     cursor: pointer;
 }
 
-.ahub-conservacion-casilla input[type="checkbox"] {
+/* Mismo truco que .estrellas-campo input más abajo en esta hoja: el
+   checkbox real sigue ahí (tabulable, lo anuncia el lector de pantalla),
+   solo que oculto visualmente -- el carril de al lado es lo que se ve. */
+.ahub-conservacion-toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.ahub-conservacion-toggle-carril {
+    position: relative;
+    width: 3rem;
+    height: 1.7rem;
+    border-radius: var(--radius-btn);
+    background-color: var(--line);
+    border: 1px solid var(--line);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ahub-conservacion-toggle-carril::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
     width: 1.3rem;
     height: 1.3rem;
-    accent-color: var(--esp, var(--ink));
-    cursor: pointer;
+    border-radius: 50%;
+    background-color: var(--surface);
+    box-shadow: 0 1px 3px rgba(var(--shadow-tint), 0.35);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+/* El color recién aparece activado: --esp dice "esto está prendido", no
+   decora un control que todavía no hizo nada -- mismo criterio que ya usa
+   --esp para "ya asignado" en .ahub-asignacion más arriba. */
+.ahub-conservacion-toggle-input:checked + .ahub-conservacion-toggle-carril {
+    background-color: var(--esp);
+    border-color: var(--esp-edge);
+}
+
+.ahub-conservacion-toggle-input:checked + .ahub-conservacion-toggle-carril::after {
+    transform: translateX(1.3rem);
+    background-color: var(--esp-ink);
+}
+
+.ahub-conservacion-toggle-input:focus-visible + .ahub-conservacion-toggle-carril {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
 }
 
 /* ---------- Fila 3: los tres destinos, en trío asimétrico ----------

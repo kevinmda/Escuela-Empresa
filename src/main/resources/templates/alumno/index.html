@@ -155,11 +155,16 @@
              marcarla no habla de "egresar ahora": habla de qué significa la
              autorización en sí. -->
         <section class="ahub-conservacion" aria-labelledby="ahub-conservacion-titulo">
-            <!-- La zona de la casilla va primero y con su propio fondo --esp-tenue:
-                 con la casilla sola, sin texto adentro, necesitaba algo que la
-                 distinga del resto del panel y le dé dónde apoyarse. -->
-            <label class="ahub-conservacion-casilla">
-                <input type="checkbox" id="chk-conservar-datos" th:checked="${alumno.autorizaConservarDatos}">
+            <!-- Un switch, no una casilla cuadrada: comunica mejor que esto es
+                 un on/off del alumno sobre sí mismo, y el carril se tiñe de
+                 --esp recién cuando está activado (el color marca el estado,
+                 no decora algo que todavía no pasó). El input sigue siendo un
+                 checkbox real -- oculto visualmente, no quitado -- así que
+                 teclado y lector de pantalla lo siguen viendo como tal. -->
+            <label class="ahub-conservacion-toggle">
+                <input type="checkbox" id="chk-conservar-datos" class="ahub-conservacion-toggle-input"
+                       th:checked="${alumno.autorizaConservarDatos}">
+                <span class="ahub-conservacion-toggle-carril" aria-hidden="true"></span>
             </label>
             <div>
                 <h3 id="ahub-conservacion-titulo">Conservar mis datos como egresado</h3>
