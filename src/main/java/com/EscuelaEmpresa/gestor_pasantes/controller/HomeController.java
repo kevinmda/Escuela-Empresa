@@ -167,7 +167,7 @@ public class HomeController {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
         if (ci != null && !ci.isBlank() && esVacio(alumno.getCi())) {
-            alumno.setCi(ci.trim());
+            alumno.setCi(quitarEspacios(ci));
         }
         if (sexo != null && !sexo.isBlank() && esVacio(alumno.getSexo())) {
             alumno.setSexo(sexo.trim());
@@ -183,7 +183,7 @@ public class HomeController {
             }
         }
         if (telefono != null && !telefono.isBlank() && esVacio(alumno.getTelefono())) {
-            alumno.setTelefono(telefono.trim());
+            alumno.setTelefono(quitarEspacios(telefono));
         }
 
         alumnoRepository.save(alumno);
@@ -192,6 +192,14 @@ public class HomeController {
 
     private boolean esVacio(String valor) {
         return valor == null || valor.isBlank();
+    }
+
+    // CI y teléfono se usan en los documentos tal cual quedan guardados, así
+    // que no alcanza con recortar las puntas (trim): "451 2337" o
+    // "0975 238 841" tienen que quedar sin ningún espacio, no solo sin los
+    // de los bordes.
+    private String quitarEspacios(String valor) {
+        return valor.replaceAll("\\s+", "");
     }
 
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {
