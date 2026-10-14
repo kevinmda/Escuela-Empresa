@@ -151,9 +151,14 @@
              después de las asignaciones y antes de las pantallas de trabajo.
              Marcarla no pone egresado=true todavía -- eso lo hace el sistema
              solo, más adelante, cuando además termine de subir sus Documentos
-             Adjuntos (ver DocumentoAlmacenamientoService). Por eso el aviso al
-             marcarla no habla de "egresar ahora": habla de qué significa la
-             autorización en sí. -->
+             Adjuntos (ver DocumentoAlmacenamientoService).
+
+             Es de un solo sentido: una vez activada, el alumno ya no la puede
+             desactivar desde acá -- el input queda disabled (ver también el
+             guard del lado del servidor en HomeController) y solo se puede
+             revertir a mano en la base. Por eso el aviso al activarla no
+             explica el "para qué" (eso ya lo dice el párrafo de al lado):
+             advierte que es un cambio que no se puede deshacer. -->
         <section class="ahub-conservacion" aria-labelledby="ahub-conservacion-titulo">
             <!-- Un switch, no una casilla cuadrada: comunica mejor que esto es
                  un on/off del alumno sobre sí mismo, y el carril se tiñe de
@@ -163,7 +168,8 @@
                  teclado y lector de pantalla lo siguen viendo como tal. -->
             <label class="ahub-conservacion-toggle">
                 <input type="checkbox" id="chk-conservar-datos" class="ahub-conservacion-toggle-input"
-                       th:checked="${alumno.autorizaConservarDatos}">
+                       th:checked="${alumno.autorizaConservarDatos}"
+                       th:disabled="${alumno.autorizaConservarDatos}">
                 <span class="ahub-conservacion-toggle-carril" aria-hidden="true"></span>
             </label>
             <div>
@@ -172,6 +178,9 @@
                     Cuando termines la pasantía, tus datos van a seguir guardados en el
                     sistema en vez de borrarse, para que puedas usar tu historial de
                     pasantía más adelante -- por ejemplo, si una oportunidad laboral te lo pide.
+                </p>
+                <p class="ahub-conservacion-nota" th:if="${alumno.autorizaConservarDatos}">
+                    Ya está activada. Es un cambio que no se puede deshacer desde acá.
                 </p>
             </div>
         </section>
@@ -216,8 +225,8 @@
 
         const chkConservar = document.getElementById('chk-conservar-datos');
 
-        function guardarAutorizacion(autoriza) {
-            fetch(`/alumno/autoriza-conservar-datos?autoriza=${autoriza}`, {
+        function guardarAutorizacion() {
+            fetch('/alumno/autoriza-conservar-datos?autoriza=true', {
                 method: 'POST',
                 headers: csrfHeader ? { [csrfHeader]: csrfToken } : {},
             })
@@ -225,60 +234,48 @@
                     if (!res.ok) throw new Error('respuesta ' + res.status);
                 })
                 .catch(() => {
-                    // El guardado falló: volvemos la casilla al estado de antes,
-                    // para que lo que se ve en pantalla no mienta sobre lo que
-                    // quedó guardado en la base.
-                    chkConservar.checked = !autoriza;
+                    // El guardado falló: volvemos el switch a como estaba (apagado
+                    // y tocable de nuevo), para que lo que se ve en pantalla no
+                    // mienta sobre lo que quedó guardado en la base.
+                    chkConservar.checked = false;
+                    chkConservar.disabled = false;
                     window.alert('No se pudo guardar el cambio. Probá de nuevo.');
                 });
         }
 
-        // Interceptamos el click (no el "change") y preventDefault siempre: así
-        // decidimos nosotros si la casilla termina marcada o no, en vez de que
-        // el navegador la tilde antes de que el alumno confirme nada. Si
-        // cancela el diálogo, la casilla simplemente se queda como estaba.
+        // Solo activa, nunca desactiva: una vez tildado, el input queda
+        // disabled (acá mismo, apenas se confirma, y también de entrada si
+        // ya venía así desde el servidor) y los elementos disabled no
+        // disparan "click" -- así que de acá para abajo solo hace falta
+        // cubrir el camino de encendido.
         //
-        // Ojo con esto: en un checkbox, el navegador ya tilda/destilda
-        // ".checked" ANTES de disparar "click" (son los "pre-click activation
-        // steps" del estándar) -- por eso leemos el valor tal cual, sin
-        // negarlo, para saber qué quiso hacer el alumno. Y preventDefault no
-        // revierte eso al instante: lo revierte recién cuando termina de
-        // procesarse este evento, así que si queremos destildarla ya mismo
-        // (el caso de abajo, sin confirmación) hay que esperar a que ese
-        // revert automático pase primero -- si lo hacemos en el momento, el
-        // propio revert nos lo pisa un instante después.
+        // Interceptamos el click (no el "change") y preventDefault siempre:
+        // así decidimos nosotros si el switch termina marcado o no, en vez
+        // de que el navegador lo tilde antes de que el alumno confirme nada.
         chkConservar.addEventListener('click', (evento) => {
-            const quiereActivarla = chkConservar.checked;
             evento.preventDefault();
 
-            if (!quiereActivarla) {
-                setTimeout(() => {
-                    chkConservar.checked = false;
-                    guardarAutorizacion(false);
-                }, 0);
-                return;
-            }
-
-            const mensaje = 'Cuando termines la pasantía, tus datos van a seguir guardados en el '
-                + 'sistema en vez de borrarse, para que puedas usar tu historial de pasantía más '
-                + 'adelante -- por ejemplo, si una oportunidad laboral te lo pide.';
+            const mensaje = 'Esta acción no se puede deshacer: una vez que la actives, no vas a poder '
+                + 'desactivarla vos mismo. Si en algún momento necesitás revertirla, vas a tener que '
+                + 'pedirlo para que se cambie a mano en el sistema.';
             const confirmar = () => {
                 chkConservar.checked = true;
-                guardarAutorizacion(true);
+                chkConservar.disabled = true;
+                guardarAutorizacion();
             };
 
             if (typeof window.confirmarAccion === 'function') {
                 window.confirmarAccion({
-                    titulo: '¿Conservar tus datos como egresado?',
+                    titulo: '¿Activar esta autorización?',
                     mensaje: mensaje,
-                    texto: 'Confirmar',
-                    variante: 'neutral',
+                    texto: 'Sí, activar',
+                    variante: 'peligro',
                     alConfirmar: confirmar,
                 });
             } else if (window.confirm(mensaje)) {
                 confirmar();
             }
-            // Si cancela, no tocamos checked: preventDefault ya la dejó como estaba.
+            // Si cancela, no tocamos checked: preventDefault ya lo dejó como estaba.
         });
     </script>
 </body>

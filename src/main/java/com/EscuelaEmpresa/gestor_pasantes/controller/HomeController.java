@@ -129,6 +129,15 @@ public class HomeController {
     @ResponseBody
     public void autorizarConservarDatos(@RequestParam boolean autoriza, Authentication authentication) {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        // Es de un solo sentido: una vez activada, queda fija. El toggle del
+        // lado del cliente ya queda disabled así que en el uso normal esto
+        // nunca llega, pero esta es la regla de verdad -- la del cliente es
+        // solo para que no haga falta tocarla a mano para notarlo.
+        if (alumno.isAutorizaConservarDatos()) {
+            return;
+        }
+
         alumno.setAutorizaConservarDatos(autoriza);
         alumnoRepository.save(alumno);
         documentoAlmacenamientoService.marcarEgresadoSiCorresponde(alumno);

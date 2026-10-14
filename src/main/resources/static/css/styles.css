@@ -3756,11 +3756,29 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     color: var(--ink-soft);
 }
 
+/* El estado ya fijo pesa distinto que la explicación de arriba: --esp y
+   semibold, el mismo tratamiento que ya usa .ahub-asignacion-valor para
+   decir "esto ya pasó", en vez del --ink-soft parejo del resto del panel. */
+.ahub-conservacion-nota {
+    margin: 0.5rem 0 0;
+    max-width: 38rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--esp, var(--ink));
+}
+
 .ahub-conservacion-toggle {
     display: flex;
     flex-shrink: 0;
     align-items: center;
     cursor: pointer;
+}
+
+/* Una vez activada queda disabled (ver alumno/index.html): "not-allowed" en
+   vez de "pointer" es la única señal de que ya no se puede tocar, porque
+   el color del carril es el mismo prendido se pueda o no apagar. */
+.ahub-conservacion-toggle:has(.ahub-conservacion-toggle-input:disabled) {
+    cursor: not-allowed;
 }
 
 /* Mismo truco que .estrellas-campo input más abajo en esta hoja: el
