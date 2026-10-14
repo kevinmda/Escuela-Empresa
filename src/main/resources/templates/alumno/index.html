@@ -59,6 +59,19 @@
             </p>
         </div>
 
+        <!-- Acá cae quien DatosObligatoriosAlumnoInterceptor redirigió por
+             tener CI, sexo, fecha de nacimiento o teléfono sin cargar --
+             esas cuatro pantallas de abajo son la única parte del sistema a
+             la que puede entrar hasta completarlos. -->
+        <div th:if="${param.completarDatos}" class="ahub-aviso">
+            <p>
+                Antes de seguir, completá tus datos personales -- CI, sexo, fecha de
+                nacimiento y teléfono, lo que te falte. Son necesarios para generar
+                correctamente los documentos de tu pasantía.
+                <a href="#ahub-datos-personales">Completalos acá abajo</a>.
+            </p>
+        </div>
+
         <!-- Fila 1: la credencial. La especialidad deja de ser un dato más de
              la lista y pasa a ser una chapa de color de altura completa, con la
              inicial del alumno impresa en grande como marca de agua. Es el
@@ -108,7 +121,7 @@
                      cualquier intento de pisar un dato que ya está cargado,
                      así que una vez guardado un campo pasa a verse como
                      texto fijo, igual que Email. -->
-                <dl class="ahub-datos">
+                <dl class="ahub-datos" id="ahub-datos-personales">
                     <div class="ahub-dato">
                         <dt>CI</dt>
                         <dd th:if="${!#strings.isEmpty(alumno.ci)}" class="ahub-dato-cifra" th:text="${alumno.ci}"></dd>
