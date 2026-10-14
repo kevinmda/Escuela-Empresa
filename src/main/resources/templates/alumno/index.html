@@ -155,6 +155,12 @@
              marcarla no habla de "egresar ahora": habla de qué significa la
              autorización en sí. -->
         <section class="ahub-conservacion" aria-labelledby="ahub-conservacion-titulo">
+            <!-- La zona de la casilla va primero y con su propio fondo --esp-tenue:
+                 con la casilla sola, sin texto adentro, necesitaba algo que la
+                 distinga del resto del panel y le dé dónde apoyarse. -->
+            <label class="ahub-conservacion-casilla">
+                <input type="checkbox" id="chk-conservar-datos" th:checked="${alumno.autorizaConservarDatos}">
+            </label>
             <div>
                 <h3 id="ahub-conservacion-titulo">Conservar mis datos como egresado</h3>
                 <p>
@@ -163,10 +169,6 @@
                     pasantía más adelante -- por ejemplo, si una oportunidad laboral te lo pide.
                 </p>
             </div>
-            <label class="ahub-conservacion-casilla">
-                <input type="checkbox" id="chk-conservar-datos" th:checked="${alumno.autorizaConservarDatos}">
-                <span>Quiero que mis datos se conserven cuando termine</span>
-            </label>
         </section>
 
         <!-- Fila 3: las tres pantallas del alumno, en trío asimétrico. Tres
@@ -230,13 +232,25 @@
         // decidimos nosotros si la casilla termina marcada o no, en vez de que
         // el navegador la tilde antes de que el alumno confirme nada. Si
         // cancela el diálogo, la casilla simplemente se queda como estaba.
+        //
+        // Ojo con esto: en un checkbox, el navegador ya tilda/destilda
+        // ".checked" ANTES de disparar "click" (son los "pre-click activation
+        // steps" del estándar) -- por eso leemos el valor tal cual, sin
+        // negarlo, para saber qué quiso hacer el alumno. Y preventDefault no
+        // revierte eso al instante: lo revierte recién cuando termina de
+        // procesarse este evento, así que si queremos destildarla ya mismo
+        // (el caso de abajo, sin confirmación) hay que esperar a que ese
+        // revert automático pase primero -- si lo hacemos en el momento, el
+        // propio revert nos lo pisa un instante después.
         chkConservar.addEventListener('click', (evento) => {
-            const quiereActivarla = !chkConservar.checked;
+            const quiereActivarla = chkConservar.checked;
             evento.preventDefault();
 
             if (!quiereActivarla) {
-                chkConservar.checked = false;
-                guardarAutorizacion(false);
+                setTimeout(() => {
+                    chkConservar.checked = false;
+                    guardarAutorizacion(false);
+                }, 0);
                 return;
             }
 

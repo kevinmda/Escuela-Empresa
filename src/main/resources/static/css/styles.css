@@ -3723,13 +3723,13 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 /* ---------- Fila 2.5: autorización para conservar los datos ----------
    Mismo panel que .ahub-asignaciones (superficie, borde, el mismo escalón
-   de sombra), pero en fila: el texto explica, la casilla decide, y en
-   pantallas chicas se apilan uno debajo del otro. */
+   de sombra), pero en fila: la casilla va primero, pegada al texto que
+   explica lo que decide (no a los extremos del panel), y en pantallas
+   chicas se apilan uno debajo del otro. */
 
 .ahub-conservacion {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 1.5rem;
     margin-bottom: 1rem;
     padding: 1.35rem 1.75rem 1.5rem;
@@ -3760,16 +3760,18 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 0.6rem;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--ink);
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-field);
+    background-color: var(--esp-tenue);
+    border: 1px solid var(--esp-edge);
     cursor: pointer;
 }
 
 .ahub-conservacion-casilla input[type="checkbox"] {
-    width: 1.15rem;
-    height: 1.15rem;
+    width: 1.3rem;
+    height: 1.3rem;
     accent-color: var(--esp, var(--ink));
     cursor: pointer;
 }
@@ -4931,7 +4933,8 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     }
 
     /* Mismo apilado que el resto de los paneles de esta pantalla a este ancho:
-       el texto arriba, la casilla abajo en vez de al costado. */
+       la zona de la casilla arriba y el texto debajo, en vez de al costado
+       (el orden en el HTML no cambia, solo la dirección del flex). */
     .ahub-conservacion {
         flex-direction: column;
         align-items: flex-start;
