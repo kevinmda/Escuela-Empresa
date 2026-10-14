@@ -3723,29 +3723,20 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 /* ---------- Fila 2.5: autorización para conservar los datos ----------
    Mismo panel que .ahub-asignaciones (superficie, borde, el mismo escalón
-   de sombra), pero con una chapa de --esp a toda la altura a la izquierda
-   -- la misma receta de .ahub-carnet/.ahub-chapa más arriba -- en vez de
-   una casilla suelta. overflow:hidden en el contenedor es lo que deja que
-   la chapa llegue hasta el borde redondeado sin asomarse afuera. En
-   pantallas chicas se apila: la chapa arriba, angosta, el texto abajo. */
+   de sombra), pero en fila: la casilla va primero, pegada al texto que
+   explica lo que decide (no a los extremos del panel), y en pantallas
+   chicas se apilan uno debajo del otro. */
 
 .ahub-conservacion {
-    display: grid;
-    grid-template-columns: 5.5rem minmax(0, 1fr);
-    align-items: stretch;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
     margin-bottom: 1rem;
+    padding: 1.35rem 1.75rem 1.5rem;
     background-color: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-panel);
     box-shadow: 0 2px 10px -4px rgba(var(--shadow-tint), 0.12);
-    overflow: hidden;
-}
-
-.ahub-conservacion-texto {
-    /* Más margen a la izquierda que arriba/abajo: la chapa ya separa del
-       borde del panel, pero no del texto, así que ese cuarto valor es el
-       que de verdad los despega. */
-    padding: 1.35rem 1.75rem 1.5rem 2rem;
 }
 
 .ahub-conservacion h3 {
@@ -3767,23 +3758,21 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
 
 .ahub-conservacion-casilla {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    background-color: var(--esp);
-    /* Mismo motivo que en .ahub-chapa: contra --surface blanco, varios
-       rellenos (Química Industrial casi blanco, por ejemplo) no separan
-       sin este borde interno. */
-    border-right: 1px solid var(--esp-edge);
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-field);
+    background-color: var(--esp-tenue);
+    border: 1px solid var(--esp-edge);
     cursor: pointer;
 }
 
 .ahub-conservacion-casilla input[type="checkbox"] {
     width: 1.3rem;
     height: 1.3rem;
-    /* --esp-ink y no --esp: el tilde tiene que leerse ENCIMA del relleno de
-       la chapa, no fundirse con él (Química Industrial es --esp casi
-       blanco con --esp-ink oscuro). */
-    accent-color: var(--esp-ink);
+    accent-color: var(--esp, var(--ink));
     cursor: pointer;
 }
 
@@ -4944,20 +4933,12 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     }
 
     /* Mismo apilado que el resto de los paneles de esta pantalla a este ancho:
-       la chapa se vuelve una franja angosta arriba (borde abajo en vez de a
-       la derecha) y el texto pasa a ir debajo, a todo el ancho. */
+       la zona de la casilla arriba y el texto debajo, en vez de al costado
+       (el orden en el HTML no cambia, solo la dirección del flex). */
     .ahub-conservacion {
-        grid-template-columns: 1fr;
-    }
-
-    .ahub-conservacion-casilla {
-        min-height: 3.25rem;
-        border-right: none;
-        border-bottom: 1px solid var(--esp-edge);
-    }
-
-    .ahub-conservacion-texto {
-        padding: 1.1rem 1.25rem 1.4rem;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.25rem 1.25rem 1.4rem;
     }
 
     /* Los tres destinos vuelven a una columna y el principal deja de ocupar dos
