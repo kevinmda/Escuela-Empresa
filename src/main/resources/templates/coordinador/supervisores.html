@@ -149,16 +149,39 @@
                             <td role="cell" data-label="Curso" th:text="${alumno.curso}"></td>
                             <td role="cell" data-label="Sección" th:text="${alumno.seccion}"></td>
                             <td role="cell" data-label="Supervisor" class="celda-asignar">
-                                <span class="select-envoltorio">
-                                    <select th:name="${'sup_' + alumno.idAl}" class="select-asignacion"
-                                            th:attr="data-original=${alumno.supervisor != null ? alumno.supervisor.idSup : ''},aria-label='Supervisor de ' + ${alumno.nombres + ' ' + alumno.apellidos}">
-                                        <option value="">-- Sin asignar --</option>
-                                        <option th:each="sup : ${supervisores}"
-                                                th:value="${sup.idSup}"
-                                                th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
-                                                th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
-                                    </select>
-                                </span>
+                                <!-- El <select> de verdad: oculto (hidden no lo saca del <form> ni
+                                     del POST, solo de la vista y del tabulado), es el que lleva el
+                                     valor real y al que escucha asignacionMasiva.js. El <details>
+                                     de abajo es la cara visible -- ver el comentario de
+                                     .asignacion-cuenta en styles.css. -->
+                                <select th:name="${'sup_' + alumno.idAl}" class="select-asignacion" hidden
+                                        th:attr="data-original=${alumno.supervisor != null ? alumno.supervisor.idSup : ''}">
+                                    <option value="">-- Sin asignar --</option>
+                                    <option th:each="sup : ${supervisores}"
+                                            th:value="${sup.idSup}"
+                                            th:selected="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup}"
+                                            th:text="${sup.nombres + ' ' + sup.apellidos}"></option>
+                                </select>
+                                <details class="cuenta asignacion-cuenta"
+                                          th:classappend="${alumno.supervisor != null} ? ' asignacion-cuenta--asignado'">
+                                    <summary class="cuenta-boton asignacion-boton"
+                                             th:attr="aria-label='Supervisor de ' + ${alumno.nombres + ' ' + alumno.apellidos}">
+                                        <span class="asignacion-boton-texto"
+                                              th:text="${alumno.supervisor != null ? (alumno.supervisor.nombres + ' ' + alumno.supervisor.apellidos) : '-- Sin asignar --'}">-- Sin asignar --</span>
+                                        <svg class="cuenta-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="m6 9 6 6 6-6"/>
+                                        </svg>
+                                    </summary>
+                                    <div class="cuenta-menu asignacion-menu">
+                                        <button type="button" class="cuenta-item" data-valor=""
+                                                th:classappend="${alumno.supervisor == null} ? ' cuenta-item--activo'">-- Sin asignar --</button>
+                                        <button type="button" class="cuenta-item" th:each="sup : ${supervisores}"
+                                                th:attr="data-valor=${sup.idSup}"
+                                                th:classappend="${alumno.supervisor != null and alumno.supervisor.idSup == sup.idSup} ? ' cuenta-item--activo'"
+                                                th:text="${sup.nombres + ' ' + sup.apellidos}"></button>
+                                    </div>
+                                </details>
                             </td>
                         </tr>
                     </tbody>
