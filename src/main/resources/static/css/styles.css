@@ -6951,7 +6951,7 @@ main > .sb-vacio {
    Repetir el texto acá (en vez de leerlo de una variable) es a propósito: nada
    en este archivo depende de que el HTML siga existiendo. */
 body:not(:has(.credito-disenio))::after {
-    content: "Desarrollado por: Facundo Vera y por: Kevin Duré";
+    content: "Desarrollado por: Facundo Vera y Kevin Duré";
     position: fixed;
     left: 1.25rem;
     bottom: 1rem;
