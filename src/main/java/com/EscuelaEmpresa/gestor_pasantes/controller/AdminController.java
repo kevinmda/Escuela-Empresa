@@ -192,26 +192,6 @@ public class AdminController {
                 .toList();
     }
 
-    // --- Marcar/desmarcar un alumno como egresado ---
-
-    // Se marca a mano, alumno por alumno, y no automáticamente al llegar a
-    // cierta fecha o cantidad de planillas: el momento exacto en que termina
-    // la pasantía y el alumno egresa del colegio depende de trámites que esta
-    // app no controla, así que queda a criterio de quien lo ve en pantalla.
-    // Marcarlo no borra nada (ver Alumno.egresado): el alumno solo deja de
-    // contar en las estadísticas del inicio y pasa a la pestaña "Egresados"
-    // de esta misma pantalla, de donde se lo puede volver a desmarcar si fue
-    // un error.
-    @PostMapping("/admin/alumnos/{idAl}/egresado")
-    @ResponseBody
-    public void marcarEgresado(@PathVariable Integer idAl,
-                                @RequestParam boolean egresado,
-                                Authentication authentication) {
-        Alumno alumno = verificarAccesoAlumno(idAl, authentication);
-        alumno.setEgresado(egresado);
-        alumnoRepository.save(alumno);
-    }
-
     // --- Búsqueda por nombre, apellido o CI (pantallas Alumnos y Reportes) ---
 
     @GetMapping("/admin/api/buscar-alumnos")
