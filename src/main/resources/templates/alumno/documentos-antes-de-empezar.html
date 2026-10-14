@@ -72,7 +72,7 @@
                          el PDF en una pestaña aparte como los demás documentos de esta
                          página. -->
                     <form class="impr-doc-formulario" method="get" th:action="@{/alumno/imprimir/Contrato.pdf}"
-                          target="_blank" id="form-contrato">
+                          target="_blank" id="form-contrato" th:data-empresa-asignada="${empresaAsignada}">
                         <div class="impr-doc-campos">
                             <label class="pl-campo">
                                 <span class="pl-campo-etiqueta">Nombre y apellido</span>
@@ -132,7 +132,8 @@
                          del archivo, no su contenido. target="_blank" sigue abriendo el
                          resultado en una pestaña aparte. -->
                     <form class="impr-doc-formulario" method="post" enctype="multipart/form-data"
-                          th:action="@{/alumno/imprimir/Autorizacion.pdf}" target="_blank" id="form-autorizacion">
+                          th:action="@{/alumno/imprimir/Autorizacion.pdf}" target="_blank" id="form-autorizacion"
+                          th:data-empresa-asignada="${empresaAsignada}">
                         <div class="impr-doc-campos">
                             <label class="pl-campo">
                                 <span class="pl-campo-etiqueta">Nombres y apellidos completos</span>

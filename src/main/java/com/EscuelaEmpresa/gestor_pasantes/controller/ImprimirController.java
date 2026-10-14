@@ -101,6 +101,13 @@ public class ImprimirController {
         model.addAttribute("empresaAlumno",
                 alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : "Todavía sin asignar");
 
+        // Sin empresa todavía no hay a quién nombrar en el Contrato ni nada que
+        // autorizar: el botón de "Generar PDF" de las dos tarjetas de abajo
+        // arranca deshabilitado igual que por campos incompletos, pero esta
+        // condición nunca se habilita sola con más texto en los inputs -- ver
+        // documentosAntesDeEmpezar.js.
+        model.addAttribute("empresaAsignada", alumno.getEmpresa() != null);
+
         return "alumno/documentos-antes-de-empezar";
     }
 
@@ -199,7 +206,16 @@ public class ImprimirController {
                                     RedirectAttributes redirectAttributes) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
-        String empresa = alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : null;
+        // El botón ya queda deshabilitado del lado del cliente sin empresa
+        // asignada (ver documentosAntesDeEmpezar.js), pero esta es la regla de
+        // verdad: un contrato sin empresa no tiene sentido, así que si de
+        // alguna forma llega igual la petición, se corta acá.
+        if (alumno.getEmpresa() == null) {
+            throw new ReglaNegocioException(
+                    "Todavía no tenés una empresa asignada. Esperá a que coordinación te la asigne para generar el contrato.");
+        }
+
+        String empresa = alumno.getEmpresa().getNombre();
 
         byte[] pdf = formularioPdfService.generarContrato(alumno, supervisor.trim(), empresa,
                 area != null ? area.trim() : null, padreEncargado.trim());
@@ -240,6 +256,16 @@ public class ImprimirController {
                                                         Authentication authentication,
                                                         HttpServletRequest request) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        // Misma regla que en Contrato: sin empresa asignada no se genera nada,
+        // aunque el botón ya llegue deshabilitado. Esta vez la respuesta es
+        // JSON (ver enviarFormularioPorFetch en documentosAntesDeEmpezar.js),
+        // así que se devuelve con el mismo formato que las demás validaciones
+        // de este método en vez de lanzar una excepción.
+        if (alumno.getEmpresa() == null) {
+            return Map.of("valido", false, "error",
+                    "Todavía no tenés una empresa asignada. Esperá a que coordinación te la asigne para generar la autorización.");
+        }
 
         List<MultipartFile> adjuntos = new ArrayList<>();
         for (MultipartFile adjunto : Arrays.asList(cedulaAlumno, cedulaPadre)) {

@@ -1,12 +1,24 @@
 // /alumno/documentos/antes-de-empezar tiene dos tarjetas con formulario
 // (Contrato y Autorización), cada una con su propio botón "Generar PDF" que
 // arranca deshabilitado y se habilita recién cuando sus campos [required]
-// tienen texto.
+// tienen texto -- y solo si además el alumno ya tiene una empresa asignada
+// (data-empresa-asignada, escrito por ImprimirController al armar la
+// página): sin empresa no hay a quién nombrar en el contrato ni nada que
+// autorizar, así que el botón queda deshabilitado para siempre sin importar
+// cuánto se completen los demás campos. La regla de verdad es la del
+// servidor (ver generarPdfContrato/generarPdfAutorizacion), esto es solo
+// para no dejar que el alumno llene todo para nada.
 (function () {
     function activarBotonSegunObligatorios(formId, botonId) {
         const form = document.getElementById(formId);
         const boton = document.getElementById(botonId);
         if (!form || !boton) return;
+
+        const empresaAsignada = form.dataset.empresaAsignada === 'true';
+        if (!empresaAsignada) {
+            boton.disabled = true;
+            return;
+        }
 
         const obligatorios = form.querySelectorAll('[required]');
 
