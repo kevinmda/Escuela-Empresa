@@ -110,68 +110,71 @@
 
                      CI, Sexo, Fecha de nacimiento y Teléfono pueden venir
                      vacíos en los alumnos cargados antes de pedir estos
-                     datos -- en vez de dejarlos en blanco, cuando faltan se
-                     muestra ahí mismo un formulario chico para que el
-                     alumno los cargue. Son formularios de verdad (th:action,
-                     no fetch) para no tener que armar a mano el manejo del
-                     token CSRF como con la autorización de conservar datos:
-                     acá sí hay dónde meter el hidden field solo. Completa,
-                     no corrige: el controlador (ver HomeController) ignora
-                     cualquier intento de pisar un dato que ya está cargado,
-                     así que una vez guardado un campo pasa a verse como
-                     texto fijo, igual que Email. -->
-                <dl class="ahub-datos" id="ahub-datos-personales">
-                    <div class="ahub-dato">
-                        <dt>CI</dt>
-                        <dd th:if="${!#strings.isEmpty(alumno.ci)}" class="ahub-dato-cifra" th:text="${alumno.ci}"></dd>
-                        <dd th:unless="${!#strings.isEmpty(alumno.ci)}">
-                            <form class="ahub-dato-completar" th:action="@{/alumno/completar-datos}" method="post">
+                     datos -- en vez de dejarlos en blanco, cuando falta
+                     alguno se muestra ahí mismo un campo para que el alumno
+                     lo cargue. Un solo <form> para los cuatro, no uno por
+                     campo: con un form por campo, completar varios a la vez
+                     y guardar uno solo recargaba la página y perdía lo
+                     tipeado en los demás, todavía sin mandar. Es un form de
+                     verdad (th:action, no fetch) para no tener que armar a
+                     mano el manejo del token CSRF como con la autorización
+                     de conservar datos: acá sí hay dónde meter el hidden
+                     field solo. Completa, no corrige: el controlador (ver
+                     HomeController) ignora cualquier intento de pisar un
+                     dato que ya está cargado, así que una vez guardado un
+                     campo pasa a verse como texto fijo, igual que Email. -->
+                <form th:action="@{/alumno/completar-datos}" method="post">
+                    <dl class="ahub-datos" id="ahub-datos-personales">
+                        <div class="ahub-dato">
+                            <dt>CI</dt>
+                            <dd th:if="${!#strings.isEmpty(alumno.ci)}" class="ahub-dato-cifra" th:text="${alumno.ci}"></dd>
+                            <dd th:unless="${!#strings.isEmpty(alumno.ci)}" class="ahub-dato-completar">
                                 <input type="text" name="ci" placeholder="Agregar CI" maxlength="25" required>
-                                <button type="submit" class="btn-secondary">Guardar</button>
-                            </form>
-                        </dd>
-                    </div>
-                    <div class="ahub-dato">
-                        <dt>Sexo</dt>
-                        <dd th:if="${!#strings.isEmpty(alumno.sexo)}" th:text="${alumno.sexo}"></dd>
-                        <dd th:unless="${!#strings.isEmpty(alumno.sexo)}">
-                            <form class="ahub-dato-completar" th:action="@{/alumno/completar-datos}" method="post">
+                            </dd>
+                        </div>
+                        <div class="ahub-dato">
+                            <dt>Sexo</dt>
+                            <dd th:if="${!#strings.isEmpty(alumno.sexo)}" th:text="${alumno.sexo}"></dd>
+                            <dd th:unless="${!#strings.isEmpty(alumno.sexo)}" class="ahub-dato-completar">
                                 <select name="sexo" required>
                                     <option value="" selected disabled>Agregar sexo</option>
                                     <option value="Masculino">Masculino</option>
                                     <option value="Femenino">Femenino</option>
                                 </select>
-                                <button type="submit" class="btn-secondary">Guardar</button>
-                            </form>
-                        </dd>
-                    </div>
-                    <div class="ahub-dato">
-                        <dt>Fecha de nacimiento</dt>
-                        <dd th:if="${alumno.fechaNac != null}" th:text="${#temporals.format(alumno.fechaNac, 'dd/MM/yyyy')}"></dd>
-                        <dd th:unless="${alumno.fechaNac != null}">
-                            <form class="ahub-dato-completar" th:action="@{/alumno/completar-datos}" method="post">
+                            </dd>
+                        </div>
+                        <div class="ahub-dato">
+                            <dt>Fecha de nacimiento</dt>
+                            <dd th:if="${alumno.fechaNac != null}" th:text="${#temporals.format(alumno.fechaNac, 'dd/MM/yyyy')}"></dd>
+                            <dd th:unless="${alumno.fechaNac != null}" class="ahub-dato-completar">
                                 <input type="date" name="fechaNac"
                                        th:max="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" required>
-                                <button type="submit" class="btn-secondary">Guardar</button>
-                            </form>
-                        </dd>
-                    </div>
-                    <div class="ahub-dato">
-                        <dt>Teléfono</dt>
-                        <dd th:if="${!#strings.isEmpty(alumno.telefono)}" class="ahub-dato-cifra" th:text="${alumno.telefono}"></dd>
-                        <dd th:unless="${!#strings.isEmpty(alumno.telefono)}">
-                            <form class="ahub-dato-completar" th:action="@{/alumno/completar-datos}" method="post">
+                            </dd>
+                        </div>
+                        <div class="ahub-dato">
+                            <dt>Teléfono</dt>
+                            <dd th:if="${!#strings.isEmpty(alumno.telefono)}" class="ahub-dato-cifra" th:text="${alumno.telefono}"></dd>
+                            <dd th:unless="${!#strings.isEmpty(alumno.telefono)}" class="ahub-dato-completar">
                                 <input type="text" inputmode="tel" name="telefono" placeholder="Ej: 0981 234 567"
                                        maxlength="35" required>
-                                <button type="submit" class="btn-secondary">Guardar</button>
-                            </form>
-                        </dd>
+                            </dd>
+                        </div>
+                        <div class="ahub-dato ahub-dato--ancho">
+                            <dt>Email</dt>
+                            <dd th:text="${alumno.email}"></dd>
+                        </div>
+                    </dl>
+
+                    <!-- Un solo botón para los cuatro campos, y solo aparece si
+                         falta alguno -- con los cuatro cargados no hay <dd
+                         class="ahub-dato-completar"> ninguno y no tendría qué
+                         guardar. -->
+                    <div class="ahub-datos-guardar"
+                         th:if="${#strings.isEmpty(alumno.ci) or #strings.isEmpty(alumno.sexo)
+                                  or alumno.fechaNac == null or #strings.isEmpty(alumno.telefono)}">
+                        <button type="submit" class="btn-secondary">Guardar datos</button>
                     </div>
-                    <div class="ahub-dato ahub-dato--ancho">
-                        <dt>Email</dt>
-                        <dd th:text="${alumno.email}"></dd>
-                    </div>
-                </dl>
+                </form>
             </div>
         </section>
 
