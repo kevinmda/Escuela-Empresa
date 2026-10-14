@@ -161,7 +161,7 @@
                         <dd th:if="${!#strings.isEmpty(alumno.telefono)}" class="ahub-dato-cifra" th:text="${alumno.telefono}"></dd>
                         <dd th:unless="${!#strings.isEmpty(alumno.telefono)}">
                             <form class="ahub-dato-completar" th:action="@{/alumno/completar-datos}" method="post">
-                                <input type="text" inputmode="tel" name="telefono" placeholder="Ej: 0911 111 111"
+                                <input type="text" inputmode="tel" name="telefono" placeholder="Ej: 0981 234 567"
                                        maxlength="35" required>
                                 <button type="submit" class="btn-secondary">Guardar</button>
                             </form>
