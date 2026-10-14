@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Fija data-theme antes de que el navegador pinte nada: theme.js carga con
+         defer y corre recien despues del primer render, asi que sin esto la
+         pagina arranca en claro (el :root por defecto) y salta a oscuro apenas
+         theme.js llega -- ese salto es el parpadeo al cambiar de pagina. -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('theme')
+                || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.dataset.theme = tema;
+        })();
+    </script>
+
+    <link rel="icon" type="image/png" th:href="@{/img/ctnLogoDef.png}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi opinión | CTN Pasantías</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script th:src="@{/js/theme.js}" defer></script>
+    <script th:src="@{/js/cookie-consent.js}" defer></script>
+
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
+    <th:block th:replace="~{fragments/chrome :: chrome(${chrome}, ${paginaActual}, true)}"></th:block>
+
+    <!-- data-esp una sola vez: el color de la especialidad del alumno tine la
+         pantalla entera, igual que en su inicio, su planilla y en subir. -->
+    <main id="main-content"
+          th:attr="data-esp=${idEspecialidad != null ? idEspecialidad : ''}">
+
+        <section class="portada">
+            <div class="portada-texto">
+                <h2 class="portada-titulo">Mi opinión</h2>
+                <p class="portada-sub" th:if="${tieneEmpresa}">
+                    Contá cómo te está yendo en tu pasantía en <strong th:text="${nombreEmpresa}">la empresa</strong>.
+                    La ve la coordinación de tu especialidad y el administrativo del colegio, con tu nombre.
+                </p>
+                <p class="portada-sub" th:unless="${tieneEmpresa}">
+                    Todavía no tenés una empresa asignada. En cuanto la coordinación de tu especialidad te
+                    asigne una, vas a poder dejar tu opinión acá.
+                </p>
+            </div>
+
+            <p class="portada-cuenta" th:if="${tieneEmpresa}">
+                <span class="portada-cifra" th:text="${cantidadOpiniones}">0</span>
+                <span class="portada-total" th:text="'de ' + ${maximoOpiniones}">de 3</span>
+                <span class="portada-label">cargadas</span>
+            </p>
+        </section>
+
+        <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
+        <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+
+        <section class="panel opi-formulario" th:if="${tieneEmpresa}" aria-labelledby="opi-titulo-form">
+            <h3 id="opi-titulo-form">Dejar una opinión</h3>
+
+            <form th:action="@{/alumno/opinion/crear}" method="post" class="opi-form">
+                <label class="pl-campo">
+                    <span class="pl-campo-etiqueta">Tu opinión</span>
+                    <textarea name="comentario" maxlength="1000" required th:text="${comentarioForm}"
+                              th:disabled="${!puedeOpinar}"
+                              placeholder="Contá cómo te está yendo: el ambiente, las tareas, lo que aprendiste..."></textarea>
+                </label>
+
+                <div class="opi-calificacion">
+                    <span class="pl-campo-etiqueta">Calificación</span>
+
+                    <!-- El orden en el HTML va de 5 a 1 a propósito -- es el truco clásico
+                         del rating con radios: flex-direction: row-reverse (ver CSS) da
+                         vuelta el orden visual a 1-2-3-4-5, y "input:checked ~ label" solo
+                         puede iluminar los hermanos que vienen DESPUÉS en el HTML, que
+                         gracias a la vuelta visual son los que quedan a la izquierda de la
+                         estrella marcada -- exactamente las que tienen que llenarse. Nada de
+                         esto necesita JS. -->
+                    <div class="estrellas-campo" role="radiogroup" aria-label="Calificación de 1 a 5 estrellas">
+                        <input type="radio" id="estrella5" name="calificacion" value="5" required th:disabled="${!puedeOpinar}">
+                        <label for="estrella5" title="5 estrellas">★</label>
+                        <input type="radio" id="estrella4" name="calificacion" value="4" required th:disabled="${!puedeOpinar}">
+                        <label for="estrella4" title="4 estrellas">★</label>
+                        <input type="radio" id="estrella3" name="calificacion" value="3" required th:disabled="${!puedeOpinar}">
+                        <label for="estrella3" title="3 estrellas">★</label>
+                        <input type="radio" id="estrella2" name="calificacion" value="2" required th:disabled="${!puedeOpinar}">
+                        <label for="estrella2" title="2 estrellas">★</label>
+                        <input type="radio" id="estrella1" name="calificacion" value="1" required th:disabled="${!puedeOpinar}">
+                        <label for="estrella1" title="1 estrella">★</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" th:disabled="${!puedeOpinar}">Publicar opinión</button>
+            </form>
+
+            <p th:unless="${puedeOpinar}" class="opi-nota">
+                Ya tenés <span th:text="${maximoOpiniones}">3</span> opiniones cargadas.
+                Eliminá alguna de abajo para poder cargar una nueva.
+            </p>
+        </section>
+
+        <section class="registro-seccion" aria-labelledby="opi-titulo-lista">
+            <h3 id="opi-titulo-lista">Tus opiniones</h3>
+
+            <div class="opi-lista">
+                <article class="opi-tarjeta panel" th:each="opi : ${opiniones}">
+                    <div class="opi-tarjeta-cabecera">
+                        <span class="estrellas-valor" th:attr="aria-label=${opi.calificacion} + ' de 5 estrellas'">
+                            <span th:each="n : ${#numbers.sequence(1, 5)}"
+                                  th:class="${n <= opi.calificacion} ? 'estrella-llena' : 'estrella-vacia'"
+                                  aria-hidden="true">★</span>
+                        </span>
+                        <span class="opi-tarjeta-fecha"
+                              th:text="${#temporals.format(opi.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></span>
+                    </div>
+
+                    <p class="opi-tarjeta-texto" th:text="${opi.comentario}"></p>
+
+                    <form th:action="@{'/alumno/opinion/' + ${opi.idOpi} + '/eliminar'}" method="post"
+                          class="opi-tarjeta-acciones"
+                          data-confirmar
+                          data-confirmar-titulo="¿Eliminar esta opinión?"
+                          data-confirmar-mensaje="Esta acción no se puede deshacer."
+                          data-confirmar-texto="Eliminar">
+                        <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
+                    </form>
+                </article>
+            </div>
+
+            <p th:if="${opiniones.isEmpty()}" class="mensaje-vacio">
+                Todavía no dejaste ninguna opinión.
+            </p>
+        </section>
+    </main>
+</body>
+</html>

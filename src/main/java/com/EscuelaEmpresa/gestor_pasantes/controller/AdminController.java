@@ -32,6 +32,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Empresa;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Especialidad;
+import com.EscuelaEmpresa.gestor_pasantes.entity.OpinionEmpresa;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Supervisor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
@@ -39,6 +40,7 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EmpresaRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EspecialidadRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.OpinionEmpresaRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.SupervisorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
@@ -62,6 +64,7 @@ public class AdminController {
     private final SupervisorRepository supervisorRepository;
     private final EmpresaRepository empresaRepository;
     private final DocumentoSubidoRepository documentoSubidoRepository;
+    private final OpinionEmpresaRepository opinionEmpresaRepository;
     private final LimitesDocumentoService limitesDocumentoService;
     private final ExpedientePdfService expedientePdfService;
 
@@ -72,6 +75,7 @@ public class AdminController {
                             SupervisorRepository supervisorRepository,
                             EmpresaRepository empresaRepository,
                             DocumentoSubidoRepository documentoSubidoRepository,
+                            OpinionEmpresaRepository opinionEmpresaRepository,
                             LimitesDocumentoService limitesDocumentoService,
                             ExpedientePdfService expedientePdfService) {
         this.usuarioRepository = usuarioRepository;
@@ -81,6 +85,7 @@ public class AdminController {
         this.supervisorRepository = supervisorRepository;
         this.empresaRepository = empresaRepository;
         this.documentoSubidoRepository = documentoSubidoRepository;
+        this.opinionEmpresaRepository = opinionEmpresaRepository;
         this.limitesDocumentoService = limitesDocumentoService;
         this.expedientePdfService = expedientePdfService;
     }
@@ -97,6 +102,45 @@ public class AdminController {
         cargarFiltroEnModelo(model, authentication);
         model.addAttribute("paginaActual", "reportes");
         return "administrador/reportes";
+    }
+
+    // Mismo alcance que Alumnos/Reportes: todas las especialidades si es
+    // administrativo, solo la propia si es coordinador.
+    @GetMapping("/admin/opiniones")
+    public String opiniones(Model model, Authentication authentication) {
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        List<Integer> idsEspPermitidos = obtenerIdsEspecialidadPermitidos(admin);
+
+        List<OpinionEmpresa> opiniones =
+                opinionEmpresaRepository.findByAlumno_Especialidad_IdEspInOrderByFechaCreacionDesc(idsEspPermitidos);
+
+        model.addAttribute("opiniones", opiniones);
+        model.addAttribute("paginaActual", "opiniones");
+        return "administrador/opiniones";
+    }
+
+    @PostMapping("/admin/opiniones/{idOpi}/eliminar")
+    public String eliminarOpinion(@PathVariable Integer idOpi,
+                                   Authentication authentication,
+                                   RedirectAttributes redirectAttributes) {
+
+        Administrador admin = obtenerAdminAutenticado(authentication);
+        List<Integer> idsEspPermitidos = obtenerIdsEspecialidadPermitidos(admin);
+
+        OpinionEmpresa opinion = opinionEmpresaRepository.findById(idOpi)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Opinión no encontrada"));
+
+        // Seguridad: un coordinador no puede borrar la opinión de un alumno de otra especialidad
+        Integer idEspDeLaOpinion = opinion.getAlumno().getEspecialidad() == null
+                ? null : opinion.getAlumno().getEspecialidad().getIdEsp();
+        if (idEspDeLaOpinion == null || !idsEspPermitidos.contains(idEspDeLaOpinion)) {
+            throw new AccessDeniedException("No podés eliminar una opinión de otra especialidad");
+        }
+
+        opinionEmpresaRepository.delete(opinion);
+
+        redirectAttributes.addFlashAttribute("exito", "Opinión eliminada correctamente.");
+        return "redirect:/admin/opiniones";
     }
 
     // Arma los datos del filtro (Especialidad/es o especialidad fija) que usan tanto

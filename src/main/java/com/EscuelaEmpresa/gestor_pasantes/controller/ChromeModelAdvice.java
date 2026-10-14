@@ -102,10 +102,12 @@ public class ChromeModelAdvice {
             case "/alumno/documentos/adjuntos" -> "documentos-adjuntos";
             case "/alumno/planilla" -> "planilla";
             case "/alumno/subir" -> "subir";
+            case "/alumno/opinion" -> "opinion";
             case "/admin/alumnos" -> "alumnos";
             case "/admin/reportes" -> "reportes";
             case "/admin/supervisores" -> "supervisores";
             case "/admin/empresas" -> "empresas";
+            case "/admin/opiniones" -> "opiniones";
             case "/cambiar-contrasena" -> "contrasena";
             default -> "";
         };

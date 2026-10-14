@@ -159,19 +159,26 @@ public record ChromeContext(
                             new Seccion("documentos-final", "Al terminar", "/alumno/documentos/al-terminar"),
                             new Seccion("documentos-informe", "Informe de Pasantía", "/alumno/documentos/informe"),
                             new Seccion("documentos-adjuntos", "Documentos adjuntos", "/alumno/documentos/adjuntos"))),
-                    new Seccion("subir", "Subir", "/alumno/subir"));
+                    new Seccion("subir", "Subir", "/alumno/subir"),
+                    // No va dentro de "Documentos" a propósito: no es un trámite
+                    // más del proceso de pasantía, es una adición aparte (lo que
+                    // el alumno opina de la empresa), así que tiene su propia
+                    // entrada en el riel.
+                    new Seccion("opinion", "Mi opinión", "/alumno/opinion"));
             // Administrativo no ve Supervisores ni Empresas: es la misma regla que
             // antes vivía repartida en th:unless="${esAdministrativo}" por plantilla.
             case "administrador" -> List.of(
                     inicio,
                     new Seccion("alumnos", "Alumnos", "/admin/alumnos"),
-                    new Seccion("reportes", "Reportes", "/admin/reportes"));
+                    new Seccion("reportes", "Reportes", "/admin/reportes"),
+                    new Seccion("opiniones", "Opiniones", "/admin/opiniones"));
             case "coordinador" -> List.of(
                     inicio,
                     new Seccion("alumnos", "Alumnos", "/admin/alumnos"),
                     new Seccion("reportes", "Reportes", "/admin/reportes"),
                     new Seccion("supervisores", "Supervisores", "/admin/supervisores"),
-                    new Seccion("empresas", "Empresas", "/admin/empresas"));
+                    new Seccion("empresas", "Empresas", "/admin/empresas"),
+                    new Seccion("opiniones", "Opiniones", "/admin/opiniones"));
             default -> List.of(inicio);
         };
     }
