@@ -64,13 +64,6 @@
             <h3 id="opi-titulo-form">Dejar una opinión</h3>
 
             <form th:action="@{/alumno/opinion/crear}" method="post" class="opi-form">
-                <label class="pl-campo">
-                    <span class="pl-campo-etiqueta">Tu opinión</span>
-                    <textarea name="comentario" maxlength="1000" required th:text="${comentarioForm}"
-                              th:disabled="${!puedeOpinar}"
-                              placeholder="Contá cómo te está yendo: el ambiente, las tareas, lo que aprendiste..."></textarea>
-                </label>
-
                 <div class="opi-calificacion">
                     <span class="pl-campo-etiqueta">Calificación</span>
 
@@ -94,6 +87,13 @@
                         <label for="estrella1" title="1 estrella">★</label>
                     </div>
                 </div>
+
+                <label class="pl-campo">
+                    <span class="pl-campo-etiqueta">Tu opinión</span>
+                    <textarea name="comentario" maxlength="1000" required th:text="${comentarioForm}"
+                              th:disabled="${!puedeOpinar}"
+                              placeholder="Contá cómo te está yendo: el ambiente, las tareas, lo que aprendiste..."></textarea>
+                </label>
 
                 <button type="submit" class="btn-primary" th:disabled="${!puedeOpinar}">Publicar opinión</button>
             </form>
