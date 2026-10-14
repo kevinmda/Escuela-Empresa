@@ -4817,6 +4817,14 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
         grid-template-columns: 1fr;
     }
 
+    /* Mismo motivo que .ficha-datos arriba: ahora .ficha-titulo del supervisor
+       lleva nombres + apellidos + email repartiéndose el ancho en partes
+       iguales, y un email no entra cómodo en un tercio de fila en un
+       teléfono angosto. */
+    .ficha-titulo {
+        flex-direction: column;
+    }
+
     /* La celda de Entregas (Reportes) aloja una mini tabla de tres columnas.
        Con la etiqueta al costado le quedan menos de 200px, así que acá pasa a
        ocupar el ancho completo de la tarjeta y la etiqueta se va arriba. */

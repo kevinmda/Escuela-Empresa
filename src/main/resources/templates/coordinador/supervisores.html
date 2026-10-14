@@ -81,6 +81,13 @@
                     <!-- title repite el value: es lo que hace que el navegador muestre el
                          tooltip nativo con el texto completo al pasar el mouse, para los
                          valores largos que el campo recorta. -->
+                    <!-- Los tres campos adentro del mismo .ficha-titulo: es ese flex-row
+                         compartido (con el mismo width:100% + flex de .ficha-campo en
+                         cada hijo) el que hace que se repartan el ancho de la fila en
+                         partes iguales. Antes el email vivía afuera, como hijo directo
+                         de .ficha (flex-column), así que se estiraba solo al ancho
+                         completo de la ficha en vez de a un tercio como nombres y
+                         apellidos. -->
                     <div class="ficha-titulo">
                         <input type="text" th:form="${'editar-' + sup.idSup}" name="nombres" th:value="${sup.nombres}"
                                th:title="${sup.nombres}"
@@ -88,10 +95,10 @@
                         <input type="text" th:form="${'editar-' + sup.idSup}" name="apellidos" th:value="${sup.apellidos}"
                                th:title="${sup.apellidos}"
                                class="ficha-campo ficha-campo--nombre" aria-label="Apellidos" required>
+                        <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}"
+                               th:title="${sup.email}"
+                               class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
                     </div>
-                    <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}"
-                           th:title="${sup.email}"
-                           class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
 
                     <div class="ficha-acciones">
                         <!-- Este form no tiene inputs propios adentro: los toma de los
