@@ -3671,6 +3671,8 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
    la izquierda -- no tiene un dato propio del que colgar, así que no va
    dentro de .ahub-datos. */
 .ahub-datos-guardar {
+    display: flex;
+    justify-content: flex-end;
     margin-top: 1.1rem;
 }
 
