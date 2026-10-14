@@ -462,7 +462,10 @@
 
         function ejecutarBusqueda() {
             const texto = inputBusqueda.value.trim();
-            if (!texto) return;
+            if (!texto) {
+                limpiarBusqueda();
+                return;
+            }
 
             // El ZIP de sección necesita especialidad/curso/sección puntuales, y un
             // resultado de búsqueda puede mezclar las tres, así que no aplica.
@@ -509,11 +512,30 @@
             if (idEspActual) elegirEspecialidad(idEspActual, nombreEspActual);
         }
 
-        btnBuscar.addEventListener('click', ejecutarBusqueda);
-        inputBusqueda.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') ejecutarBusqueda();
+        // Tiempo real, como en Opiniones: cada letra dispara la búsqueda, con un
+        // pequeño debounce porque, a diferencia de Opiniones (que filtra tarjetas
+        // ya cargadas en el cliente), acá cada letra es un pedido nuevo al
+        // servidor -- sin el debounce, cada tecla dispararía su propio fetch.
+        let temporizadorBusqueda = null;
+
+        btnBuscar.addEventListener('click', () => {
+            clearTimeout(temporizadorBusqueda);
+            ejecutarBusqueda();
         });
-        btnLimpiarBusqueda.addEventListener('click', limpiarBusqueda);
+        inputBusqueda.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(temporizadorBusqueda);
+                ejecutarBusqueda();
+            }
+        });
+        inputBusqueda.addEventListener('input', () => {
+            clearTimeout(temporizadorBusqueda);
+            temporizadorBusqueda = setTimeout(ejecutarBusqueda, 300);
+        });
+        btnLimpiarBusqueda.addEventListener('click', () => {
+            clearTimeout(temporizadorBusqueda);
+            limpiarBusqueda();
+        });
     </script>
 </body>
 </html>
