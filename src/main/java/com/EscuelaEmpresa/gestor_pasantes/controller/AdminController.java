@@ -115,6 +115,9 @@ public class AdminController {
                 opinionEmpresaRepository.findByAlumno_Especialidad_IdEspInOrderByFechaCreacionDesc(idsEspPermitidos);
 
         model.addAttribute("opiniones", opiniones);
+        // Mismo filtro de especialidad (chips para administrativo, fija para
+        // coordinador) que ya usan Alumnos y Reportes.
+        cargarFiltroEnModelo(model, authentication);
         model.addAttribute("paginaActual", "opiniones");
         return "administrador/opiniones";
     }

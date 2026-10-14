@@ -33,12 +33,45 @@
     <th:block th:replace="~{fragments/chrome :: chrome(${chrome}, ${paginaActual}, true)}"></th:block>
 
     <main id="main-content">
-        <div class="registro-cabecera">
+        <div class="alumnos-cabecera">
             <h2>Opiniones</h2>
+            <div class="busqueda">
+                <label class="oculto" for="input-busqueda">Buscar empresa</label>
+                <span class="busqueda-campo">
+                    <input type="search" id="input-busqueda" placeholder="Buscar empresa por nombre">
+                </span>
+                <button id="btn-buscar" type="button" class="btn-primary">Buscar</button>
+                <button id="btn-limpiar-busqueda" type="button" class="btn-secondary oculto">Limpiar</button>
+            </div>
         </div>
 
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
         <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
+
+        <!-- Mismo filtro de Alumnos/Reportes, pero acá es opcional: la lista ya
+             viene completa, así que elegir una especialidad solo la recorta en
+             vez de ser el paso obligatorio para empezar a ver algo. -->
+        <section id="filtro-especialidad" class="filtro-panel" aria-labelledby="titulo-especialidad">
+            <div class="filtro-panel-encabezado">
+                <h3 id="titulo-especialidad">Especialidad</h3>
+                <p class="filtro-hint">Opcional: elegí una para ver solo sus opiniones.</p>
+            </div>
+
+            <!-- El administrativo elige entre todas; el coordinador ya la tiene fija. -->
+            <div th:if="${esAdministrativo}" class="esp-picker" role="group" aria-labelledby="titulo-especialidad">
+                <button th:each="esp : ${especialidades}"
+                        type="button"
+                        class="esp-chip"
+                        aria-pressed="false"
+                        th:attr="data-esp=${esp.idEsp},data-nombre=${esp.nombre}">
+                    <span class="esp-chip-label" th:text="${esp.nombre}"></span>
+                </button>
+            </div>
+
+            <div th:unless="${esAdministrativo}" class="esp-picker" th:attr="data-esp=${especialidadFija.idEsp}">
+                <span class="esp-etiqueta" th:text="${especialidadFija.nombre}"></span>
+            </div>
+        </section>
 
         <section class="registro-seccion" aria-labelledby="titulo-opiniones">
             <h3 id="titulo-opiniones">Lo que opinan los alumnos de su empresa</h3>
@@ -46,10 +79,13 @@
             <!-- Cada tarjeta lleva su propio data-esp: a diferencia de Supervisores/Empresas
                  (una sola especialidad fija por pantalla), acá el administrativo ve alumnos
                  de TODAS las especialidades mezclados en una sola lista, así que el color no
-                 puede fijarse una vez arriba del todo -- cada opinión tiñe la suya. -->
+                 puede fijarse una vez arriba del todo -- cada opinión tiñe la suya.
+                 data-empresa es el texto que compara el buscador: ya viene en
+                 minúsculas, así que la búsqueda no distingue mayúsculas. -->
             <div class="opi-lista">
                 <article class="opi-tarjeta panel" th:each="opi : ${opiniones}"
-                          th:attr="data-esp=${opi.alumno.especialidad != null ? opi.alumno.especialidad.idEsp : ''}">
+                          th:attr="data-esp=${opi.alumno.especialidad != null ? opi.alumno.especialidad.idEsp : ''},
+                                    data-empresa=${opi.empresa != null ? #strings.toLowerCase(opi.empresa.nombre) : ''}">
                     <div class="opi-tarjeta-cabecera">
                         <div class="opi-tarjeta-quien">
                             <p class="opi-tarjeta-alumno"
@@ -89,7 +125,77 @@
             <p th:if="${opiniones.isEmpty()}" class="mensaje-vacio">
                 Todavía no hay opiniones cargadas.
             </p>
+
+            <!-- Vacío distinto al de arriba: ESTE es "hay opiniones, pero el filtro
+                 o la búsqueda no encontraron ninguna" -- por eso arranca oculto y
+                 solo tiene sentido cuando sí hay tarjetas para filtrar. -->
+            <p th:unless="${opiniones.isEmpty()}" id="estado-vacio-filtro" class="mensaje-vacio oculto">
+                Ninguna opinión coincide con lo que buscás.
+            </p>
         </section>
     </main>
+
+    <script>
+        // Sin chips (coordinador) este bloque no tiene nada que enganchar y
+        // aplicarFiltros() simplemente no encuentra ninguna, así que no hace
+        // falta distinguir acá si es administrativo o coordinador.
+        const chips = Array.from(document.querySelectorAll('.esp-chip'));
+        const inputBusqueda = document.getElementById('input-busqueda');
+        const btnBuscar = document.getElementById('btn-buscar');
+        const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
+        const tarjetas = Array.from(document.querySelectorAll('.opi-tarjeta'));
+        const estadoVacioFiltro = document.getElementById('estado-vacio-filtro');
+
+        let idEspActual = ''; // '' = todas las especialidades permitidas
+        let textoActual = '';
+
+        // Combina los dos filtros (especialidad elegida + texto buscado) sobre
+        // las tarjetas que ya están en la página -- no hace falta pedirle nada
+        // al servidor, la lista completa ya llegó con la carga inicial.
+        function aplicarFiltros() {
+            let visibles = 0;
+            tarjetas.forEach(tarjeta => {
+                const coincideEsp = !idEspActual || tarjeta.dataset.esp === idEspActual;
+                const coincideTexto = !textoActual || (tarjeta.dataset.empresa || '').includes(textoActual);
+                const visible = coincideEsp && coincideTexto;
+                tarjeta.classList.toggle('oculto', !visible);
+                if (visible) visibles++;
+            });
+
+            if (estadoVacioFiltro) {
+                estadoVacioFiltro.classList.toggle('oculto', visibles !== 0);
+            }
+        }
+
+        // A diferencia de Alumnos/Reportes (donde elegir especialidad es
+        // obligatorio para ver algo), acá es un toggle: tocar la misma chip
+        // de nuevo la deselecciona y vuelve a mostrar todas.
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const yaElegida = chip.getAttribute('aria-pressed') === 'true';
+                idEspActual = yaElegida ? '' : chip.dataset.esp;
+                chips.forEach(c => c.setAttribute('aria-pressed', String(c === chip && !yaElegida)));
+                aplicarFiltros();
+            });
+        });
+
+        function ejecutarBusqueda() {
+            textoActual = inputBusqueda.value.trim().toLowerCase();
+            btnLimpiarBusqueda.classList.toggle('oculto', !textoActual);
+            aplicarFiltros();
+        }
+
+        btnBuscar.addEventListener('click', ejecutarBusqueda);
+        inputBusqueda.addEventListener('input', ejecutarBusqueda);
+        inputBusqueda.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') ejecutarBusqueda();
+        });
+        btnLimpiarBusqueda.addEventListener('click', () => {
+            inputBusqueda.value = '';
+            textoActual = '';
+            btnLimpiarBusqueda.classList.add('oculto');
+            aplicarFiltros();
+        });
+    </script>
 </body>
 </html>
