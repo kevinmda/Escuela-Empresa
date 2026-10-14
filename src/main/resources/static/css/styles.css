@@ -4115,16 +4115,29 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     min-width: 0;
 }
 
+/* Pastilla en vez de texto suelto en --ink-soft: a ese tamaño (0.8rem) el
+   gris apagado se leía casi invisible pegado al chevron. El fondo propio le
+   da un borde de lectura aunque el color de letra sea parecido al de al
+   lado. */
 .roster-contador {
     font-family: var(--font-mono);
-    font-size: 0.8rem;
-    color: var(--ink-soft);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink);
     white-space: nowrap;
+    background-color: var(--esp-tenue);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 0.2rem 0.7rem;
 }
 
+/* --ink y no --ink-soft, y más grande: es el único indicio visual de que
+   todo el bloque es clickeable, así que tiene que notarse tanto como el
+   título, no perderse al lado. */
 .roster-chevron {
     display: inline-block;
-    color: var(--ink-soft);
+    font-size: 1.1rem;
+    color: var(--ink);
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

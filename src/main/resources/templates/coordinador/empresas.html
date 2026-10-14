@@ -47,9 +47,9 @@
 
         <!-- <details> en vez de <section>: con muchas empresas cargadas, la
              grilla entera ocupaba la pantalla de entrada aunque no haga falta
-             mirarla. Abierta por defecto (nada cambia a primera vista); se
-             puede cerrar para recuperar ese espacio. -->
-        <details class="registro-seccion roster-desplegable" open>
+             mirarla. Cerrada por defecto -- se abre con un clic cuando hace
+             falta revisar o editar algo cargado. -->
+        <details class="registro-seccion roster-desplegable">
             <summary class="roster-resumen">
                 <h3 id="titulo-roster-emp">Empresas cargadas</h3>
                 <span class="roster-contador" th:text="${empresas.size()} + ' cargadas'"></span>
