@@ -7285,6 +7285,13 @@ body:not(:has(.credito-disenio))::after {
     display: inline-flex;
     flex-direction: row-reverse;
     gap: 0.15rem;
+    /* .opi-calificacion es un flex-column sin align-items propio, así que por
+       defecto (stretch) estira a este <div> a todo su ancho -- y con
+       row-reverse, "estirado" empaqueta el contenido contra el borde DERECHO
+       (ahí es donde cae el main-start en row-reverse), no el izquierdo. Con
+       align-self: flex-start, el grupo de estrellas vuelve a medir solo lo
+       que ocupa su contenido y se queda pegado a la izquierda. */
+    align-self: flex-start;
 }
 
 .estrellas-campo input {
