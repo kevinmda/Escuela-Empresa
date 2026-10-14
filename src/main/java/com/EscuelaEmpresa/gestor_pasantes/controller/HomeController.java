@@ -3,6 +3,7 @@ package com.EscuelaEmpresa.gestor_pasantes.controller;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Objects;
@@ -141,6 +142,56 @@ public class HomeController {
         alumno.setAutorizaConservarDatos(autoriza);
         alumnoRepository.save(alumno);
         documentoAlmacenamientoService.marcarEgresadoSiCorresponde(alumno);
+    }
+
+    // CI, sexo, fecha de nacimiento y teléfono en el Inicio del alumno: los
+    // alumnos cargados antes de pedir estos datos pueden tener cualquiera de
+    // los cuatro vacío, y en vez de dejarlos en blanco para siempre, el
+    // propio alumno los completa ahí mismo. Cada parámetro es opcional
+    // porque el formulario de cada campo solo manda el suyo (ver
+    // alumno/index.html) -- y aunque llegaran los cuatro juntos, cada uno se
+    // aplica por separado.
+    //
+    // Completa, no corrige: solo pisa el campo si en la base todavía está
+    // vacío. Así alguien no puede mandar este POST a mano para cambiarse el
+    // CI o el teléfono una vez que ya los tiene cargados -- para eso hay que
+    // pedírselo a la coordinación, igual que con cualquier otro dato ya
+    // asentado del alumno.
+    @PostMapping("/alumno/completar-datos")
+    public String completarDatos(
+            @RequestParam(required = false) String ci,
+            @RequestParam(required = false) String sexo,
+            @RequestParam(required = false) String fechaNac,
+            @RequestParam(required = false) String telefono,
+            Authentication authentication) {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        if (ci != null && !ci.isBlank() && esVacio(alumno.getCi())) {
+            alumno.setCi(ci.trim());
+        }
+        if (sexo != null && !sexo.isBlank() && esVacio(alumno.getSexo())) {
+            alumno.setSexo(sexo.trim());
+        }
+        if (fechaNac != null && !fechaNac.isBlank() && alumno.getFechaNac() == null) {
+            // El input es type="date": si llega algo que no es una fecha
+            // válida es porque alguien saltó el formulario, no un typo del
+            // alumno. Se ignora en vez de romper la pantalla con un 500.
+            try {
+                alumno.setFechaNac(LocalDate.parse(fechaNac));
+            } catch (DateTimeParseException ignorado) {
+                // nada que guardar
+            }
+        }
+        if (telefono != null && !telefono.isBlank() && esVacio(alumno.getTelefono())) {
+            alumno.setTelefono(telefono.trim());
+        }
+
+        alumnoRepository.save(alumno);
+        return "redirect:/home";
+    }
+
+    private boolean esVacio(String valor) {
+        return valor == null || valor.isBlank();
     }
 
     private Alumno obtenerAlumnoAutenticado(Authentication authentication) {

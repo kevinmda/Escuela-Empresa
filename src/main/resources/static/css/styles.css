@@ -3654,6 +3654,29 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     font-variant-numeric: tabular-nums;
 }
 
+/* El formulario chico que reemplaza a <dd> cuando ese dato todavía no está
+   cargado (ver alumno/index.html). Campo + botón en fila, chicos en vez de
+   competir en tamaño con el resto de la ficha -- solo dejan claro que ahí
+   falta algo y que se puede completar sin salir de esta pantalla. */
+.ahub-dato-completar {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.ahub-dato-completar input,
+.ahub-dato-completar select {
+    min-width: 0;
+    flex: 1;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.85rem;
+}
+
+.ahub-dato-completar button {
+    flex-shrink: 0;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.8rem;
+}
+
 /* ---------- Fila 2: las asignaciones ---------- */
 
 .ahub-asignaciones {
@@ -4998,6 +5021,22 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
        cuerpo lo acomoda sin tocar el resto de la ficha. */
     .ahub-dato--ancho dd {
         font-size: 0.88rem;
+    }
+
+    /* Campo + botón lado a lado ya no entran en media columna de una grilla
+       de 2: el botón se va abajo, a todo el ancho, en vez de achicarse hasta
+       no leerse. */
+    .ahub-dato-completar {
+        flex-wrap: wrap;
+    }
+
+    .ahub-dato-completar input,
+    .ahub-dato-completar select {
+        flex-basis: 100%;
+    }
+
+    .ahub-dato-completar button {
+        flex: 1;
     }
 
     .ahub-asignaciones {
