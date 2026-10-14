@@ -46,53 +46,6 @@
         if (evento.target.matches('select.select-asignacion')) actualizar();
     });
 
-    // El <select> de cada fila sigue siendo el que manda (nombre, valor,
-    // "change" que ya escucha este mismo script), pero está oculto: la cara
-    // visible es el <details class="cuenta"> que lo acompaña en el HTML
-    // (mismo componente que "Documentos" en el riel). Un click en una de
-    // sus opciones actualiza el select de atrás y dispara el mismo evento
-    // "change" que dispararía elegir una opción a mano, así todo lo demás
-    // (contador, fila-modificada, habilitar "Guardar cambios") sigue
-    // funcionando sin tocarlo.
-    function textoDe(select) {
-        const elegida = select.options[select.selectedIndex];
-        return elegida ? elegida.textContent : '-- Sin asignar --';
-    }
-
-    function sincronizarBoton(select, cuenta) {
-        const texto = cuenta.querySelector('.asignacion-boton-texto');
-        if (texto) texto.textContent = textoDe(select);
-
-        cuenta.classList.toggle('asignacion-cuenta--asignado', select.value !== '');
-
-        cuenta.querySelectorAll('.cuenta-item').forEach(item => {
-            item.classList.toggle('cuenta-item--activo', item.dataset.valor === select.value);
-        });
-    }
-
-    const combos = Array.from(formulario.querySelectorAll('.asignacion-cuenta'))
-        .map(cuenta => ({ cuenta, select: cuenta.previousElementSibling }))
-        .filter(({ select }) => select && select.matches('select.select-asignacion'));
-
-    combos.forEach(({ cuenta, select }) => {
-        cuenta.querySelectorAll('.cuenta-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (select.value === item.dataset.valor) {
-                    cuenta.open = false;
-                    return;
-                }
-
-                select.value = item.dataset.valor;
-                select.dispatchEvent(new Event('change', { bubbles: true }));
-                sincronizarBoton(select, cuenta);
-
-                cuenta.open = false;
-                const resumen = cuenta.querySelector('summary');
-                if (resumen) resumen.focus();
-            });
-        });
-    });
-
     formulario.addEventListener('submit', () => {
         enviando = true;
         boton.disabled = true;
@@ -109,12 +62,10 @@
     });
 
     // Al volver con "Atrás" el navegador puede restaurar los selects con lo que
-    // se había elegido; actualizar() deja el contador de acuerdo con eso, y
-    // esto pone cada botón visible de nuevo en línea con su select.
+    // se había elegido; actualizar() deja el contador de acuerdo con eso.
     window.addEventListener('pageshow', () => {
         enviando = false;
         selects.forEach(select => { select.disabled = false; });
-        combos.forEach(({ cuenta, select }) => sincronizarBoton(select, cuenta));
         actualizar();
     });
 

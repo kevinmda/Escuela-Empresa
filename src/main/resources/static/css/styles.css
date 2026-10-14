@@ -4410,62 +4410,59 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     color: var(--ink);
 }
 
-/* ---------- Desplegable de asignación (supervisor/empresa por alumno) ----------
+/* ---------- Select de asignación (supervisor/empresa por alumno) ----------
 
-   Antes era un <select> nativo con flecha propia dibujada encima. Quedaba
-   funcional pero la lista desplegable la pintaba cada navegador aparte, con
-   su blanco por defecto -- fuera del alcance del CSS, así que desentonaba
-   con el resto de la pantalla.
+   Antes era el <select> genérico de toda la app, sin nada propio. Acá toma
+   prestado el mismo lenguaje que ya usan las fichas de esta pantalla:
+   punteado = todavía no hay nada (igual que .ficha-alta antes de abrirse),
+   sólido con el color de la especialidad = ya es un dato real (igual que
+   el filo de .ficha). No es un adorno nuevo, es la misma idea aplicada acá.
 
-   Ahora reusa el mismo <details class="cuenta"> que ya arma "Documentos" en
-   el riel y el menú de la cuenta: mismo panel, mismos items, mismo abrir y
-   cerrar con Escape/clic afuera (prepararMenuCuenta() en theme.js ya los
-   atrapa a todos, con que lleven la clase .cuenta). El <select> de verdad
-   sigue en el HTML con `hidden` -- oculto, pero adentro del <form> y con su
-   valor real -- porque sigue siendo él quien viaja en el POST y a quien
-   escucha asignacionMasiva.js para el conteo de cambios; el <details> es
-   solo la cara visible, y un click en sus .cuenta-item actualiza el select
-   de atrás (ver asignacionMasiva.js). Como esta pantalla ya depende de JS
-   para guardar (el botón "Guardar cambios" arranca disabled en el HTML),
-   no hay nada que progresivamente degrade: sin JS no se puede ni elegir ni
-   guardar, con select nativo o sin él. */
-.asignacion-cuenta {
-    display: block;
-    width: 100%;
+   El <select> sigue siendo el elemento nativo (teclado, lector de pantalla
+   y el picker del sistema en el celular quedan intactos); solo se le saca
+   el chrome del navegador con appearance:none y se dibuja una flecha propia
+   en el envoltorio. :has() lee si hay algo elegido para cambiar de estado
+   sin una sola línea de JS. */
+.select-envoltorio {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
     max-width: 16rem;
 }
 
-.asignacion-boton {
+.select-asignacion {
+    appearance: none;
+    -webkit-appearance: none;
     width: 100%;
-    justify-content: space-between;
-    padding: 0.55rem 0.85rem;
+    padding: 0.55rem 2.1rem 0.55rem 0.85rem;
     border: 1.5px dashed var(--line);
     border-radius: var(--radius-field);
     background-color: var(--surface);
     color: var(--ink-soft);
+    font-family: var(--font-body);
     font-size: 0.9rem;
+    cursor: pointer;
     transition: border-color 0.15s ease, border-style 0.15s ease,
                 background-color 0.15s ease, color 0.15s ease;
 }
 
-/* .cuenta-boton:hover ya pone un tinte parejo de --ink; acá, como el
-   <select> de antes, el hover avisa con el color de la especialidad. */
-@media (hover: hover) and (pointer: fine) {
-    .asignacion-boton:hover {
-        background-color: var(--surface);
-        border-color: var(--esp-edge);
-    }
-}
-
-.asignacion-cuenta[open] > .asignacion-boton {
+/* El <select> en sí toma var(--surface)/var(--ink) de las reglas de arriba,
+   pero eso no alcanza a la lista desplegable: la mayoria de los navegadores
+   la pintan aparte, con su fondo por defecto (blanco), ignorando el tema de
+   la pagina. Sin esto, en modo oscuro el texto claro quedaba sobre un fondo
+   blanco -- casi ilegible, y rompia con el resto de la pantalla. */
+.select-asignacion option {
+    color: var(--ink);
     background-color: var(--surface);
-    border-style: solid;
-    border-color: var(--focus);
 }
 
-/* Ya tiene a alguien asignado: deja de ser un hueco punteado (mismo
-   lenguaje que .ficha-alta antes/después de abrirse). */
-.asignacion-cuenta--asignado > .asignacion-boton {
+.select-asignacion option[value=""] {
+    color: var(--ink-soft);
+    font-style: italic;
+}
+
+/* Ya tiene a alguien asignado: deja de ser un hueco punteado. */
+.select-asignacion:has(option:checked:not([value=""])) {
     border-style: solid;
     border-color: var(--esp-edge);
     background-color: var(--esp-tenue);
@@ -4473,33 +4470,48 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     font-weight: 500;
 }
 
-.asignacion-boton-texto {
-    flex: 1 1 auto;
-    min-width: 0;
-    text-align: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+@media (hover: hover) and (pointer: fine) {
+    .select-asignacion:hover {
+        border-color: var(--esp-edge);
+    }
 }
 
-/* Mismo .cuenta-menu de siempre, solo que ancla a la izquierda (es la
-   celda de una tabla, no el borde de la pantalla) y con alto máximo: con
-   muchos supervisores/empresas cargados, listarlos todos sin límite
-   empujaría el resto de la fila fuera de la pantalla. */
-.asignacion-menu {
-    left: 0;
-    right: auto;
-    min-width: 100%;
-    max-height: 15rem;
-    overflow-y: auto;
+.select-asignacion:focus {
+    border-style: solid;
+    border-color: var(--focus);
 }
 
-/* La opción elegida, resaltada dentro de su propia lista -- mismo truco de
-   color que .select-asignacion:has(...) tenía antes, pero en un .cuenta-item. */
-.cuenta-item--activo {
-    background-color: var(--esp-tenue);
-    color: var(--ink);
-    font-weight: 500;
+/* La flecha va en el envoltorio y no en el <select>: los pseudo-elementos
+   de <select> se comportan distinto entre navegadores, y esto funciona
+   igual en todos. Dibujada con dos bordes en vez de un SVG: no hace falta
+   una imagen para una V. */
+.select-envoltorio::after {
+    content: "";
+    position: absolute;
+    top: 45%;
+    right: 0.95rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    color: var(--ink-soft);
+    transform: translateY(-50%) rotate(45deg);
+    pointer-events: none;
+    transition: color 0.15s ease;
+}
+
+.select-envoltorio:has(.select-asignacion option:checked:not([value=""]))::after {
+    color: var(--esp-edge);
+}
+
+.select-envoltorio:has(.select-asignacion:focus)::after {
+    color: var(--focus);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .select-envoltorio:has(.select-asignacion:hover)::after {
+        color: var(--esp-edge);
+    }
 }
 
 @media (prefers-contrast: more) {
@@ -4785,7 +4797,7 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
         padding-top: 0.6rem;
     }
 
-    .asignacion-cuenta {
+    .select-envoltorio {
         max-width: none;
     }
 

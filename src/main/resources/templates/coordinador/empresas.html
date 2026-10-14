@@ -185,39 +185,16 @@
                             <td role="cell" data-label="Curso" th:text="${alumno.curso}"></td>
                             <td role="cell" data-label="Sección" th:text="${alumno.seccion}"></td>
                             <td role="cell" data-label="Empresa" class="celda-asignar">
-                                <!-- El <select> de verdad: oculto (hidden no lo saca del <form> ni
-                                     del POST, solo de la vista y del tabulado), es el que lleva el
-                                     valor real y al que escucha asignacionMasiva.js. El <details>
-                                     de abajo es la cara visible -- ver el comentario de
-                                     .asignacion-cuenta en styles.css. -->
-                                <select th:name="${'emp_' + alumno.idAl}" class="select-asignacion" hidden
-                                        th:attr="data-original=${alumno.empresa != null ? alumno.empresa.idEmp : ''}">
-                                    <option value="">-- Sin asignar --</option>
-                                    <option th:each="emp : ${empresas}"
-                                            th:value="${emp.idEmp}"
-                                            th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
-                                            th:text="${emp.nombre}"></option>
-                                </select>
-                                <details class="cuenta asignacion-cuenta"
-                                          th:classappend="${alumno.empresa != null} ? ' asignacion-cuenta--asignado'">
-                                    <summary class="cuenta-boton asignacion-boton"
-                                             th:attr="aria-label='Empresa de ' + ${alumno.nombres + ' ' + alumno.apellidos}">
-                                        <span class="asignacion-boton-texto"
-                                              th:text="${alumno.empresa != null ? alumno.empresa.nombre : '-- Sin asignar --'}">-- Sin asignar --</span>
-                                        <svg class="cuenta-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="m6 9 6 6 6-6"/>
-                                        </svg>
-                                    </summary>
-                                    <div class="cuenta-menu asignacion-menu">
-                                        <button type="button" class="cuenta-item" data-valor=""
-                                                th:classappend="${alumno.empresa == null} ? ' cuenta-item--activo'">-- Sin asignar --</button>
-                                        <button type="button" class="cuenta-item" th:each="emp : ${empresas}"
-                                                th:attr="data-valor=${emp.idEmp}"
-                                                th:classappend="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp} ? ' cuenta-item--activo'"
-                                                th:text="${emp.nombre}"></button>
-                                    </div>
-                                </details>
+                                <span class="select-envoltorio">
+                                    <select th:name="${'emp_' + alumno.idAl}" class="select-asignacion"
+                                            th:attr="data-original=${alumno.empresa != null ? alumno.empresa.idEmp : ''},aria-label='Empresa de ' + ${alumno.nombres + ' ' + alumno.apellidos}">
+                                        <option value="">-- Sin asignar --</option>
+                                        <option th:each="emp : ${empresas}"
+                                                th:value="${emp.idEmp}"
+                                                th:selected="${alumno.empresa != null and alumno.empresa.idEmp == emp.idEmp}"
+                                                th:text="${emp.nombre}"></option>
+                                    </select>
+                                </span>
                             </td>
                         </tr>
                     </tbody>
