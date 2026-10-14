@@ -174,7 +174,9 @@
          confirmación nueva en cualquier pantalla es poner los atributos
          data-*, no copiar este bloque. data-confirmar-variante decide el
          color del ícono y del botón: "peligro" (por defecto) para lo que
-         borra algo, "neutral" para lo que no pierde datos (cerrar sesión). -->
+         borra algo, "neutral" para lo que no pierde datos (cerrar sesión),
+         "advertencia" para lo que no borra nada pero no se puede deshacer
+         una vez confirmado. -->
     <dialog id="dialogo-confirmacion" class="dialogo-confirmacion"
             aria-labelledby="dialogo-confirmacion-titulo" aria-describedby="dialogo-confirmacion-mensaje">
         <div class="dialogo-confirmacion-icono" aria-hidden="true">
@@ -190,6 +192,12 @@
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                 <path d="M16 17l5-5-5-5"/>
                 <path d="M21 12H9"/>
+            </svg>
+            <svg class="dc-icono-advertencia" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <path d="M12 9v4"/>
+                <path d="M12 17h.01"/>
             </svg>
         </div>
 

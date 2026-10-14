@@ -1977,6 +1977,23 @@ form[action*="eliminar"] button:hover {
     border-color: var(--danger);
 }
 
+/* Mismo tratamiento que .btn-danger (contorno, no relleno) pero en el
+   dorado de "advertencia": confirma algo que no se puede deshacer sin
+   decir que algo se rompió o se borra. */
+.btn-advertencia {
+    background-color: var(--surface);
+    background-image: none;
+    color: var(--accent-ink);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow: 0 1px 2px rgba(var(--shadow-tint), 0.12);
+}
+
+.btn-advertencia:hover {
+    background-color: var(--accent-soft);
+    background-image: none;
+    border-color: var(--accent);
+}
+
 /* ---------------- Tablas ---------------- */
 
 table {
@@ -7227,9 +7244,11 @@ body:not(:has(.credito-disenio))::after {
 }
 
 /* peligro (por defecto) = algo se borra; neutral = no se pierde nada
-   (cerrar sesión). El color es la única diferencia entre los dos: mismo
-   layout, mismo tono de voz. */
-.dialogo-confirmacion-icono .dc-icono-neutral {
+   (cerrar sesión); advertencia = no se borra nada pero no se puede
+   deshacer. El color es la única diferencia entre las tres: mismo layout,
+   mismo tono de voz. */
+.dialogo-confirmacion-icono .dc-icono-neutral,
+.dialogo-confirmacion-icono .dc-icono-advertencia {
     display: none;
 }
 
@@ -7248,6 +7267,21 @@ body:not(:has(.credito-disenio))::after {
 }
 
 .dialogo-confirmacion[data-variante="neutral"] .dc-icono-neutral {
+    display: block;
+}
+
+/* Mismo dorado que --accent usa en toda la app para "pendiente" (ver
+   .badge-pendiente): acá significa "atención", no "esto está mal". */
+.dialogo-confirmacion[data-variante="advertencia"] .dialogo-confirmacion-icono {
+    background-color: var(--accent-soft);
+    color: var(--accent-ink);
+}
+
+.dialogo-confirmacion[data-variante="advertencia"] .dc-icono-peligro {
+    display: none;
+}
+
+.dialogo-confirmacion[data-variante="advertencia"] .dc-icono-advertencia {
     display: block;
 }
 
@@ -7275,7 +7309,8 @@ body:not(:has(.credito-disenio))::after {
 
 .dialogo-confirmacion-acciones .btn-secondary,
 .dialogo-confirmacion-acciones .btn-primary,
-.dialogo-confirmacion-acciones .btn-danger {
+.dialogo-confirmacion-acciones .btn-danger,
+.dialogo-confirmacion-acciones .btn-advertencia {
     padding: 0.55rem 1.1rem;
     font-size: 0.85rem;
 }

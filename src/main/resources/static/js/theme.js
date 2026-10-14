@@ -193,8 +193,11 @@
     // Reemplaza confirm() nativo del navegador. Cualquier <form> con
     // data-confirmar dispara el <dialog> de fragments/chrome en vez de
     // enviarse directo; data-confirmar-titulo/-mensaje/-texto arman el
-    // contenido y data-confirmar-variante ("peligro", por defecto, o
-    // "neutral") elige el color del ícono y del botón. Ej:
+    // contenido y data-confirmar-variante elige el color del ícono y del
+    // botón: "peligro" (por defecto, tacho rojo) para lo que borra algo,
+    // "neutral" (flecha gris) para lo que no pierde datos (cerrar sesión),
+    // "advertencia" (signo de exclamación, dorado) para lo que no borra
+    // nada pero no se puede deshacer una vez confirmado. Ej:
     //   <form data-confirmar data-confirmar-titulo="¿Eliminar?"
     //         data-confirmar-mensaje="No se puede deshacer."
     //         data-confirmar-texto="Eliminar">
@@ -212,6 +215,21 @@
         const mensaje = document.getElementById('dialogo-confirmacion-mensaje');
         const botonCancelar = document.getElementById('dialogo-confirmacion-cancelar');
         const botonConfirmar = document.getElementById('dialogo-confirmacion-confirmar');
+
+        // Variante no reconocida o ausente -> "peligro": es el comportamiento
+        // de siempre (antes del if/else inline), y evita un diálogo sin
+        // ícono ni color si en algún lado se tipea mal el data-attribute.
+        const CLASE_BOTON_POR_VARIANTE = {
+            neutral: 'btn-primary',
+            advertencia: 'btn-advertencia',
+            peligro: 'btn-danger',
+        };
+
+        function aplicarVariante(variante) {
+            const v = CLASE_BOTON_POR_VARIANTE[variante] ? variante : 'peligro';
+            dialogo.dataset.variante = v;
+            botonConfirmar.className = CLASE_BOTON_POR_VARIANTE[v];
+        }
 
         let formPendiente = null;
         // Guarda el form que se acaba de confirmar para distinguir, en el
@@ -234,10 +252,8 @@
 
             titulo.textContent = opciones.titulo || '¿Confirmás esta acción?';
             mensaje.textContent = opciones.mensaje || '';
-            const esNeutral = opciones.variante === 'neutral';
-            dialogo.dataset.variante = esNeutral ? 'neutral' : 'peligro';
+            aplicarVariante(opciones.variante);
             botonConfirmar.textContent = opciones.texto || 'Confirmar';
-            botonConfirmar.className = esNeutral ? 'btn-primary' : 'btn-danger';
 
             dialogo.showModal();
         };
@@ -257,10 +273,8 @@
             formPendiente = form;
             titulo.textContent = form.dataset.confirmarTitulo || '¿Confirmás esta acción?';
             mensaje.textContent = form.dataset.confirmarMensaje || '';
-            const esNeutral = form.dataset.confirmarVariante === 'neutral';
-            dialogo.dataset.variante = esNeutral ? 'neutral' : 'peligro';
+            aplicarVariante(form.dataset.confirmarVariante);
             botonConfirmar.textContent = form.dataset.confirmarTexto || 'Confirmar';
-            botonConfirmar.className = esNeutral ? 'btn-primary' : 'btn-danger';
 
             dialogo.showModal();
         }, true);
