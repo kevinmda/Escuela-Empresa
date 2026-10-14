@@ -7368,6 +7368,11 @@ body:not(:has(.credito-disenio))::after {
 
 .opi-form > button[type="submit"] {
     align-self: flex-start;
+    /* El gap de .opi-form ya pone 1rem entre el textarea y el botón, pero
+       abajo del botón queda el padding-bottom del .panel (1.5rem). Este
+       margin extra completa esos 0.5rem que faltan para que el espacio de
+       arriba (1rem + 0.5rem) quede igual al de abajo (1.5rem). */
+    margin-top: 0.5rem;
 }
 
 /* Ancho y alto fijos -- igual que una .opi-tarjeta ya cargada -- y sin tirador
