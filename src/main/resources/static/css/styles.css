@@ -4446,6 +4446,16 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
                 background-color 0.15s ease, color 0.15s ease;
 }
 
+/* El <select> en sí toma var(--surface)/var(--ink) de las reglas de arriba,
+   pero eso no alcanza a la lista desplegable: la mayoria de los navegadores
+   la pintan aparte, con su fondo por defecto (blanco), ignorando el tema de
+   la pagina. Sin esto, en modo oscuro el texto claro quedaba sobre un fondo
+   blanco -- casi ilegible, y rompia con el resto de la pantalla. */
+.select-asignacion option {
+    color: var(--ink);
+    background-color: var(--surface);
+}
+
 .select-asignacion option[value=""] {
     color: var(--ink-soft);
     font-style: italic;
