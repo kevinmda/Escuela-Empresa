@@ -4081,6 +4081,75 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     margin-top: 0;
 }
 
+/* ---------- Roster desplegable (Supervisores/Empresas cargados) ----------
+
+   Mismo <details> que .ficha-alta y .documentos-menu, pero acá envuelve TODA
+   la tarjeta de "cargados" -- el alta y la grilla de fichas -- no solo un
+   formulario: con varios supervisores/empresas cargados esa grilla ocupaba
+   la pantalla de entrada aunque no hiciera falta mirarla. .registro-seccion
+   le sigue dando el cuadro (fondo, borde, sombra); acá el padding se mueve
+   del contenedor al resumen y al cuerpo por separado, porque ahora son dos
+   partes que pueden estar visibles por separado. */
+.registro-seccion.roster-desplegable {
+    padding: 0;
+    overflow: hidden;
+}
+
+.roster-resumen {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    list-style: none;
+    transition: background-color 0.15s ease;
+}
+
+.roster-resumen::-webkit-details-marker {
+    display: none;
+}
+
+.roster-resumen h3 {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.roster-contador {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+}
+
+.roster-chevron {
+    display: inline-block;
+    color: var(--ink-soft);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.roster-desplegable[open] .roster-chevron {
+    transform: rotate(90deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .roster-desplegable:not([open]) .roster-resumen:hover {
+        background-color: var(--esp-tenue);
+    }
+}
+
+/* display:none explícito, no implícito -- mismo motivo que .ficha-alta-cuerpo
+   y .documentos-lista un poco más abajo: un display declarado por el sitio
+   le gana a la regla del navegador que oculta el contenido cerrado. */
+.roster-cuerpo {
+    display: none;
+}
+
+.roster-desplegable[open] .roster-cuerpo {
+    display: block;
+    padding: 0 1.5rem 1.5rem;
+}
+
 /* Envoltorio liviano para el mismo .seccion-grupo que ya usan Alumnos y
    Reportes. Sin el fondo teñido de .alumnos-panel-barra a propósito: esa
    franja está pensada para un panel de lomo de color de borde a borde, y

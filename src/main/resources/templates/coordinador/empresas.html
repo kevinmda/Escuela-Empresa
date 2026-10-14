@@ -45,113 +45,123 @@
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
         <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
 
-        <section class="registro-seccion" aria-labelledby="titulo-roster-emp">
-            <h3 id="titulo-roster-emp">Empresas cargadas</h3>
+        <!-- <details> en vez de <section>: con muchas empresas cargadas, la
+             grilla entera ocupaba la pantalla de entrada aunque no haga falta
+             mirarla. Abierta por defecto (nada cambia a primera vista); se
+             puede cerrar para recuperar ese espacio. -->
+        <details class="registro-seccion roster-desplegable" open>
+            <summary class="roster-resumen">
+                <h3 id="titulo-roster-emp">Empresas cargadas</h3>
+                <span class="roster-contador" th:text="${empresas.size()} + ' cargadas'"></span>
+                <span class="roster-chevron" aria-hidden="true">▸</span>
+            </summary>
 
-            <!-- Fuera de la grilla de fichas a propósito: ver el comentario de
-                 .ficha-alta en el CSS. -->
-            <details class="ficha-alta">
-                <summary>
-                    <span class="ficha-alta-icono" aria-hidden="true">+</span>
-                    <span>Agregar empresa</span>
-                </summary>
-                <div class="ficha-alta-cuerpo">
-                    <form th:action="@{/admin/empresas/crear}" method="post" class="ficha-alta-grupos">
-                        <p class="ficha-alta-grupo-titulo">Identificación</p>
-                        <div class="ficha-alta-campos">
-                            <div>
-                                <label for="nombre">Nombre</label>
-                                <input type="text" id="nombre" name="nombre" required>
+            <div class="roster-cuerpo">
+                <!-- Fuera de la grilla de fichas a propósito: ver el comentario de
+                     .ficha-alta en el CSS. -->
+                <details class="ficha-alta">
+                    <summary>
+                        <span class="ficha-alta-icono" aria-hidden="true">+</span>
+                        <span>Agregar empresa</span>
+                    </summary>
+                    <div class="ficha-alta-cuerpo">
+                        <form th:action="@{/admin/empresas/crear}" method="post" class="ficha-alta-grupos">
+                            <p class="ficha-alta-grupo-titulo">Identificación</p>
+                            <div class="ficha-alta-campos">
+                                <div>
+                                    <label for="nombre">Nombre</label>
+                                    <input type="text" id="nombre" name="nombre" required>
+                                </div>
+                                <div>
+                                    <label for="ruc">RUC (opcional)</label>
+                                    <input type="text" id="ruc" name="ruc">
+                                </div>
                             </div>
-                            <div>
-                                <label for="ruc">RUC (opcional)</label>
-                                <input type="text" id="ruc" name="ruc">
-                            </div>
-                        </div>
 
-                        <p class="ficha-alta-grupo-titulo">Contacto</p>
-                        <div class="ficha-alta-campos">
-                            <div>
-                                <label for="telefono">Teléfono (opcional)</label>
-                                <input type="text" id="telefono" name="telefono">
+                            <p class="ficha-alta-grupo-titulo">Contacto</p>
+                            <div class="ficha-alta-campos">
+                                <div>
+                                    <label for="telefono">Teléfono (opcional)</label>
+                                    <input type="text" id="telefono" name="telefono">
+                                </div>
+                                <div>
+                                    <label for="email">Email (opcional)</label>
+                                    <input type="email" id="email" name="email">
+                                </div>
+                                <div>
+                                    <label for="direccion">Dirección (opcional)</label>
+                                    <input type="text" id="direccion" name="direccion">
+                                </div>
+                                <button type="submit" class="btn-primary">Agregar</button>
                             </div>
-                            <div>
-                                <label for="email">Email (opcional)</label>
-                                <input type="email" id="email" name="email">
-                            </div>
-                            <div>
-                                <label for="direccion">Dirección (opcional)</label>
-                                <input type="text" id="direccion" name="direccion">
-                            </div>
-                            <button type="submit" class="btn-primary">Agregar</button>
-                        </div>
-                    </form>
-                </div>
-            </details>
-
-            <!-- Una ficha por empresa: el nombre encabeza, y RUC/Teléfono/Email/
-                 Dirección van abajo como los datos de una tarjeta, no como
-                 cinco columnas más de tabla. -->
-            <section class="fichas-grid" aria-label="Empresas cargadas">
-                <article class="ficha" th:each="emp : ${empresas}">
-                    <!-- title repite el valor: es lo que hace que el navegador muestre el
-                         tooltip nativo con el texto completo al pasar el mouse, para los
-                         valores largos que el campo recorta. Sin JS ni nada que armar:
-                         alcanza con que title diga lo mismo que ya dice value. -->
-                    <input type="text" th:form="${'editar-' + emp.idEmp}" name="nombre" th:value="${emp.nombre}"
-                           th:title="${emp.nombre}"
-                           class="ficha-campo ficha-campo--nombre" aria-label="Nombre" required>
-
-                    <div class="ficha-datos">
-                        <div>
-                            <span class="ficha-dato-etiqueta">RUC</span>
-                            <input type="text" th:form="${'editar-' + emp.idEmp}" name="ruc" th:value="${emp.ruc}"
-                                   th:title="${emp.ruc}"
-                                   class="ficha-campo ficha-campo--secundario" aria-label="RUC" required>
-                        </div>
-                        <div>
-                            <span class="ficha-dato-etiqueta">Teléfono</span>
-                            <input type="text" th:form="${'editar-' + emp.idEmp}" name="telefono" th:value="${emp.telefono}"
-                                   th:title="${emp.telefono}"
-                                   class="ficha-campo ficha-campo--secundario" aria-label="Teléfono" required>
-                        </div>
-                        <div>
-                            <span class="ficha-dato-etiqueta">Email</span>
-                            <input type="email" th:form="${'editar-' + emp.idEmp}" name="email" th:value="${emp.email}"
-                                   th:title="${emp.email}"
-                                   class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
-                        </div>
-                        <div>
-                            <span class="ficha-dato-etiqueta">Dirección</span>
-                            <input type="text" th:form="${'editar-' + emp.idEmp}" name="direccion" th:value="${emp.direccion}"
-                                   th:title="${emp.direccion}"
-                                   class="ficha-campo ficha-campo--secundario" aria-label="Dirección" required>
-                        </div>
-                    </div>
-
-                    <div class="ficha-acciones">
-                        <!-- Este form no tiene inputs propios adentro: los toma de los
-                             campos de arriba via el atributo form="" -->
-                        <form th:id="${'editar-' + emp.idEmp}" th:action="@{/admin/empresas/editar}" method="post">
-                            <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
-                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
-                        </form>
-                        <form th:action="@{/admin/empresas/eliminar}" method="post"
-                              data-confirmar
-                              data-confirmar-titulo="¿Eliminar esta empresa?"
-                              th:attr="data-confirmar-mensaje='Los alumnos que tengan asignada la empresa ' + ${emp.nombre} + ' van a quedar sin empresa.'"
-                              data-confirmar-texto="Eliminar">
-                            <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
-                            <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
                         </form>
                     </div>
-                </article>
-            </section>
+                </details>
 
-            <p th:if="${empresas.isEmpty()}" class="mensaje-vacio">
-                Todavía no cargaste ninguna empresa. Usá "Agregar empresa" arriba para cargar la primera.
-            </p>
-        </section>
+                <!-- Una ficha por empresa: el nombre encabeza, y RUC/Teléfono/Email/
+                     Dirección van abajo como los datos de una tarjeta, no como
+                     cinco columnas más de tabla. -->
+                <section class="fichas-grid" aria-label="Empresas cargadas">
+                    <article class="ficha" th:each="emp : ${empresas}">
+                        <!-- title repite el valor: es lo que hace que el navegador muestre el
+                             tooltip nativo con el texto completo al pasar el mouse, para los
+                             valores largos que el campo recorta. Sin JS ni nada que armar:
+                             alcanza con que title diga lo mismo que ya dice value. -->
+                        <input type="text" th:form="${'editar-' + emp.idEmp}" name="nombre" th:value="${emp.nombre}"
+                               th:title="${emp.nombre}"
+                               class="ficha-campo ficha-campo--nombre" aria-label="Nombre" required>
+
+                        <div class="ficha-datos">
+                            <div>
+                                <span class="ficha-dato-etiqueta">RUC</span>
+                                <input type="text" th:form="${'editar-' + emp.idEmp}" name="ruc" th:value="${emp.ruc}"
+                                       th:title="${emp.ruc}"
+                                       class="ficha-campo ficha-campo--secundario" aria-label="RUC" required>
+                            </div>
+                            <div>
+                                <span class="ficha-dato-etiqueta">Teléfono</span>
+                                <input type="text" th:form="${'editar-' + emp.idEmp}" name="telefono" th:value="${emp.telefono}"
+                                       th:title="${emp.telefono}"
+                                       class="ficha-campo ficha-campo--secundario" aria-label="Teléfono" required>
+                            </div>
+                            <div>
+                                <span class="ficha-dato-etiqueta">Email</span>
+                                <input type="email" th:form="${'editar-' + emp.idEmp}" name="email" th:value="${emp.email}"
+                                       th:title="${emp.email}"
+                                       class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
+                            </div>
+                            <div>
+                                <span class="ficha-dato-etiqueta">Dirección</span>
+                                <input type="text" th:form="${'editar-' + emp.idEmp}" name="direccion" th:value="${emp.direccion}"
+                                       th:title="${emp.direccion}"
+                                       class="ficha-campo ficha-campo--secundario" aria-label="Dirección" required>
+                            </div>
+                        </div>
+
+                        <div class="ficha-acciones">
+                            <!-- Este form no tiene inputs propios adentro: los toma de los
+                                 campos de arriba via el atributo form="" -->
+                            <form th:id="${'editar-' + emp.idEmp}" th:action="@{/admin/empresas/editar}" method="post">
+                                <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
+                                <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
+                            </form>
+                            <form th:action="@{/admin/empresas/eliminar}" method="post"
+                                  data-confirmar
+                                  data-confirmar-titulo="¿Eliminar esta empresa?"
+                                  th:attr="data-confirmar-mensaje='Los alumnos que tengan asignada la empresa ' + ${emp.nombre} + ' van a quedar sin empresa.'"
+                                  data-confirmar-texto="Eliminar">
+                                <input type="hidden" name="idEmp" th:value="${emp.idEmp}">
+                                <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
+                            </form>
+                        </div>
+                    </article>
+                </section>
+
+                <p th:if="${empresas.isEmpty()}" class="mensaje-vacio">
+                    Todavía no cargaste ninguna empresa. Usá "Agregar empresa" arriba para cargar la primera.
+                </p>
+            </div>
+        </details>
 
         <!-- Asignación de empresa por alumno. Antes era una sola tabla con las
              tres secciones mezcladas; ahora usa el mismo selector de sección

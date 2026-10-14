@@ -45,84 +45,94 @@
         <p th:if="${exito}" class="mensaje-exito" th:text="${exito}"></p>
         <p th:if="${error}" class="mensaje-error" th:text="${error}"></p>
 
-        <section class="registro-seccion" aria-labelledby="titulo-roster-sup">
-            <h3 id="titulo-roster-sup">Supervisores cargados</h3>
+        <!-- <details> en vez de <section>: con muchos supervisores cargados, la
+             grilla entera ocupaba la pantalla de entrada aunque no haga falta
+             mirarla. Abierta por defecto (nada cambia a primera vista); se
+             puede cerrar para recuperar ese espacio. -->
+        <details class="registro-seccion roster-desplegable" open>
+            <summary class="roster-resumen">
+                <h3 id="titulo-roster-sup">Supervisores cargados</h3>
+                <span class="roster-contador" th:text="${supervisores.size()} + ' cargados'"></span>
+                <span class="roster-chevron" aria-hidden="true">▸</span>
+            </summary>
 
-            <!-- Fuera de la grilla de fichas a propósito: ver el comentario de
-                 .ficha-alta en el CSS. -->
-            <details class="ficha-alta">
-                <summary>
-                    <span class="ficha-alta-icono" aria-hidden="true">+</span>
-                    <span>Agregar supervisor</span>
-                </summary>
-                <div class="ficha-alta-cuerpo">
-                    <form th:action="@{/admin/supervisores/crear}" method="post" class="ficha-alta-campos">
-                        <div>
-                            <label for="nombres">Nombres</label>
-                            <input type="text" id="nombres" name="nombres" required>
-                        </div>
-                        <div>
-                            <label for="apellidos">Apellidos</label>
-                            <input type="text" id="apellidos" name="apellidos" required>
-                        </div>
-                        <div>
-                            <label for="email">Email (opcional)</label>
-                            <input type="email" id="email" name="email">
-                        </div>
-                        <button type="submit" class="btn-primary">Agregar</button>
-                    </form>
-                </div>
-            </details>
-
-            <!-- Una ficha por supervisor, no una fila de tabla: son tres campos
-                 por persona, y una ficha se lee de un vistazo. -->
-            <section class="fichas-grid" aria-label="Supervisores cargados">
-                <article class="ficha" th:each="sup : ${supervisores}">
-                    <!-- title repite el value: es lo que hace que el navegador muestre el
-                         tooltip nativo con el texto completo al pasar el mouse, para los
-                         valores largos que el campo recorta. -->
-                    <!-- Los tres campos adentro del mismo .ficha-titulo: es ese flex-row
-                         compartido (con el mismo width:100% + flex de .ficha-campo en
-                         cada hijo) el que hace que se repartan el ancho de la fila en
-                         partes iguales. Antes el email vivía afuera, como hijo directo
-                         de .ficha (flex-column), así que se estiraba solo al ancho
-                         completo de la ficha en vez de a un tercio como nombres y
-                         apellidos. -->
-                    <div class="ficha-titulo">
-                        <input type="text" th:form="${'editar-' + sup.idSup}" name="nombres" th:value="${sup.nombres}"
-                               th:title="${sup.nombres}"
-                               class="ficha-campo ficha-campo--nombre" aria-label="Nombres" required>
-                        <input type="text" th:form="${'editar-' + sup.idSup}" name="apellidos" th:value="${sup.apellidos}"
-                               th:title="${sup.apellidos}"
-                               class="ficha-campo ficha-campo--nombre" aria-label="Apellidos" required>
-                        <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}"
-                               th:title="${sup.email}"
-                               class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
-                    </div>
-
-                    <div class="ficha-acciones">
-                        <!-- Este form no tiene inputs propios adentro: los toma de los
-                             campos de arriba via el atributo form="" -->
-                        <form th:id="${'editar-' + sup.idSup}" th:action="@{/admin/supervisores/editar}" method="post">
-                            <input type="hidden" name="idSup" th:value="${sup.idSup}">
-                            <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
-                        </form>
-                        <form th:action="@{/admin/supervisores/eliminar}" method="post"
-                              data-confirmar
-                              data-confirmar-titulo="¿Eliminar este supervisor?"
-                              th:attr="data-confirmar-mensaje='Los alumnos que tengan asignado a ' + ${sup.nombres} + ' ' + ${sup.apellidos} + ' van a quedar sin supervisor.'"
-                              data-confirmar-texto="Eliminar">
-                            <input type="hidden" name="idSup" th:value="${sup.idSup}">
-                            <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
+            <div class="roster-cuerpo">
+                <!-- Fuera de la grilla de fichas a propósito: ver el comentario de
+                     .ficha-alta en el CSS. -->
+                <details class="ficha-alta">
+                    <summary>
+                        <span class="ficha-alta-icono" aria-hidden="true">+</span>
+                        <span>Agregar supervisor</span>
+                    </summary>
+                    <div class="ficha-alta-cuerpo">
+                        <form th:action="@{/admin/supervisores/crear}" method="post" class="ficha-alta-campos">
+                            <div>
+                                <label for="nombres">Nombres</label>
+                                <input type="text" id="nombres" name="nombres" required>
+                            </div>
+                            <div>
+                                <label for="apellidos">Apellidos</label>
+                                <input type="text" id="apellidos" name="apellidos" required>
+                            </div>
+                            <div>
+                                <label for="email">Email (opcional)</label>
+                                <input type="email" id="email" name="email">
+                            </div>
+                            <button type="submit" class="btn-primary">Agregar</button>
                         </form>
                     </div>
-                </article>
-            </section>
+                </details>
 
-            <p th:if="${supervisores.isEmpty()}" class="mensaje-vacio">
-                Todavía no cargaste ningún supervisor. Usá "Agregar supervisor" arriba para cargar el primero.
-            </p>
-        </section>
+                <!-- Una ficha por supervisor, no una fila de tabla: son tres campos
+                     por persona, y una ficha se lee de un vistazo. -->
+                <section class="fichas-grid" aria-label="Supervisores cargados">
+                    <article class="ficha" th:each="sup : ${supervisores}">
+                        <!-- title repite el value: es lo que hace que el navegador muestre el
+                             tooltip nativo con el texto completo al pasar el mouse, para los
+                             valores largos que el campo recorta. -->
+                        <!-- Los tres campos adentro del mismo .ficha-titulo: es ese flex-row
+                             compartido (con el mismo width:100% + flex de .ficha-campo en
+                             cada hijo) el que hace que se repartan el ancho de la fila en
+                             partes iguales. Antes el email vivía afuera, como hijo directo
+                             de .ficha (flex-column), así que se estiraba solo al ancho
+                             completo de la ficha en vez de a un tercio como nombres y
+                             apellidos. -->
+                        <div class="ficha-titulo">
+                            <input type="text" th:form="${'editar-' + sup.idSup}" name="nombres" th:value="${sup.nombres}"
+                                   th:title="${sup.nombres}"
+                                   class="ficha-campo ficha-campo--nombre" aria-label="Nombres" required>
+                            <input type="text" th:form="${'editar-' + sup.idSup}" name="apellidos" th:value="${sup.apellidos}"
+                                   th:title="${sup.apellidos}"
+                                   class="ficha-campo ficha-campo--nombre" aria-label="Apellidos" required>
+                            <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}"
+                                   th:title="${sup.email}"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="Email" required>
+                        </div>
+
+                        <div class="ficha-acciones">
+                            <!-- Este form no tiene inputs propios adentro: los toma de los
+                                 campos de arriba via el atributo form="" -->
+                            <form th:id="${'editar-' + sup.idSup}" th:action="@{/admin/supervisores/editar}" method="post">
+                                <input type="hidden" name="idSup" th:value="${sup.idSup}">
+                                <button type="submit" class="btn-secondary icono-guardar">Guardar</button>
+                            </form>
+                            <form th:action="@{/admin/supervisores/eliminar}" method="post"
+                                  data-confirmar
+                                  data-confirmar-titulo="¿Eliminar este supervisor?"
+                                  th:attr="data-confirmar-mensaje='Los alumnos que tengan asignado a ' + ${sup.nombres} + ' ' + ${sup.apellidos} + ' van a quedar sin supervisor.'"
+                                  data-confirmar-texto="Eliminar">
+                                <input type="hidden" name="idSup" th:value="${sup.idSup}">
+                                <button type="submit" class="btn-danger icono-eliminar">Eliminar</button>
+                            </form>
+                        </div>
+                    </article>
+                </section>
+
+                <p th:if="${supervisores.isEmpty()}" class="mensaje-vacio">
+                    Todavía no cargaste ningún supervisor. Usá "Agregar supervisor" arriba para cargar el primero.
+                </p>
+            </div>
+        </details>
 
         <!-- Asignación de supervisor por alumno. Antes era una sola tabla con
              las tres secciones mezcladas; ahora usa el mismo selector de
