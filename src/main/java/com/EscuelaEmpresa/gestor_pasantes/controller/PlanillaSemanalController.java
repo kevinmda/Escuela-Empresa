@@ -146,17 +146,10 @@ public class PlanillaSemanalController {
 
         try {
             planillaSemanalService.guardarPlanilla(form, alumno);
-            // Redirect y no return directo: los @ModelAttribute de
-            // ChromeModelAdvice (entre ellos, los avisos del header) se
-            // resuelven ANTES de que el cuerpo de este método corra -- así
-            // funciona Spring con los @ModelAttribute, se completan primero
-            // para armar el Model que después usa el handler. Si acá se
-            // devolviera la vista directo, el header de ESTA MISMA respuesta
-            // se calcularía con el estado de ANTES de guardar (por ejemplo,
-            // "documentos finales" no aparecía recién al completar la sexta
-            // planilla, sino que había que recargar o navegar a otro lado para
-            // que se notara). El redirect fuerza una petición GET nueva y
-            // aparte, donde el header ya se calcula después del guardado.
+            // Redirect y no return directo (patrón Post/Redirect/Get): sin
+            // esto, refrescar la página después de guardar reenvía el mismo
+            // POST y duplica el guardado. El redirect fuerza una petición GET
+            // nueva y aparte, así refrescar ya no reenvía nada.
             redirectAttributes.addFlashAttribute("exito", "Planilla guardada correctamente.");
             return "redirect:/alumno/planilla";
         } catch (ReglaNegocioException e) {

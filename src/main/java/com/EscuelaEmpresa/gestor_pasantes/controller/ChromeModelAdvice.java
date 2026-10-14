@@ -8,7 +8,6 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AlumnoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
-import com.EscuelaEmpresa.gestor_pasantes.service.AvisoService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,16 +27,13 @@ public class ChromeModelAdvice {
     private final UsuarioRepository usuarioRepository;
     private final AlumnoRepository alumnoRepository;
     private final AdministradorRepository administradorRepository;
-    private final AvisoService avisoService;
 
     public ChromeModelAdvice(UsuarioRepository usuarioRepository,
                              AlumnoRepository alumnoRepository,
-                             AdministradorRepository administradorRepository,
-                             AvisoService avisoService) {
+                             AdministradorRepository administradorRepository) {
         this.usuarioRepository = usuarioRepository;
         this.alumnoRepository = alumnoRepository;
         this.administradorRepository = administradorRepository;
-        this.avisoService = avisoService;
     }
 
     @ModelAttribute("chrome")
@@ -60,7 +56,6 @@ public class ChromeModelAdvice {
                     : "administrador";
             // Administración y coordinación trabajan sobre conjuntos de especialidades;
             // el cromo queda deliberadamente neutro en vez de fingir una sola identidad.
-            // Sin avisos: son solo del alumno (constructor de 5 args, sin lista).
             return new ChromeContext(
                     rol,
                     nombreCompleto(administrador.getNombres(), administrador.getApellidos(), usuario.getEmail()),
@@ -77,8 +72,7 @@ public class ChromeModelAdvice {
                     nombreCompleto(alumno.getNombres(), alumno.getApellidos(), usuario.getEmail()),
                     usuario.getEmail(),
                     especialidad != null ? especialidad.getIdEsp() : null,
-                    especialidad != null ? especialidad.getNombre() : null,
-                    avisoService.avisosDelAlumno(alumno));
+                    especialidad != null ? especialidad.getNombre() : null);
         }
 
         return new ChromeContext("cuenta", usuario.getEmail(), usuario.getEmail(), null, null);

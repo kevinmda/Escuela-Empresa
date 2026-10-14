@@ -66,9 +66,7 @@ public class DocumentoAlmacenamientoService {
             documento.setNombreArchivo(nombreOriginal);
             documento.setRutaArchivo(rutaCompleta.toString());
             // Zona horaria explícita: LocalDateTime.now() a secas usa la del
-            // propio servidor, que puede no estar en hora de Paraguay -- y esta
-            // fecha es la que después usa el aviso de "documentos adjuntos" en
-            // el header para calcular "Hoy"/"Ayer"/etc.
+            // propio servidor, que puede no estar en hora de Paraguay.
             documento.setFechaSubida(LocalDateTime.now(ZoneId.of("America/Asuncion")));
             documento.setAlumno(alumno);
             documento.setTipoDocumento(tipoDocumento);

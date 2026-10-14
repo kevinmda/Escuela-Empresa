@@ -1,13 +1,6 @@
 package com.EscuelaEmpresa.gestor_pasantes.dto;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Datos de identidad que necesita el cromo compartido de las pantallas autenticadas.
@@ -19,97 +12,7 @@ public record ChromeContext(
         String nombre,
         String email,
         Integer especialidadId,
-        String especialidadNombre,
-        List<Aviso> avisos) {
-
-    public ChromeContext(String rol, String nombre, String email, Integer especialidadId, String especialidadNombre) {
-        this(rol, nombre, email, especialidadId, especialidadNombre, List.of());
-    }
-
-    /**
-     * Un aviso del header (la caja a la derecha del toggle de tema).
-     *
-     * "codigo" identifica DE QUÉ es el aviso ("documentos_finales",
-     * "documentos_adjuntos"...) y es la mitad de la clave primaria de
-     * aviso_leido. Es un campo aparte de "tipo" (el color) porque, a
-     * diferencia de antes, ahora puede haber más de un aviso "listo" (verde)
-     * a la vez por motivos distintos -- si se usara el color como identidad,
-     * los dos pisarían la misma fila de aviso_leido.
-     *
-     * "clave" identifica la ocurrencia puntual de ese código (para
-     * documentos_finales, la fecha de la sexta planilla; para
-     * documentos_adjuntos, el id del documento que completó los 10) -- es lo
-     * que se guarda en aviso_leido al marcar como leído, y lo que permite
-     * saber si ESTA ocurrencia puntual ya se leyó o si es una nueva (con otra
-     * clave) que todavía no.
-     *
-     * "momento" es la referencia por la que se ordenan y agrupan cuando hay
-     * más de uno -- no cuándo se generó este objeto (eso sería "ahora"
-     * siempre, y no distinguiría nada), sino el día que hace que ESE aviso en
-     * particular sea relevante. Para documentos_adjuntos es un dato real (la
-     * fecha de subida del documento que completó los 10); para
-     * documentos_finales no hay una hora real guardada en la base (es una
-     * fecha, no un evento con marca de tiempo), así que ahí "momento" usa la
-     * medianoche del día que corresponde -- una convención, no un dato real,
-     * pero estable.
-     *
-     * "tipo" define el color en chrome.html: "pendiente" (dorado) o "listo"
-     * (verde), mismo par que ya usa el resto de la app.
-     */
-    public record Aviso(String texto, String destino, String tipo, String codigo, String clave,
-                         LocalDateTime momento, boolean leido) {
-
-        public String hora() {
-            return momento.format(DateTimeFormatter.ofPattern("HH:mm"));
-        }
-
-        /** "Hoy", "Ayer", "Hace 3 días", "Hace 1 semana", "Hace 2 semanas"... */
-        public String etiquetaDia() {
-            // Zona horaria explícita y no LocalDate.now() a secas: eso usa la zona
-            // del propio servidor, que puede no estar configurada como Paraguay.
-            // Si el VPS anda, por ejemplo, en UTC, "hoy" ahí puede seguir siendo
-            // el día de ayer en Paraguay durante varias horas después de la
-            // medianoche local -- exactamente el síntoma de un aviso que ya
-            // debería decir "Ayer" y sigue diciendo "Hoy".
-            LocalDate hoyEnParaguay = LocalDate.now(ZoneId.of("America/Asuncion"));
-            long dias = ChronoUnit.DAYS.between(momento.toLocalDate(), hoyEnParaguay);
-            if (dias <= 0) {
-                return "Hoy";
-            }
-            if (dias == 1) {
-                return "Ayer";
-            }
-            if (dias < 7) {
-                return "Hace " + dias + " días";
-            }
-            long semanas = dias / 7;
-            return semanas == 1 ? "Hace 1 semana" : "Hace " + semanas + " semanas";
-        }
-    }
-
-    /** Los avisos ordenados del más reciente al más viejo, para el desplegable. */
-    public List<Aviso> avisosOrdenados() {
-        return avisos.stream()
-                .sorted(Comparator.comparing(Aviso::momento).reversed())
-                .toList();
-    }
-
-    /** La campana solo lleva el punto de color si queda algo sin leer. */
-    public boolean hayAvisosSinLeer() {
-        return avisos.stream().anyMatch(a -> !a.leido());
-    }
-
-    /**
-     * El color de la campana en sí (no del punto): gris cuando no queda nada
-     * sin leer -- aunque siga habiendo avisos ya leídos en la lista -- y
-     * vuelve a su color apenas llega uno nuevo sin leer. Con "pendiente"
-     * (dorado) hoy sin uso real (el único aviso de ese tipo se sacó), pero la
-     * lógica queda general por si algún día vuelve a hacer falta.
-     */
-    public String colorCampana() {
-        Optional<Aviso> primeroSinLeer = avisosOrdenados().stream().filter(a -> !a.leido()).findFirst();
-        return primeroSinLeer.map(Aviso::tipo).orElse("gris");
-    }
+        String especialidadNombre) {
 
     /**
      * Un destino del riel de secciones. La clave es la que compara paginaActual.
