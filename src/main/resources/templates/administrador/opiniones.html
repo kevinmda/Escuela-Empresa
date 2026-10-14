@@ -70,22 +70,50 @@
 
             <div th:unless="${esAdministrativo}" class="esp-picker" th:attr="data-esp=${especialidadFija.idEsp}">
                 <span class="esp-etiqueta" th:text="${especialidadFija.nombre}"></span>
+                <input type="hidden" id="idEspFijo" th:value="${especialidadFija.idEsp}">
             </div>
         </section>
 
-        <section class="registro-seccion" aria-labelledby="titulo-opiniones">
+        <!-- Tarjeta propia, separada de la de Especialidad -- mismo esquema que
+             Alumnos/Reportes, donde el filtro y los resultados son dos cuadros
+             distintos en vez de uno solo. -->
+        <section class="registro-seccion opi-resultados" aria-labelledby="titulo-opiniones">
             <h3 id="titulo-opiniones">Lo que opinan los alumnos de su empresa</h3>
+
+            <div class="opi-resultados-barra">
+                <div>
+                    <span class="seccion-etiqueta" id="etiqueta-seccion-opi">Sección</span>
+                    <!-- Se llena desde SECCIONES_POR_ESP en el script, "Todos" primero y
+                         siempre presente -- a diferencia de Alumnos/Reportes, acá no hay
+                         que elegir una sección para ver algo, así que "Todos" es el
+                         estado inicial en vez de una pantalla vacía hasta que se elija. -->
+                    <span class="seccion-grupo" id="grupo-seccion-opi" role="group" aria-labelledby="etiqueta-seccion-opi"></span>
+                </div>
+
+                <div>
+                    <span class="seccion-etiqueta" id="etiqueta-calificacion-opi">Calificación</span>
+                    <span class="seccion-grupo" id="grupo-calificacion-opi" role="group" aria-labelledby="etiqueta-calificacion-opi">
+                        <button type="button" class="seccion-btn" data-calificacion="" aria-pressed="true">Todas</button>
+                        <button type="button" class="seccion-btn" th:each="n : ${#numbers.sequence(5, 1, -1)}"
+                                th:attr="data-calificacion=${n}" aria-pressed="false" th:text="${n} + ' ★'"></button>
+                    </span>
+                </div>
+            </div>
 
             <!-- Cada tarjeta lleva su propio data-esp: a diferencia de Supervisores/Empresas
                  (una sola especialidad fija por pantalla), acá el administrativo ve alumnos
                  de TODAS las especialidades mezclados en una sola lista, así que el color no
                  puede fijarse una vez arriba del todo -- cada opinión tiñe la suya.
-                 data-empresa es el texto que compara el buscador: ya viene en
-                 minúsculas, así que la búsqueda no distingue mayúsculas. -->
+                 data-empresa es el texto que compara el buscador: ya viene en minúsculas,
+                 así que la búsqueda no distingue mayúsculas. data-seccion es el valor
+                 crudo del alumno (puede venir como "1ra", "A"...) -- el script lo
+                 normaliza, igual que Alumnos/Reportes/Supervisores. -->
             <div class="opi-lista">
                 <article class="opi-tarjeta panel" th:each="opi : ${opiniones}"
                           th:attr="data-esp=${opi.alumno.especialidad != null ? opi.alumno.especialidad.idEsp : ''},
-                                    data-empresa=${opi.empresa != null ? #strings.toLowerCase(opi.empresa.nombre) : ''}">
+                                    data-empresa=${opi.empresa != null ? #strings.toLowerCase(opi.empresa.nombre) : ''},
+                                    data-seccion=${opi.alumno.seccion},
+                                    data-calificacion=${opi.calificacion}">
                     <div class="opi-tarjeta-cabecera">
                         <div class="opi-tarjeta-quien">
                             <p class="opi-tarjeta-alumno"
@@ -136,28 +164,63 @@
     </main>
 
     <script>
+        // Mismo mapa y misma normalización que Alumnos/Reportes/Supervisores:
+        // cada especialidad tiene su juego fijo de secciones, y los valores
+        // viejos ("1ra", "2da"...) se leen igual que A/B/C.
+        const SECCIONES_POR_ESP = {
+            '1': ['A', 'B'],           // Informática
+            '2': ['A', 'B', 'C'],      // Electrónica
+            '4': ['A', 'B', 'C'],      // Construcciones Civiles
+            '5': ['A', 'B'],           // Electricidad
+            '6': ['A', 'B'],           // Electromecánica
+            '7': ['A', 'B'],           // Mecánica Industrial
+            '8': ['A', 'B'],           // Mecánica Automotriz
+            '9': ['A', 'B', 'C'],      // Química Industrial
+        };
+        const SECCIONES_POR_DEFECTO = ['A', 'B', 'C'];
+
+        function normalizarSeccion(valor) {
+            if (valor == null) return valor;
+            const v = String(valor).trim().toLowerCase();
+            if (['1ra', '1era', '1ro', '1er', '1', '1°', 'primera'].includes(v)) return 'A';
+            if (['2da', '2do', '2', '2°', 'segunda'].includes(v)) return 'B';
+            if (['3ra', '3ro', '3er', '3', '3°', 'tercera'].includes(v)) return 'C';
+            return String(valor).trim().toUpperCase();
+        }
+
         // Sin chips (coordinador) este bloque no tiene nada que enganchar y
         // aplicarFiltros() simplemente no encuentra ninguna, así que no hace
         // falta distinguir acá si es administrativo o coordinador.
         const chips = Array.from(document.querySelectorAll('.esp-chip'));
+        const idEspFijoInput = document.getElementById('idEspFijo');
+        const grupoSeccion = document.getElementById('grupo-seccion-opi');
+        const grupoCalificacion = document.getElementById('grupo-calificacion-opi');
         const inputBusqueda = document.getElementById('input-busqueda');
         const btnBuscar = document.getElementById('btn-buscar');
         const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
         const tarjetas = Array.from(document.querySelectorAll('.opi-tarjeta'));
         const estadoVacioFiltro = document.getElementById('estado-vacio-filtro');
 
+        tarjetas.forEach(t => {
+            t.dataset.seccionNormalizada = normalizarSeccion(t.dataset.seccion);
+        });
+
         let idEspActual = ''; // '' = todas las especialidades permitidas
+        let seccionActual = ''; // '' = Todos
+        let calificacionActual = ''; // '' = Todas
         let textoActual = '';
 
-        // Combina los dos filtros (especialidad elegida + texto buscado) sobre
-        // las tarjetas que ya están en la página -- no hace falta pedirle nada
-        // al servidor, la lista completa ya llegó con la carga inicial.
+        // Combina los cuatro filtros (especialidad, sección, calificación y texto
+        // buscado) sobre las tarjetas que ya están en la página -- no hace falta
+        // pedirle nada al servidor, la lista completa ya llegó con la carga inicial.
         function aplicarFiltros() {
             let visibles = 0;
             tarjetas.forEach(tarjeta => {
                 const coincideEsp = !idEspActual || tarjeta.dataset.esp === idEspActual;
+                const coincideSeccion = !seccionActual || tarjeta.dataset.seccionNormalizada === seccionActual;
+                const coincideCalificacion = !calificacionActual || tarjeta.dataset.calificacion === calificacionActual;
                 const coincideTexto = !textoActual || (tarjeta.dataset.empresa || '').includes(textoActual);
-                const visible = coincideEsp && coincideTexto;
+                const visible = coincideEsp && coincideSeccion && coincideCalificacion && coincideTexto;
                 tarjeta.classList.toggle('oculto', !visible);
                 if (visible) visibles++;
             });
@@ -167,6 +230,53 @@
             }
         }
 
+        // "Todos" va primero y siempre está, a diferencia de Alumnos/Reportes
+        // donde el grupo arranca vacío hasta elegir especialidad. Se reconstruye
+        // cada vez que cambia la especialidad elegida porque el juego de
+        // secciones depende de ella (y la elección de sección se reinicia a
+        // "Todos" para no dejar marcada una sección que ya no aplica).
+        function renderSecciones(idEsp) {
+            grupoSeccion.innerHTML = '';
+            seccionActual = '';
+
+            const botonTodos = document.createElement('button');
+            botonTodos.type = 'button';
+            botonTodos.className = 'seccion-btn';
+            botonTodos.dataset.seccion = '';
+            botonTodos.setAttribute('aria-pressed', 'true');
+            botonTodos.textContent = 'Todos';
+            botonTodos.addEventListener('click', () => elegirSeccion(''));
+            grupoSeccion.appendChild(botonTodos);
+
+            const secciones = idEsp ? (SECCIONES_POR_ESP[String(idEsp)] || SECCIONES_POR_DEFECTO) : SECCIONES_POR_DEFECTO;
+            secciones.forEach(seccion => {
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className = 'seccion-btn';
+                boton.dataset.seccion = seccion;
+                boton.setAttribute('aria-pressed', 'false');
+                boton.textContent = seccion;
+                boton.addEventListener('click', () => elegirSeccion(seccion));
+                grupoSeccion.appendChild(boton);
+            });
+        }
+
+        function elegirSeccion(seccion) {
+            seccionActual = seccion;
+            grupoSeccion.querySelectorAll('.seccion-btn').forEach(
+                b => b.setAttribute('aria-pressed', String(b.dataset.seccion === seccion)));
+            aplicarFiltros();
+        }
+
+        grupoCalificacion.querySelectorAll('.seccion-btn').forEach(boton => {
+            boton.addEventListener('click', () => {
+                calificacionActual = boton.dataset.calificacion;
+                grupoCalificacion.querySelectorAll('.seccion-btn').forEach(
+                    b => b.setAttribute('aria-pressed', String(b === boton)));
+                aplicarFiltros();
+            });
+        });
+
         // A diferencia de Alumnos/Reportes (donde elegir especialidad es
         // obligatorio para ver algo), acá es un toggle: tocar la misma chip
         // de nuevo la deselecciona y vuelve a mostrar todas.
@@ -175,9 +285,15 @@
                 const yaElegida = chip.getAttribute('aria-pressed') === 'true';
                 idEspActual = yaElegida ? '' : chip.dataset.esp;
                 chips.forEach(c => c.setAttribute('aria-pressed', String(c === chip && !yaElegida)));
+                renderSecciones(idEspActual);
                 aplicarFiltros();
             });
         });
+
+        // Arranque: con chips (administrativo) no hay especialidad elegida
+        // todavía, así que el juego de secciones es el genérico (A/B/C). Con
+        // especialidad fija (coordinador) ya se sabe cuál, así que se usa la suya.
+        renderSecciones(idEspFijoInput ? idEspFijoInput.value : '');
 
         function ejecutarBusqueda() {
             textoActual = inputBusqueda.value.trim().toLowerCase();

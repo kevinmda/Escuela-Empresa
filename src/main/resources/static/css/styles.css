@@ -7397,6 +7397,34 @@ body:not(:has(.credito-disenio))::after {
     gap: 1rem;
 }
 
+/* La tarjeta de resultados va separada de la de Especialidad (#filtro-especialidad),
+   igual que en Alumnos/Reportes -- ahí la separación la da el margin-top de
+   .alumnos-panel; acá .registro-seccion ya trae su propio margin-bottom, así que
+   solo falta el de arriba. */
+.opi-resultados {
+    margin-top: 1.5rem;
+}
+
+/* Barra de Sección/Calificación encima de la lista de tarjetas -- mismo
+   .seccion-grupo/.seccion-btn que ya usan Alumnos, Reportes y Supervisores,
+   solo que acá van dos grupos en vez de uno. */
+.opi-resultados-barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 2rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.opi-resultados-barra > div {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
 .opi-tarjeta {
     display: flex;
     flex-direction: column;
