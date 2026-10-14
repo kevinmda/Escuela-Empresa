@@ -4141,8 +4141,12 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Pide invertido a propósito respecto del triangulito de .documentos-menu
+   (ese apunta a la derecha cerrado y gira a abajo abierto): acá el glifo
+   base (▾) ya apunta abajo estando cerrado, y gira -90deg para apuntar a la
+   derecha una vez abierto. */
 .roster-desplegable[open] .roster-chevron {
-    transform: rotate(90deg);
+    transform: rotate(-90deg);
 }
 
 @media (hover: hover) and (pointer: fine) {
