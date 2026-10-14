@@ -7355,10 +7355,13 @@ body:not(:has(.credito-disenio))::after {
     align-items: flex-start;
 }
 
+/* Ancho y alto fijos -- igual que una .opi-tarjeta ya cargada -- y sin tirador
+   de resize: antes se podía estirar a mano y quedaba con una forma distinta a
+   las tarjetas de abajo. */
 .opi-form textarea {
     width: 100%;
-    min-height: 6rem;
-    resize: vertical;
+    height: 6rem;
+    resize: none;
 }
 
 /* Mismo dorado de "pendiente" que el resto de la casa: todavía no se puede
