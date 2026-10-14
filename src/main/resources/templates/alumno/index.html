@@ -124,15 +124,6 @@
                      dato que ya está cargado, así que una vez guardado un
                      campo pasa a verse como texto fijo, igual que Email. -->
                 <form id="form-datos-personales" th:action="@{/alumno/completar-datos}" method="post">
-                    <!-- Mismo patrón que #aviso-cambios-sin-guardar de
-                         planillaSemanal.html/.js: un <p> oculto que el script
-                         de más abajo muestra apenas se tipea algo en estos
-                         campos, y que además sirve como "fuente de verdad" de
-                         si hay algo sin guardar (beforeunload e interceptar
-                         los links del sitio miran su atributo hidden). -->
-                    <p id="aviso-datos-sin-guardar" class="mensaje-error" hidden>
-                        Tenés datos sin guardar en esta ficha.
-                    </p>
                     <dl class="ahub-datos" id="ahub-datos-personales">
                         <div class="ahub-dato">
                             <dt>CI</dt>
@@ -349,18 +340,15 @@
             // Si cancela, no tocamos checked: preventDefault ya lo dejó como estaba.
         });
 
-        // Aviso de "tenés datos sin guardar" en el formulario de CI/Sexo/Fecha
-        // de nacimiento/Teléfono -- mismo patrón que planillaSemanal.js:
-        // #aviso-datos-sin-guardar como fuente de verdad (su atributo hidden),
-        // el beforeunload nativo como red de seguridad para cualquier forma de
-        // salir (cerrar la pestaña, recargar, escribir otra URL), y un diálogo
-        // propio para los links de este mismo sitio -- el de la barra de
-        // arriba y las tres tarjetas de "Tus pantallas" más abajo, que son la
-        // salida más a mano desde este Inicio.
+        // Avisa antes de salir con algo tipeado sin guardar en el formulario
+        // de CI/Sexo/Fecha de nacimiento/Teléfono -- sin cartel propio en la
+        // pantalla (a diferencia de planillaSemanal.js con su
+        // #aviso-cambios-sin-guardar): acá "hay algo sin guardar" se calcula
+        // al vuelo mirando los campos en el momento de salir, no hace falta
+        // mantenerlo actualizado en cada tecla.
         (function () {
             const formDatos = document.getElementById('form-datos-personales');
-            const avisoDatos = document.getElementById('aviso-datos-sin-guardar');
-            if (!formDatos || !avisoDatos) return;
+            if (!formDatos) return;
 
             const camposDatos = formDatos.querySelectorAll('.ahub-dato-completar input, .ahub-dato-completar select');
             if (camposDatos.length === 0) return; // sin campos para completar, nada que avisar
@@ -369,28 +357,29 @@
                 return Array.from(camposDatos).some((campo) => campo.value.trim() !== '');
             }
 
-            camposDatos.forEach((campo) => {
-                const actualizarAviso = () => {
-                    avisoDatos.hidden = !hayDatosSinGuardar();
-                };
-                campo.addEventListener('input', actualizarAviso);
-                campo.addEventListener('change', actualizarAviso);
-            });
-
             let formularioDatosEnviandose = false;
             formDatos.addEventListener('submit', () => {
                 formularioDatosEnviandose = true;
             });
 
+            // Red de seguridad para cualquier forma de salir que no sea un
+            // link de este sitio: cerrar la pestaña, recargar, escribir otra
+            // URL a mano. El navegador muestra su propio cuadro genérico, no
+            // el texto que le pasemos acá -- igual hace falta asignarlo para
+            // que aparezca.
             window.addEventListener('beforeunload', (evento) => {
-                if (formularioDatosEnviandose || avisoDatos.hidden) return;
+                if (formularioDatosEnviandose || !hayDatosSinGuardar()) return;
                 evento.preventDefault();
                 evento.returnValue = '';
             });
 
+            // Para los links de este mismo sitio (la barra de arriba y las
+            // tres tarjetas de "Tus pantallas" más abajo, la salida más a
+            // mano desde este Inicio) se puede mostrar el diálogo propio en
+            // vez del feo nativo de arriba.
             document.querySelectorAll('.barra a[href], .ahub-destino[href]').forEach((enlace) => {
                 enlace.addEventListener('click', (evento) => {
-                    if (avisoDatos.hidden || typeof window.confirmarAccion !== 'function') return;
+                    if (!hayDatosSinGuardar() || typeof window.confirmarAccion !== 'function') return;
 
                     evento.preventDefault();
                     const destino = enlace.href;
