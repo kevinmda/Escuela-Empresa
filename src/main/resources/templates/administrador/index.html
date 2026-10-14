@@ -40,7 +40,7 @@
                 <h2 class="hub-saludo" id="hub-saludo">Hola,
                     <span class="hub-saludo-nombre"
                           th:text="${admin.nombres.trim().split(' ')[0]}">Admin</span>.</h2>
-                <p class="hub-sub">Resumen de la semana y acceso directo a las dos pantallas de trabajo.</p>
+                <p class="hub-sub">Resumen de la semana y acceso directo a las pantallas de trabajo.</p>
             </div>
 
             <!-- --hub-meta lleva el porcentaje real; el CSS lo usa para dibujar el arco -->
@@ -99,6 +99,14 @@
                 <span>
                     <span class="hub-destino-titulo">Reportes</span>
                     <span class="hub-destino-desc">Revisar el cumplimiento semanal de las planillas.</span>
+                </span>
+                <span class="hub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="hub-destino" th:href="@{/admin/opiniones}">
+                <span>
+                    <span class="hub-destino-titulo">Opiniones</span>
+                    <span class="hub-destino-desc">Ver lo que opinan los alumnos de su empresa.</span>
                 </span>
                 <span class="hub-destino-flecha" aria-hidden="true">&rarr;</span>
             </a>

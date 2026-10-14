@@ -84,9 +84,10 @@
             </div>
         </section>
 
-        <!-- Fila 3: los cuatro destinos de trabajo, en grilla 2x2. Son cuatro
-             pantallas y no dos como en el hub del administrativo: una pila de
-             cuatro barras se estira sin necesidad, la grilla entra en menos alto. -->
+        <!-- Fila 3: los destinos de trabajo, en grilla 2x2 (Opiniones ocupa las
+             dos columnas en su propia fila, al ser un número impar de accesos).
+             Son varias pantallas y no dos como en el hub del administrativo: una
+             pila de barras se estira sin necesidad, la grilla entra en menos alto. -->
         <section class="chub-destinos" aria-label="Pantallas de trabajo">
             <a class="chub-destino" th:href="@{/admin/alumnos}">
                 <span class="chub-destino-titulo">Alumnos</span>
@@ -109,6 +110,12 @@
             <a class="chub-destino" th:href="@{/admin/empresas}">
                 <span class="chub-destino-titulo">Empresas</span>
                 <span class="chub-destino-desc">Cargar y editar las empresas donde tus alumnos hacen la pasantía.</span>
+                <span class="chub-destino-flecha" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a class="chub-destino chub-destino--ancho" th:href="@{/admin/opiniones}">
+                <span class="chub-destino-titulo">Opiniones</span>
+                <span class="chub-destino-desc">Ver lo que opinan los alumnos de su empresa.</span>
                 <span class="chub-destino-flecha" aria-hidden="true">&rarr;</span>
             </a>
         </section>

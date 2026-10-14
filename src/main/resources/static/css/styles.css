@@ -3289,6 +3289,12 @@ main[data-esp] > .chub-destinos { animation-delay: 0.18s; }
     gap: 0.85rem;
 }
 
+/* Con un número impar de accesos, el último de la lista ocupa las dos
+   columnas en su propia fila en vez de quedar solo a la mitad del ancho. */
+.chub-destino--ancho {
+    grid-column: 1 / -1;
+}
+
 .chub-destino {
     position: relative;
     isolation: isolate;
