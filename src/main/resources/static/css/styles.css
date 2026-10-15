@@ -4394,6 +4394,16 @@ main[data-esp] > .ahub-destinos     { animation-delay: 0.16s; }
     gap: 0.4rem;
 }
 
+/* El único "(opcional)" de la ficha de empresa, en vez de uno por campo:
+   ver el comentario en empresas.html sobre por qué. Margen negativo arriba
+   para pegarse al nombre, como el resto de las notas de apoyo del sitio. */
+.ficha-nota {
+    margin: -0.3rem 0 0;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    color: var(--ink-soft);
+}
+
 /* Los campos se ven como texto y no como un formulario hasta que se los toca:
    la ficha se lee de un vistazo, y recién al pasar el mouse o enfocar un
    campo aparece el borde que dice "esto se puede editar".
