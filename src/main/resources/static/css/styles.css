@@ -6186,17 +6186,24 @@ button:disabled,
     gap: 1rem;
 }
 
+/* El <form> es la celda real de la grilla de una sola columna de
+   .impr-doc--formulario (no .impr-doc-campos, que va un nivel mas adentro).
+   Sin min-width: 0 acá, un <form> sin display propio sigue siendo caja de
+   bloque normal, pero como celda de grilla el navegador no lo deja encogerse
+   por debajo del min-content de TODO lo que tiene adentro -- y eso incluye la
+   suma de los minmax(180px, ...) de .impr-doc-campos en una sola fila, aunque
+   ya estén envueltos en varias filas visualmente. Ese ancho "fantasma" es lo
+   que empuja a .impr-pliego, a main y a toda la página a desbordar,
+   habilitando un scroll horizontal que no debería existir. */
+.impr-doc-formulario {
+    min-width: 0;
+}
+
 .impr-doc-campos {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1rem 1.25rem;
     margin: 1.15rem 0 1.25rem;
-    /* Sin esto, al ser a su vez una celda de la grilla de una sola columna de
-       .impr-doc--formulario, el navegador no la deja encogerse por debajo de
-       la suma de los minmax(180px, ...) de TODOS sus campos en una sola fila
-       -- aunque visualmente ya estén envueltos en varias filas. Ese ancho
-       "fantasma" es lo que empuja a .impr-pliego, a main y a toda la página
-       a desbordar, habilitando un scroll horizontal que no debería existir. */
     min-width: 0;
 }
 
