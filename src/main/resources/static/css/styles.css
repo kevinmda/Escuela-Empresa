@@ -6191,6 +6191,13 @@ button:disabled,
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1rem 1.25rem;
     margin: 1.15rem 0 1.25rem;
+    /* Sin esto, al ser a su vez una celda de la grilla de una sola columna de
+       .impr-doc--formulario, el navegador no la deja encogerse por debajo de
+       la suma de los minmax(180px, ...) de TODOS sus campos en una sola fila
+       -- aunque visualmente ya estén envueltos en varias filas. Ese ancho
+       "fantasma" es lo que empuja a .impr-pliego, a main y a toda la página
+       a desbordar, habilitando un scroll horizontal que no debería existir. */
+    min-width: 0;
 }
 
 /* Campos bloqueados (Nombre, Especialidad, Fecha): ya están en la base, no
