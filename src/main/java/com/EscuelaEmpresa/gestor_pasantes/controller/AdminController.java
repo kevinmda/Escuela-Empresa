@@ -540,7 +540,7 @@ public class AdminController {
 
         supervisor.setNombres(nombres);
         supervisor.setApellidos(apellidos);
-        supervisor.setEmail(email);
+        supervisor.setEmail(vacioANull(email));
         supervisorRepository.save(supervisor);
 
         redirectAttributes.addFlashAttribute("exito", "Supervisor editado correctamente.");
@@ -657,10 +657,10 @@ public class AdminController {
         }
 
         empresa.setNombre(nombre);
-        empresa.setRuc(ruc);
-        empresa.setTelefono(telefono);
-        empresa.setEmail(email);
-        empresa.setDireccion(direccion);
+        empresa.setRuc(vacioANull(ruc));
+        empresa.setTelefono(vacioANull(telefono));
+        empresa.setEmail(vacioANull(email));
+        empresa.setDireccion(vacioANull(direccion));
         empresaRepository.save(empresa);
 
         redirectAttributes.addFlashAttribute("exito", "Empresa editada correctamente.");
