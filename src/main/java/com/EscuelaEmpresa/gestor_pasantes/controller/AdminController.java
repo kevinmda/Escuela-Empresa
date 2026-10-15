@@ -374,12 +374,16 @@ public class AdminController {
                             : ("documento_" + documento.getIdDs() + ".pdf");
                     nombreOriginal = sanitizarNombreArchivo(nombreOriginal, documento.getIdDs());
                     nombreOriginal = nombreUnicoEnZip(nombresUsados, nombreOriginal);
-                    String nombreArchivo = carpetaAlumno + "/Documentos_Subidos/" + nombreOriginal;
+                    String nombreArchivo = carpetaAlumno + "/" + nombreOriginal;
 
                     zos.putNextEntry(new ZipEntry(nombreArchivo));
                     Files.copy(archivoFisico.toPath(), zos);
                     zos.closeEntry();
                 }
+
+                // Aparte y no mezclado con lo de arriba: es un PDF armado por el
+                // sistema (el expediente combinado), no algo que el alumno subió.
+                agregarDocumentosAdjuntosAlZip(zos, alumno, carpetaAlumno + "/");
             }
         }
     }
@@ -423,6 +427,8 @@ public class AdminController {
                 Files.copy(archivoFisico.toPath(), zos);
                 zos.closeEntry();
             }
+
+            agregarDocumentosAdjuntosAlZip(zos, alumno, "");
         }
     }
 
@@ -796,6 +802,33 @@ public class AdminController {
     // alumno quedo sin sanitizar y nadie lo noto.
     private String sanitizarNombreArchivo(String nombre, Integer idDs) {
         return NombresDeArchivo.seguro(nombre, "documento_" + idDs + ".pdf");
+    }
+
+    // Agrega "Documentos adjuntos" (el mismo PDF combinado de
+    // descargarDocumentosAdjuntos) en su propia subcarpeta dentro del ZIP,
+    // separado de lo que el alumno subió suelto. "prefijo" es la carpeta del
+    // alumno con la barra final (p. ej. "Perez_Juan/") en el ZIP de toda una
+    // sección, o "" en el ZIP de un alumno puntual, que ya es su propio ZIP.
+    // Si el expediente todavía no está completo no hay nada que combinar
+    // todavía, así que la subcarpeta directamente no aparece para ese alumno
+    // -- la misma regla que antes mostraba u ocultaba el botón en Reportes.
+    private void agregarDocumentosAdjuntosAlZip(ZipOutputStream zos, Alumno alumno, String prefijo)
+            throws IOException {
+
+        if (!expedientePdfService.estaCompleto(alumno.getIdAl())) {
+            return;
+        }
+
+        ByteArrayOutputStream pdf = new ByteArrayOutputStream();
+        try {
+            expedientePdfService.generarPdf(alumno, pdf);
+        } catch (RecursoNoEncontradoException ex) {
+            return; // los archivos del expediente ya no están en el servidor: no rompemos el ZIP por esto
+        }
+
+        zos.putNextEntry(new ZipEntry(prefijo + "Documentos_Adjuntos/Documentos_Adjuntos.pdf"));
+        pdf.writeTo(zos);
+        zos.closeEntry();
     }
 
     // Evita que dos documentos con el mismo nombre original choquen como
