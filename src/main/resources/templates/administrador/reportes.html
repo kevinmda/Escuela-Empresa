@@ -373,15 +373,7 @@
                 tipo.codigo !== 'DOCUMENTOS_ADJUNTOS' && tipo.codigo !== 'CURRICULUM');
             const completo = tiposDelExpediente.every(tipo => tipo.subidos >= tipo.limite);
 
-            if (completo) {
-                const enlace = document.createElement('a');
-                enlace.className = 'btn btn-primary';
-                enlace.href = `/admin/alumnos/${idAl}/documentos-adjuntos.pdf`;
-                enlace.target = '_blank';
-                enlace.rel = 'noopener';
-                enlace.textContent = 'Descargar documentos adjuntos';
-                bloque.appendChild(enlace);
-            } else {
+            if (!completo) {
                 const subidos = tiposDelExpediente.reduce((suma, tipo) => suma + tipo.subidos, 0);
                 const limite = tiposDelExpediente.reduce((suma, tipo) => suma + tipo.limite, 0);
 

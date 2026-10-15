@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -349,6 +351,15 @@ public class AdminController {
                 List<DocumentoSubido> documentosSubidos =
                         documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(alumno.getIdAl());
 
+                // Por alumno y no global: dos alumnos distintos ya quedan separados por
+                // carpetaAlumno en la ruta, así que repetir un nombre entre ellos no es
+                // problema. Lo que sí rompía el ZIP era el mismo alumno subiendo más de un
+                // documento con el nombre original igual (p. ej. "escaneo.pdf" en semanas
+                // distintas): putNextEntry tira ZipException ante una entrada duplicada, y
+                // como la respuesta ya se está transmitiendo, eso cortaba el ZIP a mitad de
+                // camino con un solo archivo adentro.
+                Set<String> nombresUsados = new HashSet<>();
+
                 for (DocumentoSubido documento : documentosSubidos) {
 
                     File archivoFisico = new File(documento.getRutaArchivo());
@@ -361,7 +372,8 @@ public class AdminController {
                     String nombreOriginal = documento.getNombreArchivo() != null
                             ? new File(documento.getNombreArchivo()).getName()
                             : ("documento_" + documento.getIdDs() + ".pdf");
-                        nombreOriginal = sanitizarNombreArchivo(nombreOriginal, documento.getIdDs());
+                    nombreOriginal = sanitizarNombreArchivo(nombreOriginal, documento.getIdDs());
+                    nombreOriginal = nombreUnicoEnZip(nombresUsados, nombreOriginal);
                     String nombreArchivo = carpetaAlumno + "/Documentos_Subidos/" + nombreOriginal;
 
                     zos.putNextEntry(new ZipEntry(nombreArchivo));
@@ -389,6 +401,11 @@ public class AdminController {
         response.setHeader("Content-Disposition", "attachment; filename=" + nombreZip);
 
         try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+            // Mismo motivo que en descargarZip: sin esto, dos documentos del alumno
+            // con el nombre original igual (p. ej. "escaneo.pdf" subido dos semanas
+            // distintas) chocaban en el ZIP y lo cortaban después del primero.
+            Set<String> nombresUsados = new HashSet<>();
+
             for (DocumentoSubido documento : documentos) {
 
                 File archivoFisico = new File(documento.getRutaArchivo());
@@ -400,6 +417,7 @@ public class AdminController {
                         ? new File(documento.getNombreArchivo()).getName()
                         : ("documento_" + documento.getIdDs() + ".pdf");
                 nombreOriginal = sanitizarNombreArchivo(nombreOriginal, documento.getIdDs());
+                nombreOriginal = nombreUnicoEnZip(nombresUsados, nombreOriginal);
 
                 zos.putNextEntry(new ZipEntry(nombreOriginal));
                 Files.copy(archivoFisico.toPath(), zos);
@@ -778,6 +796,33 @@ public class AdminController {
     // alumno quedo sin sanitizar y nadie lo noto.
     private String sanitizarNombreArchivo(String nombre, Integer idDs) {
         return NombresDeArchivo.seguro(nombre, "documento_" + idDs + ".pdf");
+    }
+
+    // Evita que dos documentos con el mismo nombre original choquen como
+    // entradas de ZIP: ZipOutputStream.putNextEntry tira ZipException ante un
+    // nombre repetido, y como la respuesta ya se está transmitiendo en ese
+    // punto, eso cortaba el archivo entero después del primer documento en vez
+    // de fallar de forma visible. "documento (2).pdf", "documento (3).pdf", etc.
+    private String nombreUnicoEnZip(Set<String> usados, String nombre) {
+        if (usados.add(nombre)) {
+            return nombre;
+        }
+
+        String base = nombre;
+        String extension = "";
+        int punto = nombre.lastIndexOf('.');
+        if (punto > 0) {
+            base = nombre.substring(0, punto);
+            extension = nombre.substring(punto);
+        }
+
+        int contador = 2;
+        String candidato;
+        do {
+            candidato = base + " (" + contador + ")" + extension;
+            contador++;
+        } while (!usados.add(candidato));
+        return candidato;
     }
 
     private Administrador obtenerAdminAutenticado(Authentication authentication) {
