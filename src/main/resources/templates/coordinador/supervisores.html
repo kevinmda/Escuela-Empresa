@@ -105,8 +105,8 @@
                                    th:title="${sup.apellidos}"
                                    class="ficha-campo ficha-campo--nombre" aria-label="Apellidos" required>
                             <input type="email" th:form="${'editar-' + sup.idSup}" name="email" th:value="${sup.email}"
-                                   th:title="${sup.email}"
-                                   class="ficha-campo ficha-campo--secundario" aria-label="Email">
+                                   th:title="${sup.email}" placeholder="Email (opcional)"
+                                   class="ficha-campo ficha-campo--secundario" aria-label="Email (opcional)">
                         </div>
 
                         <div class="ficha-acciones">
