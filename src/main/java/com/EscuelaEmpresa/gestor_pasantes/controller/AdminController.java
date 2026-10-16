@@ -802,18 +802,30 @@ public class AdminController {
             }
             documentoSubidoRepository.delete(documento);
         }
+        // Dentro de una misma transacción, Hibernate no garantiza que los DELETE de
+        // tipos de entidad distintos salgan hacia MySQL en el orden en que los pedimos
+        // en Java -- los deja en cola y recién los manda todos juntos al hacer flush (o
+        // al final de la transacción). Si ese flush único los reordenara mal, el DELETE
+        // del alumno podría intentar salir antes que el de documento_scan y chocar con
+        // la FK (error #1451). Para que cada tabla quede realmente vacía en MySQL antes
+        // de tocar la siguiente, forzamos el flush después de cada bloque.
+        documentoSubidoRepository.flush();
 
         List<PlanillaSemanal> planillas = planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(idAl);
         for (PlanillaSemanal planilla : planillas) {
             planillaSemanalDetalleRepository.deleteByPlanillaSemanal_IdPs(planilla.getIdPs());
         }
+        planillaSemanalDetalleRepository.flush();
         planillaSemanalRepository.deleteAll(planillas);
+        planillaSemanalRepository.flush();
 
         opinionEmpresaRepository.deleteAll(
                 opinionEmpresaRepository.findByAlumno_IdAlOrderByFechaCreacionDesc(idAl));
+        opinionEmpresaRepository.flush();
 
         Usuario usuario = alumno.getUsuario();
         alumnoRepository.delete(alumno);
+        alumnoRepository.flush();
         if (usuario != null) {
             usuarioRepository.delete(usuario);
         }
