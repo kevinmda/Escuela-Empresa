@@ -99,9 +99,9 @@ public class FormularioPdfService {
         LocalDate hoy = LocalDate.now();
         Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
         String mes = hoy.format(DateTimeFormatter.ofPattern("MMMM", localeEspanol));
-        escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 158, 246);
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 158, 248);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 305, 248);
-        escribirTexto(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getYear()), 395, 248);
+        escribirTexto(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getYear()), 395, 246);
 
         // "...el Padre o Encargado del ESTUDIANTE-PASANTE, el (la) señor(a),___"
         // (misma clausula DUODECIMA, blanco ancho: x=323.9 a 515.3). Antes salia
