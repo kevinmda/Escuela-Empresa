@@ -20,6 +20,13 @@ UPDATE padre_tutor pt
 ALTER TABLE padre_tutor
     ADD CONSTRAINT fk_padre_tutor_alumno FOREIGN KEY (id_Al) REFERENCES alumno (id_Al) ON DELETE CASCADE;
 
--- 4) La columna vieja en alumno ya no hace falta.
-ALTER TABLE alumno DROP FOREIGN KEY fk_alumno_padre_tutor;
+-- 4) La columna vieja en alumno ya no hace falta. El nombre real de la FK
+--    puede no ser el que pondría este script (ver
+--    V10__alumno_borra_en_cascada.sql), así que se busca en
+--    information_schema en vez de asumirlo.
+SET @fk := (SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'alumno'
+      AND COLUMN_NAME = 'id_PT' AND REFERENCED_TABLE_NAME = 'padre_tutor' LIMIT 1);
+SET @sql := CONCAT('ALTER TABLE alumno DROP FOREIGN KEY `', @fk, '`');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 ALTER TABLE alumno DROP COLUMN id_PT;
