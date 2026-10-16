@@ -99,7 +99,7 @@ public class FormularioPdfService {
         LocalDate hoy = LocalDate.now();
         Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
         String mes = hoy.format(DateTimeFormatter.ofPattern("MMMM", localeEspanol));
-        escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 158, 248);
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 158, 246);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 305, 248);
         escribirTexto(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getYear()), 395, 248);
 
@@ -130,7 +130,7 @@ public class FormularioPdfService {
                 document, pagina, PDPageContentStream.AppendMode.APPEND, true, true);
 
         PDType1Font fuente = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-        escribirTexto(contentStream, fuente, 10, String.valueOf(LocalDate.now().getYear()), 395, 248);
+        escribirTexto(contentStream, fuente, 10, String.valueOf(LocalDate.now().getYear()), 395, 246);
 
         contentStream.close();
         return aBytes(document);
