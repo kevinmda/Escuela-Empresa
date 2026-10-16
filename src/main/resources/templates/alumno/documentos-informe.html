@@ -78,6 +78,24 @@
                         <button th:unless="${informeHabilitado}" type="button" class="btn btn-primary" disabled>Descargar Word</button>
                     </div>
                 </li>
+                <li class="impr-doc">
+                    <div class="impr-doc-hoja">
+                        <span class="impr-hoja impr-hoja--pila" aria-hidden="true">
+                            <span class="impr-hoja-cara">
+                                <span class="impr-hoja-banda"></span>
+                                <span class="impr-hoja-renglones"></span>
+                            </span>
+                        </span>
+                        <span class="impr-hoja-cuenta">PDF</span>
+                    </div>
+                    <div class="impr-doc-texto">
+                        <h4 class="impr-doc-titulo">Cuadro Final</h4>
+                        <p class="impr-doc-desc">Descargá en blanco el cuadro de firmas (Presentado por / Aprobado por / Lugar y Fecha) para completarlo e imprimirlo a mano.</p>
+                    </div>
+                    <div class="impr-doc-acciones">
+                        <a th:href="@{/alumno/documentos/Cuadro_Final.pdf}" class="btn btn-primary">Descargar PDF</a>
+                    </div>
+                </li>
             </ul>
         </section>
     </main>

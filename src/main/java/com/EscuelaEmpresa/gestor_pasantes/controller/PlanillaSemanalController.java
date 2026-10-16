@@ -270,6 +270,25 @@ public class PlanillaSemanalController {
         document.close();
     }
 
+    @GetMapping("/alumno/documentos/Cuadro_Final.pdf")
+    public void generarPdfCuadroFinal(Authentication authentication, HttpServletResponse response) throws IOException {
+        Alumno alumno = obtenerAlumnoAutenticado(authentication);
+
+        // Cuadro de firmas (Presentado por / Aprobado por / Lugar y Fecha) en
+        // blanco, para completar e imprimir a mano. Es una plantilla fija, sin
+        // datos del alumno adentro -- a diferencia del resto de los PDFs acá,
+        // no depende de planillas, supervisor ni empresa cargados.
+        PDDocument document = plantillaService.cargarPdf("CUADRO_FINAL_PEL.pdf");
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition",
+                Descarga.inline(Descarga.nombreDocumento("Cuadro_Final", alumno.getNombres(), alumno.getApellidos(), "pdf"),
+                        "Cuadro_Final.pdf"));
+
+        document.save(response.getOutputStream());
+        document.close();
+    }
+
     @GetMapping("/alumno/planilla/Informe_Pasantia.docx")
     public String generarInformePasantia(Authentication authentication, HttpServletResponse response,
                                         RedirectAttributes redirectAttributes) throws IOException {
