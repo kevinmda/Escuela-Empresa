@@ -412,6 +412,9 @@ public class InformePasantiaService {
         fijarBorde(bordes.isSetInsideV() ? bordes.getInsideV() : bordes.addNewInsideV(), 4);
 
         CTTblGrid grilla = tablaXml.getTblGrid();
+        if (grilla == null) {
+            grilla = tablaXml.addNewTblGrid();
+        }
         while (grilla.sizeOfGridColArray() > 0) {
             grilla.removeGridCol(0);
         }
