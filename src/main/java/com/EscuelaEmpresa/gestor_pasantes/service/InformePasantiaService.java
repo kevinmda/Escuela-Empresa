@@ -4,14 +4,39 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.Alumno;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanalDetalle;
 import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepository;
+import org.apache.poi.xwpf.usermodel.BreakType;
 import org.apache.poi.xwpf.usermodel.IBodyElement;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHeight;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblBorders;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblGrid;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblGridCol;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblWidth;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTc;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTrPr;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTVMerge;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTVerticalJc;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHeightRule;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STMerge;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblLayoutType;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STVerticalJc;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -68,6 +93,7 @@ public class InformePasantiaService {
 
         completarEncabezado(documento, alumno, planillasOrdenadas);
         completarSemanas(documento, planillasOrdenadas);
+        agregarCuadroFinal(documento, alumno);
 
         return documento;
     }
@@ -256,5 +282,169 @@ public class InformePasantiaService {
         for (int i = posFin - 1; i >= posInicio; i--) {
             documento.removeBodyElement(i);
         }
+    }
+
+    // ---------- Cuadro final (hoja de firmas) ----------
+
+    // El Director ya aparece con este mismo nombre, fijo, en las plantillas PDF
+    // (Contrato, Autorizacion): no hay todavia un lugar unico de donde sacarlo,
+    // asi que si cambia hay que actualizar ese texto ahi y tambien aca.
+    private static final String NOMBRE_DIRECTOR = "Alcides R. Hosffmeister V.";
+
+    private static final int ANCHO_COLUMNA_ETIQUETA = 2270; // dxa (~4 cm)
+    private static final int ANCHO_COLUMNA_CONTENIDO = 6518; // dxa (~11.5 cm)
+    private static final int[] ALTURAS_FILA = {961, 958, 958, 958, 1105, 997, 644}; // dxa
+
+    // Hoja que se agrega al final del informe, en pagina aparte: es la version
+    // Word del cuadro de firmas "Presentado por / Aprobado por / Lugar y
+    // Fecha" (antes era un Excel que se imprimia aparte y se completaba a
+    // mano encima). No es un bookmark de la plantilla: se arma la tabla de
+    // cero porque ese cuadro no formaba parte del .docx original. El unico
+    // dato que se completa solo es el nombre del pasante (lo pidio Julio
+    // puntualmente); el resto -- tutor, firmas, lugar y fecha -- queda en
+    // blanco para completarse a mano, igual que en el cuadro original.
+    private void agregarCuadroFinal(XWPFDocument documento, Alumno alumno) {
+        XWPFParagraph saltoPagina = documento.createParagraph();
+        saltoPagina.createRun().addBreak(BreakType.PAGE);
+
+        XWPFTable tabla = documento.createTable(7, 2);
+        configurarTablaCuadroFinal(tabla);
+
+        String nombreCompleto = alumno.getNombres() + " " + alumno.getApellidos();
+
+        escribirCeldaEtiqueta(tabla, 0, "NOMBRE Y APELLIDO DEL PASANTE", nombreCompleto);
+        escribirCeldaEtiqueta(tabla, 1, "Firma", null);
+        escribirCeldaEtiqueta(tabla, 2, "NOMBRE Y APELLIDO DEL TUTOR DE PASANTIA", null);
+        escribirCeldaEtiqueta(tabla, 3, "Firma:", null);
+        escribirCeldaEtiqueta(tabla, 4, "NOMBRE Y APELLIDO DEL DIRECTOR", NOMBRE_DIRECTOR);
+        escribirCeldaEtiqueta(tabla, 5, "Firma:", null);
+
+        fusionarColumnaEtiqueta(tabla, 0, 1, "Presentado por:");
+        fusionarColumnaEtiqueta(tabla, 2, 5, "Aprobado por:");
+
+        XWPFTableCell celdaLugar = tabla.getRow(6).getCell(0);
+        celdaLugar.getParagraphs().get(0).setAlignment(ParagraphAlignment.CENTER);
+        aplicarEstiloCuadroFinal(celdaLugar.getParagraphs().get(0).createRun(), "Lugar y Fecha:", false);
+        centrarVerticalmente(celdaLugar);
+
+        XWPFTableCell celdaFecha = tabla.getRow(6).getCell(1);
+        aplicarEstiloCuadroFinal(celdaFecha.getParagraphs().get(0).createRun(),
+                "Asunción,                 de noviembre del año", false);
+    }
+
+    // Cada celda de la columna de contenido tiene la misma forma que en el
+    // cuadro original: una etiqueta en mayuscula arriba y, si ya hay un dato
+    // (el nombre del pasante, o el del Director que ya viene fijo), una
+    // segunda linea centrada y en negrita debajo. Sin dato, la celda queda
+    // con la etiqueta nomas y el resto en blanco, para completarse a mano.
+    private void escribirCeldaEtiqueta(XWPFTable tabla, int fila, String etiqueta, String valor) {
+        XWPFTableCell celda = tabla.getRow(fila).getCell(1);
+        aplicarEstiloCuadroFinal(celda.getParagraphs().get(0).createRun(), etiqueta, false);
+
+        if (valor != null && !valor.isBlank()) {
+            XWPFParagraph parrafoValor = celda.addParagraph();
+            parrafoValor.setAlignment(ParagraphAlignment.CENTER);
+            parrafoValor.setSpacingBefore(150);
+            aplicarEstiloCuadroFinal(parrafoValor.createRun(), valor, true);
+        }
+    }
+
+    private void aplicarEstiloCuadroFinal(XWPFRun run, String texto, boolean negrita) {
+        run.setText(texto);
+        run.setFontFamily("Arial");
+        run.setFontSize(10);
+        run.setBold(negrita);
+    }
+
+    // "Presentado por:"/"Aprobado por:" ocupan, fusionadas verticalmente, el
+    // mismo rango de filas que las etiquetas de la columna de contenido a su
+    // derecha (ver agregarCuadroFinal) -- filaInicio..filaFin inclusive.
+    private void fusionarColumnaEtiqueta(XWPFTable tabla, int filaInicio, int filaFin, String etiqueta) {
+        XWPFTableCell celdaInicio = tabla.getRow(filaInicio).getCell(0);
+        celdaInicio.getParagraphs().get(0).setAlignment(ParagraphAlignment.CENTER);
+        aplicarEstiloCuadroFinal(celdaInicio.getParagraphs().get(0).createRun(), etiqueta, false);
+        centrarVerticalmente(celdaInicio);
+        marcarVMerge(celdaInicio, STMerge.RESTART);
+
+        for (int fila = filaInicio + 1; fila <= filaFin; fila++) {
+            marcarVMerge(tabla.getRow(fila).getCell(0), STMerge.CONTINUE);
+        }
+    }
+
+    private void centrarVerticalmente(XWPFTableCell celda) {
+        CTTcPr tcPr = celda.getCTTc().isSetTcPr() ? celda.getCTTc().getTcPr() : celda.getCTTc().addNewTcPr();
+        CTVerticalJc vAlign = tcPr.isSetVAlign() ? tcPr.getVAlign() : tcPr.addNewVAlign();
+        vAlign.setVal(STVerticalJc.CENTER);
+    }
+
+    private void marcarVMerge(XWPFTableCell celda, STMerge.Enum tipo) {
+        CTTc ctTc = celda.getCTTc();
+        CTTcPr tcPr = ctTc.isSetTcPr() ? ctTc.getTcPr() : ctTc.addNewTcPr();
+        CTVMerge vMerge = tcPr.isSetVMerge() ? tcPr.getVMerge() : tcPr.addNewVMerge();
+        vMerge.setVal(tipo);
+    }
+
+    // Ancho fijo de columnas (en vez de dejar que Word las autoajuste al
+    // contenido), bordes -- mas grueso en el perimetro, fino entre celdas,
+    // igual que en el cuadro original -- y una altura minima por fila para
+    // que no quede todo amontonado.
+    private void configurarTablaCuadroFinal(XWPFTable tabla) {
+        CTTbl tablaXml = tabla.getCTTbl();
+        CTTblPr tblPr = tablaXml.isSetTblPr() ? tablaXml.getTblPr() : tablaXml.addNewTblPr();
+
+        CTTblWidth tblW = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
+        tblW.setType(STTblWidth.DXA);
+        tblW.setW(BigInteger.valueOf(ANCHO_COLUMNA_ETIQUETA + ANCHO_COLUMNA_CONTENIDO));
+
+        (tblPr.isSetTblLayout() ? tblPr.getTblLayout() : tblPr.addNewTblLayout()).setType(STTblLayoutType.FIXED);
+
+        CTTblBorders bordes = tblPr.isSetTblBorders() ? tblPr.getTblBorders() : tblPr.addNewTblBorders();
+        fijarBorde(bordes.isSetTop() ? bordes.getTop() : bordes.addNewTop(), 16);
+        fijarBorde(bordes.isSetBottom() ? bordes.getBottom() : bordes.addNewBottom(), 16);
+        fijarBorde(bordes.isSetLeft() ? bordes.getLeft() : bordes.addNewLeft(), 16);
+        fijarBorde(bordes.isSetRight() ? bordes.getRight() : bordes.addNewRight(), 16);
+        fijarBorde(bordes.isSetInsideH() ? bordes.getInsideH() : bordes.addNewInsideH(), 4);
+        fijarBorde(bordes.isSetInsideV() ? bordes.getInsideV() : bordes.addNewInsideV(), 4);
+
+        CTTblGrid grilla = tablaXml.isSetTblGrid() ? tablaXml.getTblGrid() : tablaXml.addNewTblGrid();
+        while (grilla.sizeOfGridColArray() > 0) {
+            grilla.removeGridCol(0);
+        }
+        CTTblGridCol columnaEtiqueta = grilla.addNewGridCol();
+        columnaEtiqueta.setW(BigInteger.valueOf(ANCHO_COLUMNA_ETIQUETA));
+        CTTblGridCol columnaContenido = grilla.addNewGridCol();
+        columnaContenido.setW(BigInteger.valueOf(ANCHO_COLUMNA_CONTENIDO));
+
+        for (int i = 0; i < tabla.getNumberOfRows(); i++) {
+            XWPFTableRow fila = tabla.getRow(i);
+            establecerAnchoCelda(fila.getCell(0), ANCHO_COLUMNA_ETIQUETA);
+            establecerAnchoCelda(fila.getCell(1), ANCHO_COLUMNA_CONTENIDO);
+            establecerAlturaFila(fila, ALTURAS_FILA[i]);
+        }
+    }
+
+    private void fijarBorde(CTBorder borde, int grosor) {
+        borde.setVal(STBorder.SINGLE);
+        borde.setSz(BigInteger.valueOf(grosor));
+        borde.setColor("000000");
+    }
+
+    private void establecerAnchoCelda(XWPFTableCell celda, int anchoDxa) {
+        CTTc ctTc = celda.getCTTc();
+        CTTcPr tcPr = ctTc.isSetTcPr() ? ctTc.getTcPr() : ctTc.addNewTcPr();
+        CTTblWidth tcW = tcPr.isSetTcW() ? tcPr.getTcW() : tcPr.addNewTcW();
+        tcW.setType(STTblWidth.DXA);
+        tcW.setW(BigInteger.valueOf(anchoDxa));
+    }
+
+    private void establecerAlturaFila(XWPFTableRow fila, int alturaDxa) {
+        CTTrPr trPr = fila.getCtRow().isSetTrPr() ? fila.getCtRow().getTrPr() : fila.getCtRow().addNewTrPr();
+        // trHeight es un elemento repetible a nivel de esquema (por eso es
+        // sizeOfTrHeightArray/getTrHeightArray/addNewTrHeight y no
+        // isSetTrHeight/getTrHeight como el resto de las propiedades de acá),
+        // aunque en la práctica una fila nunca tiene más de uno.
+        CTHeight altura = trPr.sizeOfTrHeightArray() == 0 ? trPr.addNewTrHeight() : trPr.getTrHeightArray(0);
+        altura.setVal(BigInteger.valueOf(alturaDxa));
+        altura.setHRule(STHeightRule.AT_LEAST);
     }
 }
