@@ -3,6 +3,8 @@ package com.EscuelaEmpresa.gestor_pasantes.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "alumno")
@@ -52,9 +54,15 @@ public class Alumno {
     @JoinColumn(name = "id_Emp")
     private Empresa empresa;
 
-    @ManyToOne
-    @JoinColumn(name = "id_PT")
-    private PadreTutor padreTutor;
+    // Antes era un @ManyToOne (un solo padre/tutor por alumno, con la FK en
+    // alumno.id_PT). Ahora un alumno puede tener varios: la FK pasó a vivir
+    // en padre_tutor.id_Al (ver V12), así que del lado de Alumno esto es la
+    // punta inversa de ese @ManyToOne -- mappedBy, sin columna propia acá.
+    // @OrderBy para que el orden sea siempre el mismo (por id, el orden en
+    // que se fueron cargando) y no dependa de lo que decida devolver MySQL.
+    @OneToMany(mappedBy = "alumno")
+    @OrderBy("idPt ASC")
+    private List<PadreTutor> padresTutores = new ArrayList<>();
 
     @ManyToOne                         //muchos alumnos pueden tener el mismo supervisor asignado
     @JoinColumn(name = "id_Sup")
@@ -124,8 +132,8 @@ public class Alumno {
     public Empresa getEmpresa() { return empresa; }
     public void setEmpresa(Empresa empresa) { this.empresa = empresa; }
 
-    public PadreTutor getPadreTutor() { return padreTutor; }
-    public void setPadreTutor(PadreTutor padreTutor) { this.padreTutor = padreTutor; }
+    public List<PadreTutor> getPadresTutores() { return padresTutores; }
+    public void setPadresTutores(List<PadreTutor> padresTutores) { this.padresTutores = padresTutores; }
 
     public Supervisor getSupervisor() { return supervisor; }
     public void setSupervisor(Supervisor supervisor) { this.supervisor = supervisor; }

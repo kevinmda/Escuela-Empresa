@@ -42,9 +42,13 @@ public class FormularioPdfService {
         String supervisor = planillas.isEmpty() ? null : planillas.get(0).getSupervisor();
         String empresa = alumno.getEmpresa() != null ? alumno.getEmpresa().getNombre() : null;
 
+        // El alumno ahora puede tener varios padres/tutores cargados (ver V12),
+        // pero este formulario en papel solo tiene lugar para uno: se usa el
+        // primero (alumno.getPadresTutores() ya viene ordenado por id), igual
+        // que antes cuando solo existía esa opción.
         String padreEncargado = null;
-        if (alumno.getPadreTutor() != null) {
-            PadreTutor pt = alumno.getPadreTutor();
+        if (!alumno.getPadresTutores().isEmpty()) {
+            PadreTutor pt = alumno.getPadresTutores().get(0);
             String primerNombre = pt.getNombres().trim().split(" ")[0];
             String primerApellido = pt.getApellidos().trim().split(" ")[0];
             padreEncargado = primerNombre + " " + primerApellido;
@@ -112,10 +116,12 @@ public class FormularioPdfService {
     // Versión de la API móvil: el Padre/Encargado sale de lo que está cargado en
     // la base (el formulario web, en cambio, manda lo que el alumno escribe).
     public byte[] generarAutorizacion(Alumno alumno) throws IOException {
+        // Mismo criterio que en generarContrato: con varios padres/tutores
+        // cargados, se usa el primero.
         String nombrePadre = null;
         String ciPadre = null;
-        if (alumno.getPadreTutor() != null) {
-            PadreTutor pt = alumno.getPadreTutor();
+        if (!alumno.getPadresTutores().isEmpty()) {
+            PadreTutor pt = alumno.getPadresTutores().get(0);
             String primerNombre = pt.getNombres().trim().split(" ")[0];
             String primerApellido = pt.getApellidos().trim().split(" ")[0];
             nombrePadre = primerNombre + " " + primerApellido;

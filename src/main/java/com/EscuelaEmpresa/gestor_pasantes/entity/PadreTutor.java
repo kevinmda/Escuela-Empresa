@@ -23,6 +23,12 @@ public class PadreTutor {
     @Column(length = 100)
     private String email;
 
+    // Lado dueño de la relación (la FK vive acá, en id_Al): antes era al revés
+    // (alumno.id_PT, un solo padre/tutor por alumno). Ver V12 y Alumno.padresTutores.
+    @ManyToOne
+    @JoinColumn(name = "id_Al")
+    private Alumno alumno;
+
     public PadreTutor() {}
 
     public Integer getIdPt() { return idPt; }
@@ -39,4 +45,7 @@ public class PadreTutor {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public Alumno getAlumno() { return alumno; }
+    public void setAlumno(Alumno alumno) { this.alumno = alumno; }
 }
