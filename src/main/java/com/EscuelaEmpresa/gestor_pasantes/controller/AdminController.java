@@ -35,6 +35,7 @@ import com.EscuelaEmpresa.gestor_pasantes.entity.DocumentoSubido;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Empresa;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Especialidad;
 import com.EscuelaEmpresa.gestor_pasantes.entity.OpinionEmpresa;
+import com.EscuelaEmpresa.gestor_pasantes.entity.PlanillaSemanal;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Supervisor;
 import com.EscuelaEmpresa.gestor_pasantes.entity.Usuario;
 import com.EscuelaEmpresa.gestor_pasantes.repository.AdministradorRepository;
@@ -43,6 +44,8 @@ import com.EscuelaEmpresa.gestor_pasantes.repository.DocumentoSubidoRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EmpresaRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.EspecialidadRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.OpinionEmpresaRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalDetalleRepository;
+import com.EscuelaEmpresa.gestor_pasantes.repository.PlanillaSemanalRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.SupervisorRepository;
 import com.EscuelaEmpresa.gestor_pasantes.repository.UsuarioRepository;
 import com.EscuelaEmpresa.gestor_pasantes.entity.TipoDocumento;
@@ -55,6 +58,7 @@ import com.EscuelaEmpresa.gestor_pasantes.util.Descarga;
 import java.io.ByteArrayOutputStream;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 @Controller
 public class AdminController {
@@ -67,6 +71,8 @@ public class AdminController {
     private final EmpresaRepository empresaRepository;
     private final DocumentoSubidoRepository documentoSubidoRepository;
     private final OpinionEmpresaRepository opinionEmpresaRepository;
+    private final PlanillaSemanalRepository planillaSemanalRepository;
+    private final PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository;
     private final LimitesDocumentoService limitesDocumentoService;
     private final ExpedientePdfService expedientePdfService;
 
@@ -78,6 +84,8 @@ public class AdminController {
                             EmpresaRepository empresaRepository,
                             DocumentoSubidoRepository documentoSubidoRepository,
                             OpinionEmpresaRepository opinionEmpresaRepository,
+                            PlanillaSemanalRepository planillaSemanalRepository,
+                            PlanillaSemanalDetalleRepository planillaSemanalDetalleRepository,
                             LimitesDocumentoService limitesDocumentoService,
                             ExpedientePdfService expedientePdfService) {
         this.usuarioRepository = usuarioRepository;
@@ -88,6 +96,8 @@ public class AdminController {
         this.empresaRepository = empresaRepository;
         this.documentoSubidoRepository = documentoSubidoRepository;
         this.opinionEmpresaRepository = opinionEmpresaRepository;
+        this.planillaSemanalRepository = planillaSemanalRepository;
+        this.planillaSemanalDetalleRepository = planillaSemanalDetalleRepository;
         this.limitesDocumentoService = limitesDocumentoService;
         this.expedientePdfService = expedientePdfService;
     }
@@ -767,6 +777,50 @@ public class AdminController {
 
         redirectAttributes.addFlashAttribute("exito", mensajeAsignacion(modificados.size(), "empresa"));
         return "redirect:/admin/empresas";
+    }
+
+    // Borra al alumno por completo: sus documentos subidos (archivo físico + registro),
+    // sus planillas semanales (y el detalle día por día de cada una), sus opiniones
+    // sobre empresas, su propia fila y, por último, su cuenta de usuario (login). El
+    // orden importa por las FK: todo lo que apunta al alumno se borra antes que el
+    // alumno, y el alumno se borra antes que su usuario (porque es alumno.id_Usr el
+    // que apunta a usuario, no al revés). @Transactional para que, si algo falla a
+    // mitad de camino, no quede el alumno a medio borrar.
+    @Transactional
+    @PostMapping("/admin/alumnos/{idAl}/eliminar")
+    public String eliminarAlumno(@PathVariable Integer idAl,
+                                  Authentication authentication,
+                                  RedirectAttributes redirectAttributes) throws IOException {
+
+        Alumno alumno = verificarAccesoAlumno(idAl, authentication);
+        String nombreCompleto = alumno.getNombres() + " " + alumno.getApellidos();
+
+        for (DocumentoSubido documento : documentoSubidoRepository.findByAlumno_IdAlOrderByFechaSubidaDesc(idAl)) {
+            File archivo = new File(documento.getRutaArchivo());
+            if (archivo.exists()) {
+                Files.delete(archivo.toPath());
+            }
+            documentoSubidoRepository.delete(documento);
+        }
+
+        List<PlanillaSemanal> planillas = planillaSemanalRepository.findByAlumno_IdAlOrderByFechaDesdeDesc(idAl);
+        for (PlanillaSemanal planilla : planillas) {
+            planillaSemanalDetalleRepository.deleteByPlanillaSemanal_IdPs(planilla.getIdPs());
+        }
+        planillaSemanalRepository.deleteAll(planillas);
+
+        opinionEmpresaRepository.deleteAll(
+                opinionEmpresaRepository.findByAlumno_IdAlOrderByFechaCreacionDesc(idAl));
+
+        Usuario usuario = alumno.getUsuario();
+        alumnoRepository.delete(alumno);
+        if (usuario != null) {
+            usuarioRepository.delete(usuario);
+        }
+
+        redirectAttributes.addFlashAttribute("exito",
+                "Se eliminó a " + nombreCompleto + " junto con todos sus documentos y su cuenta.");
+        return "redirect:/admin/alumnos";
     }
 
     private Alumno verificarAccesoAlumno(Integer idAl, Authentication authentication) {

@@ -19,6 +19,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alumnos | CTN Pasantías</title>
 
+    <!-- La fila de cada alumno (botón Eliminar) se arma en JS, así que el form
+         de ese botón no pasa por el dialecto de Thymeleaf/Spring Security que
+         le pondría el token solo: lo leemos de estas metas, igual que en
+         alumno/index.html. -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <meta name="_csrf_parameter" th:content="${_csrf.parameterName}">
+
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -108,6 +116,7 @@
                             <th role="columnheader" scope="col">Documentos</th>
                             <th role="columnheader" scope="col">Descarga</th>
                             <th role="columnheader" scope="col">Conservar datos</th>
+                            <th role="columnheader" scope="col">Eliminar</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-alumnos-body" role="rowgroup"></tbody>
@@ -121,8 +130,14 @@
     <script th:inline="javascript">
         const esAdministrativo = /*[[${esAdministrativo}]]*/ false;
 
+        // Para el <form> de "Eliminar" de cada fila (ver crearFilaAlumno): se arma
+        // en JS, así que no pasa por Thymeleaf y el token CSRF hay que leerlo de
+        // estas metas a mano.
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfParametro = document.querySelector('meta[name="_csrf_parameter"]')?.content || '_csrf';
+
         const CURSO_FIJO = '3ro'; // las pasantías son siempre en 3er año
-        const COLUMNAS = ['Nombres', 'Apellidos', 'CI', 'Email', 'Curso', 'Sección', 'Documentos', 'Descarga', 'Conservar datos'];
+        const COLUMNAS = ['Nombres', 'Apellidos', 'CI', 'Email', 'Curso', 'Sección', 'Documentos', 'Descarga', 'Conservar datos', 'Eliminar'];
 
         // Secciones que ofrece cada especialidad. Fijas: se muestran aunque no
         // haya ningún alumno cargado en esa sección, para que el coordinador vea
@@ -325,6 +340,43 @@
                 conservarDatos.textContent = 'No';
             }
             agregarCelda(fila, conservarDatos, 'Conservar datos');
+
+            // Borra al alumno y, con él, todos sus documentos (archivo físico incluido),
+            // sus planillas semanales, sus opiniones y su cuenta de usuario -- ver
+            // AdminController.eliminarAlumno. El <form> usa el mismo diálogo de
+            // confirmación que el resto de la app (data-confirmar, ver theme.js);
+            // como se crea en JS y no pasa por Thymeleaf, el token CSRF se arma a
+            // mano a partir de las metas del <head>.
+            const formEliminar = document.createElement('form');
+            formEliminar.action = `/admin/alumnos/${a.idAl}/eliminar`;
+            formEliminar.method = 'post';
+            // Un <form> es de bloque por defecto: sin esto ocupa todo el ancho
+            // de la celda y el text-align: right de .celda-acciones (pensado
+            // para el link de ZIP, que es inline) no tiene efecto sobre él.
+            formEliminar.style.display = 'inline-block';
+            formEliminar.setAttribute('data-confirmar', '');
+            formEliminar.setAttribute('data-confirmar-titulo',
+                `¿Eliminar a ${a.nombres} ${a.apellidos}?`);
+            formEliminar.setAttribute('data-confirmar-mensaje',
+                'Se borran también todos sus documentos subidos, sus planillas semanales, '
+                + 'sus opiniones y su cuenta. Esta acción no se puede deshacer.');
+            formEliminar.setAttribute('data-confirmar-texto', 'Eliminar');
+
+            if (csrfToken) {
+                const inputCsrf = document.createElement('input');
+                inputCsrf.type = 'hidden';
+                inputCsrf.name = csrfParametro;
+                inputCsrf.value = csrfToken;
+                formEliminar.appendChild(inputCsrf);
+            }
+
+            const btnEliminar = document.createElement('button');
+            btnEliminar.type = 'submit';
+            btnEliminar.className = 'btn-danger icono-eliminar';
+            btnEliminar.textContent = 'Eliminar';
+            formEliminar.appendChild(btnEliminar);
+
+            agregarCelda(fila, formEliminar, 'Eliminar', 'celda-acciones');
 
             return fila;
         }
