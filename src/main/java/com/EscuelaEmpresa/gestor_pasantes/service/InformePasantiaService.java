@@ -390,7 +390,12 @@ public class InformePasantiaService {
     // que no quede todo amontonado.
     private void configurarTablaCuadroFinal(XWPFTable tabla) {
         CTTbl tablaXml = tabla.getCTTbl();
-        CTTblPr tblPr = tablaXml.isSetTblPr() ? tablaXml.getTblPr() : tablaXml.addNewTblPr();
+        // tblPr y tblGrid son obligatorios en el esquema (CT_Tbl los exige con
+        // minOccurs=1, a diferencia de sus propios hijos como tblW/tblBorders
+        // que sí son opcionales): por eso acá no hay isSetTblPr/isSetTblGrid
+        // -- XWPFTable.createTable ya los crea siempre, así que se usan
+        // directo con getTblPr()/getTblGrid().
+        CTTblPr tblPr = tablaXml.getTblPr();
 
         CTTblWidth tblW = tblPr.isSetTblW() ? tblPr.getTblW() : tblPr.addNewTblW();
         tblW.setType(STTblWidth.DXA);
@@ -406,7 +411,7 @@ public class InformePasantiaService {
         fijarBorde(bordes.isSetInsideH() ? bordes.getInsideH() : bordes.addNewInsideH(), 4);
         fijarBorde(bordes.isSetInsideV() ? bordes.getInsideV() : bordes.addNewInsideV(), 4);
 
-        CTTblGrid grilla = tablaXml.isSetTblGrid() ? tablaXml.getTblGrid() : tablaXml.addNewTblGrid();
+        CTTblGrid grilla = tablaXml.getTblGrid();
         while (grilla.sizeOfGridColArray() > 0) {
             grilla.removeGridCol(0);
         }
