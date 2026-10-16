@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -160,7 +161,8 @@ public class FormularioPdfService {
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getCi(), 257, 739);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEspecialidad().getNombre(), 156, 719);
         if (alumno.getEmpresa() != null) {
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(), 451, 698.9f);
+            escribirEmpresaConContinuacion(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(),
+                    448, 698.9f, 140, 173, 669.3f, 170);
         }
         if (nombrePadre != null && !nombrePadre.isBlank()) {
             escribirTexto(contentStream, fuente, tamanioFuente, nombrePadre, 277, 640);
@@ -177,7 +179,8 @@ public class FormularioPdfService {
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getCi(), 257, 339);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEspecialidad().getNombre(), 156, 319);
         if (alumno.getEmpresa() != null) {
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(), 451, 298.7f);
+            escribirEmpresaConContinuacion(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(),
+                    448, 298.7f, 140, 173, 269.1f, 170);
         }
         if (nombrePadre != null && !nombrePadre.isBlank()) {
             escribirTexto(contentStream, fuente, tamanioFuente, nombrePadre, 277, 239.8f);
@@ -296,6 +299,47 @@ public class FormularioPdfService {
         contentStream.newLineAtOffset(posicionX, y);
         contentStream.showText(texto);
         contentStream.endText();
+    }
+
+    // Para el nombre de la Empresa/Institución en AUTORIZACION_PADRES_PEL.pdf: la
+    // plantilla ya trae, pensada para completarse a mano, una línea de puntos más
+    // angosta justo después, antes de "...con una duración máxima de hasta ocho
+    // (8) horas diarias." -- es donde alguien completando el formulario a lapicera
+    // seguiría escribiendo si el nombre no entra en el primer renglón. Si entra,
+    // se centra en el primer renglón como siempre; si no entra, se corta en una
+    // palabra completa (nunca a la mitad de una palabra) y el resto sigue
+    // centrado en el segundo renglón.
+    private void escribirEmpresaConContinuacion(PDPageContentStream contentStream, PDType1Font fuente,
+                                                 float tamanioFuente, String texto,
+                                                 float centroLinea1, float yLinea1, float anchoLinea1,
+                                                 float centroLinea2, float yLinea2, float anchoLinea2) throws IOException {
+
+        float anchoCompleto = fuente.getStringWidth(texto) / 1000 * tamanioFuente;
+        if (anchoCompleto <= anchoLinea1) {
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, texto, centroLinea1, yLinea1);
+            return;
+        }
+
+        String[] palabras = texto.split(" ");
+        StringBuilder primeraLinea = new StringBuilder();
+        int cortaEn = palabras.length;
+
+        for (int i = 0; i < palabras.length; i++) {
+            String candidato = primeraLinea.isEmpty() ? palabras[i] : primeraLinea + " " + palabras[i];
+            float ancho = fuente.getStringWidth(candidato) / 1000 * tamanioFuente;
+            if (ancho > anchoLinea1 && !primeraLinea.isEmpty()) {
+                cortaEn = i;
+                break;
+            }
+            primeraLinea = new StringBuilder(candidato);
+        }
+
+        String segundaLinea = String.join(" ", Arrays.copyOfRange(palabras, cortaEn, palabras.length));
+
+        escribirTextoCentrado(contentStream, fuente, tamanioFuente, primeraLinea.toString(), centroLinea1, yLinea1);
+        if (!segundaLinea.isBlank()) {
+            escribirTextoCentrado(contentStream, fuente, tamanioFuente, segundaLinea, centroLinea2, yLinea2);
+        }
     }
 
     private void escribirTexto(PDPageContentStream contentStream, PDType1Font fuente, float tamanioFuente,
