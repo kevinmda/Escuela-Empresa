@@ -372,18 +372,17 @@ public class ImprimirController {
     public void generarPdfContratoVacio(Authentication authentication, HttpServletResponse response) throws IOException {
         Alumno alumno = obtenerAlumnoAutenticado(authentication);
 
-        // 1. Cargar la plantilla PDF
-        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2026.pdf");
+        // El año ya no viene impreso fijo en la plantilla (antes decía "2026"
+        // y quedaba desactualizado cada año nuevo): lo escribe el servicio,
+        // día y mes quedan en blanco para completarse a mano junto con el
+        // resto de los datos de este formulario.
+        byte[] pdf = formularioPdfService.generarContratoVacio();
 
-        // 2. Configurar la respuesta HTTP para que el navegador muestre el PDF
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition",
                 Descarga.inline(Descarga.nombreDocumento("Contrato", alumno.getNombres(), alumno.getApellidos(), "pdf"),
                         "Contrato.pdf"));
-
-        // 3. Enviar el PDF final al navegador
-        document.save(response.getOutputStream());
-        document.close();
+        response.getOutputStream().write(pdf);
     }
 
     @GetMapping("/alumno/imprimir/Autorizacion_Vacio.pdf")

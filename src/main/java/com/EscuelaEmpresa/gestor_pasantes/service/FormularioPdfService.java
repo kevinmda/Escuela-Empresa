@@ -66,7 +66,7 @@ public class FormularioPdfService {
     // formulario y estos no.
     public byte[] generarContrato(Alumno alumno, String supervisor, String empresa, String area,
                                    String padreEncargado) throws IOException {
-        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL_2026.pdf");
+        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL.pdf");
         PDPage pagina = document.getPage(0);
 
         PDPageContentStream contentStream = new PDPageContentStream(
@@ -92,15 +92,16 @@ public class FormularioPdfService {
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, area, 196, 774.5f);
         }
 
-        // "...a los___ días del mes de___de año 2025.-" (clausula DUODECIMA).
-        // El año queda tal cual esta impreso en la plantilla: es texto fijo de
-        // la plantilla, no algo que este codigo escribe, y quedo desactualizado
-        // (dice 2025). Cambiarlo requiere editar el PDF fuente, no esta linea.
+        // "...a los___ días del mes de___de año___.-" (clausula DUODECIMA). El
+        // año ya no viene impreso fijo en la plantilla (antes decía "2026" y
+        // quedaba desactualizado cada año nuevo): se escribe acá, igual que
+        // día y mes, pegado a "año" en el espacio que deja la plantilla.
         LocalDate hoy = LocalDate.now();
         Locale localeEspanol = new Locale.Builder().setLanguage("es").setRegion("ES").build();
         String mes = hoy.format(DateTimeFormatter.ofPattern("MMMM", localeEspanol));
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 158, 248);
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, mes, 305, 248);
+        escribirTexto(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getYear()), 395, 248);
 
         // "...el Padre o Encargado del ESTUDIANTE-PASANTE, el (la) señor(a),___"
         // (misma clausula DUODECIMA, blanco ancho: x=323.9 a 515.3). Antes salia
@@ -109,6 +110,27 @@ public class FormularioPdfService {
         if (padreEncargado != null && !padreEncargado.isBlank()) {
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, padreEncargado, 438, 273);
         }
+
+        contentStream.close();
+        return aBytes(document);
+    }
+
+    // Version "para imprimir y completar a mano" (botón Contrato_Vacio de
+    // ImprimirController): a diferencia de generarContrato, día y mes quedan
+    // en blanco (puntos) a propósito, para completarse con lapicera junto con
+    // el resto de los datos del alumno/empresa/padre. El año es la única
+    // excepción -- ya no tiene sentido dejarlo a mano ni, mucho menos, fijo en
+    // la plantilla (quedaba desactualizado cada año nuevo), así que se escribe
+    // acá igual que en la versión con datos.
+    public byte[] generarContratoVacio() throws IOException {
+        PDDocument document = plantillaService.cargarPdf("CONTRATO_PEL.pdf");
+        PDPage pagina = document.getPage(0);
+
+        PDPageContentStream contentStream = new PDPageContentStream(
+                document, pagina, PDPageContentStream.AppendMode.APPEND, true, true);
+
+        PDType1Font fuente = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+        escribirTexto(contentStream, fuente, 10, String.valueOf(LocalDate.now().getYear()), 395, 248);
 
         contentStream.close();
         return aBytes(document);
