@@ -163,10 +163,10 @@ public class FormularioPdfService {
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(), 451, 698.9f);
         }
         if (nombrePadre != null && !nombrePadre.isBlank()) {
-            escribirTexto(contentStream, fuente, tamanioFuente, nombrePadre, 307, 640);
+            escribirTexto(contentStream, fuente, tamanioFuente, nombrePadre, 277, 640);
         }
         if (ciPadre != null && !ciPadre.isBlank()) {
-            escribirTexto(contentStream, fuente, tamanioFuente, ciPadre, 137, 617.3f);
+            escribirTexto(contentStream, fuente, tamanioFuente, ciPadre, 114, 617.3f);
         }
         // Segunda autorizacion (la de repuesto)
         escribirTextoCentrado(contentStream, fuente, tamanioFuente, String.valueOf(hoy.getDayOfMonth()), 393.5f, 411);
@@ -180,10 +180,10 @@ public class FormularioPdfService {
             escribirTextoCentrado(contentStream, fuente, tamanioFuente, alumno.getEmpresa().getNombre(), 451, 298.7f);
         }
         if (nombrePadre != null && !nombrePadre.isBlank()) {
-            escribirTexto(contentStream, fuente, tamanioFuente, nombrePadre, 307, 239.8f);
+            escribirTexto(contentStream, fuente, tamanioFuente, nombrePadre, 277, 239.8f);
         }
         if (ciPadre != null && !ciPadre.isBlank()) {
-            escribirTexto(contentStream, fuente, tamanioFuente, ciPadre, 137, 217.2f);
+            escribirTexto(contentStream, fuente, tamanioFuente, ciPadre, 114, 217.2f);
         }
 
         contentStream.close();
