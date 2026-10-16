@@ -305,10 +305,12 @@ public class FormularioPdfService {
     // plantilla ya trae, pensada para completarse a mano, una línea de puntos más
     // angosta justo después, antes de "...con una duración máxima de hasta ocho
     // (8) horas diarias." -- es donde alguien completando el formulario a lapicera
-    // seguiría escribiendo si el nombre no entra en el primer renglón. Si entra,
-    // se centra en el primer renglón como siempre; si no entra, se corta en una
-    // palabra completa (nunca a la mitad de una palabra) y el resto sigue
-    // centrado en el segundo renglón.
+    // seguiría escribiendo si el nombre no entra en el primer renglón.
+    //
+    // Si entra completo en el primer renglón, se centra ahí como siempre. Si no
+    // entra, deja de centrarse: arranca pegado al margen izquierdo de cada
+    // renglón (como un párrafo normal) y se corta en una palabra completa, nunca
+    // a la mitad de una palabra.
     private void escribirEmpresaConContinuacion(PDPageContentStream contentStream, PDType1Font fuente,
                                                  float tamanioFuente, String texto,
                                                  float centroLinea1, float yLinea1, float anchoLinea1,
@@ -336,9 +338,12 @@ public class FormularioPdfService {
 
         String segundaLinea = String.join(" ", Arrays.copyOfRange(palabras, cortaEn, palabras.length));
 
-        escribirTextoCentrado(contentStream, fuente, tamanioFuente, primeraLinea.toString(), centroLinea1, yLinea1);
+        float xIzquierdaLinea1 = centroLinea1 - (anchoLinea1 / 2);
+        float xIzquierdaLinea2 = centroLinea2 - (anchoLinea2 / 2);
+
+        escribirTexto(contentStream, fuente, tamanioFuente, primeraLinea.toString(), xIzquierdaLinea1, yLinea1);
         if (!segundaLinea.isBlank()) {
-            escribirTextoCentrado(contentStream, fuente, tamanioFuente, segundaLinea, centroLinea2, yLinea2);
+            escribirTexto(contentStream, fuente, tamanioFuente, segundaLinea, xIzquierdaLinea2, yLinea2);
         }
     }
 
