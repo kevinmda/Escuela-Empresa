@@ -13,7 +13,14 @@
 -- relación (la FK vive en especialidad, no en administrador); si hace falta
 -- borrarla sigue dependiendo de que no tenga alumnos, empresas o
 -- supervisores asignados, que es un tema aparte.
-ALTER TABLE especialidad DROP FOREIGN KEY fk_especialidad_administrador;
+-- El nombre real de la FK puede no ser el que pondría este script (ver
+-- V10__alumno_borra_en_cascada.sql), así que se busca en information_schema
+-- en vez de asumirlo.
+SET @fk := (SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'especialidad'
+      AND COLUMN_NAME = 'id_Ad' AND REFERENCED_TABLE_NAME = 'administrador' LIMIT 1);
+SET @sql := CONCAT('ALTER TABLE especialidad DROP FOREIGN KEY `', @fk, '`');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 ALTER TABLE especialidad
     ADD CONSTRAINT fk_especialidad_administrador
     FOREIGN KEY (id_Ad) REFERENCES administrador (id_Ad) ON DELETE SET NULL;
